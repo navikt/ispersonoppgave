@@ -1,0 +1,5 @@
+{
+    "applicationPort": "8081",
+    "applicationThreads": "1",
+    "applicationName": "ispersonoppgave"
+}
