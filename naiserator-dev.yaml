@@ -1,0 +1,44 @@
+apiVersion: "nais.io/v1alpha1"
+kind: "Application"
+metadata:
+  name: ispersonoppgave
+  namespace: default
+  labels:
+    team: teamsykefravr
+spec:
+  image: {{ image }}
+  port: 8080
+  team: teamsykefravr
+  liveness:
+    path: /is_alive
+    initialDelay: 10
+    timeout: 5
+    periodSeconds: 5
+    failureThreshold: 30
+  readiness:
+    path: /is_ready
+    initialDelay: 30
+    periodSeconds: 5
+    timeout: 5
+  resources:
+    limits:
+      cpu: 500m
+      memory: 1Gi
+    requests:
+      cpu: 200m
+      memory: 768Mi
+  replicas:
+    min: 1
+    max: 2
+    cpuThresholdPercentage: 90
+  prometheus:
+    enabled: true
+    path: /prometheus
+  ingresses:
+    - "https://ispersonoppgave.nais.preprod.local"
+  vault:
+    enabled: true
+    paths:
+      - kvPath: /serviceuser/data/dev/srvispersonoppgave
+        mountPath: /secrets/serviceuser
+  webproxy: true
