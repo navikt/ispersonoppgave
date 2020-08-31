@@ -16,7 +16,8 @@ fun getEnvironment(): Environment {
         Environment(
             getEnvVar("APPLICATION_PORT", "8080").toInt(),
             getEnvVar("APPLICATION_THREADS", "1").toInt(),
-            getEnvVar("APPLICATION_NAME", "ispersonoppgave")
+            getEnvVar("APPLICATION_NAME", "ispersonoppgave"),
+            getEnvVar("KAFKA_BOOTSTRAP_SERVERS_URL")
         )
     }
 }
@@ -26,7 +27,8 @@ val appIsRunningLocally: Boolean = System.getenv("NAIS_CLUSTER_NAME").isNullOrEm
 data class Environment(
     val applicationPort: Int,
     val applicationThreads: Int,
-    val applicationName: String
+    val applicationName: String,
+    val kafkaBootstrapServers: String
 )
 
 data class VaultSecrets(
