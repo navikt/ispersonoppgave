@@ -1,9 +1,17 @@
 # ispersonoppgave
-App for håndtering av oppgaver som syfo-veiledere må behandle i syfomodiaperson i Modia
+Application for handling of Person-Oppgaver by SYFO-veiledere in Syfomodiaperson(https://github.com/navikt/syfomodiaperson) in Modia.
 
-## Hente pakker fra Github Package Registry
-Noen pakker hentes fra Github Package Registry som krever autentisering.
-Pakkene kan lastes ned via build.gradle slik:
+## Technologies used
+* Kotlin
+* Ktor
+* Gradle
+* Spek
+* Vault
+* Postgres
+
+## Get packages from Github Package Registry
+Some packages are downloaded from Github Package Registry and requires authentication.
+The packages can be downloaded via build.gradle:
 ```
 val githubUser: String by project
 val githubPassword: String by project
@@ -18,16 +26,16 @@ repositories {
 }
 ```
 
-`githubUser` og `githubPassword` settes i `~/.gradle/gradle.properties`:
+`githubUser` and `githubPassword` are set in `~/.gradle/gradle.properties`:
 
 ```
 githubUser=x-access-token
 githubPassword=<token>
 ```
 
-Hvor `<token>` er et personal access token med scope `read:packages`(og SSO enabled).
+Where `<token>` is a personal access token with scope `read:packages`(and SSO enabled).
 
-Evt. kan variablene kan også konfigureres som miljøvariabler eller brukes i kommandolinjen:
+Alternatively, the variabls can be configured as environment variables miljøvariabler or used in the command line:
 
 * `ORG_GRADLE_PROJECT_githubUser`
 * `ORG_GRADLE_PROJECT_githubPassword`
@@ -36,3 +44,14 @@ Evt. kan variablene kan også konfigureres som miljøvariabler eller brukes i ko
 ./gradlew -PgithubUser=x-access-token -PgithubPassword=[token]
 ```
 
+#### Build
+Run `./gradlew clean shadowJar`
+
+### Lint
+Run `./gradlew --continue ktlintCheck`
+
+#### Creating a docker image
+Creating a docker image should be as simple as `docker build -t ispersonoppgave .`
+
+#### Running a docker image
+`docker run --rm -it -p 8080:8080 ispersonoppgave`
