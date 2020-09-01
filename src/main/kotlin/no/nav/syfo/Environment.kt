@@ -4,14 +4,13 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.registerKotlinModule
 import java.io.File
 
-const val localEnvironmentPropertiesPath = "./src/main/resources/localEnv.json"
 const val defaultlocalEnvironmentPropertiesPath = "./src/main/resources/localEnvForTests.json"
 private val objectMapper: ObjectMapper = ObjectMapper()
 
 fun getEnvironment(): Environment {
     objectMapper.registerKotlinModule()
     return if (appIsRunningLocally) {
-        objectMapper.readValue(firstExistingFile(localEnvironmentPropertiesPath, defaultlocalEnvironmentPropertiesPath), Environment::class.java)
+        objectMapper.readValue(firstExistingFile(defaultlocalEnvironmentPropertiesPath), Environment::class.java)
     } else {
         Environment(
             getEnvVar("APPLICATION_PORT", "8080").toInt(),
