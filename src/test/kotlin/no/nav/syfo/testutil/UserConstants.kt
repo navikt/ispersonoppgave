@@ -1,6 +1,9 @@
 package no.nav.syfo.testutil
 
+import no.nav.syfo.domain.Fodselsnummer
+import no.nav.syfo.domain.Virksomhetsnummer
+
 object UserConstants {
-    const val ARBEIDSTAKER_FNR = "12345678912"
-    const val VIRKSOMHETSNUMMER = "123456789"
+    val ARBEIDSTAKER_FNR = Fodselsnummer("12345678912")
+    val VIRKSOMHETSNUMMER = Virksomhetsnummer("123456789")
 }

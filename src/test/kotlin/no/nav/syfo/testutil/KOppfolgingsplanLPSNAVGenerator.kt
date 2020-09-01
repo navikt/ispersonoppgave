@@ -9,8 +9,8 @@ import java.util.*
 val generateKOppfolgingsplanLPSNAV =
     KOppfolgingsplanLPSNAV(
         UUID.randomUUID().toString(),
-        ARBEIDSTAKER_FNR,
-        VIRKSOMHETSNUMMER,
+        ARBEIDSTAKER_FNR.value,
+        VIRKSOMHETSNUMMER.value,
         true,
         LocalDate.now().toEpochDay().toInt()
     )

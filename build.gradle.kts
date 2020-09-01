@@ -10,7 +10,9 @@ object Versions {
     const val avroVersion = "1.8.2"
     const val confluentVersion = "5.3.0"
     const val coroutinesVersion = "1.3.7"
+    const val flywayVersion = "5.2.4"
     const val fuelVersion = "1.15.1"
+    const val hikariVersion = "3.3.0"
     const val kafkaVersion = "2.0.0"
     const val kafkaEmbeddedVersion = "2.3.0"
     const val kluentVersion = "1.52"
@@ -18,7 +20,10 @@ object Versions {
     const val ktorVersion = "1.3.2"
     const val logbackVersion = "1.2.3"
     const val logstashEncoderVersion = "5.1"
+    const val postgresVersion = "42.2.5"
+    const val postgresTestContainersVersion = "1.11.3"
     const val prometheusVersion = "0.8.1"
+    const val vaultJavaDriveVersion = "3.1.0"
     const val spekVersion = "2.0.9"
     const val jacksonVersion = "2.9.9"
     const val mockkVersion = "1.10.0"
@@ -89,6 +94,13 @@ dependencies {
     implementation("org.apache.avro:avro:${Versions.avroVersion}")
     implementation("io.confluent:kafka-avro-serializer:${Versions.confluentVersion}")
     implementation("no.nav.syfo.oppfolgingsplan.avro:syfoopservice-schema:${Versions.syfoOppfolgingsplanSchemaVersion}")
+
+    // Database
+    implementation("org.postgresql:postgresql:${Versions.postgresVersion}")
+    implementation("com.zaxxer:HikariCP:${Versions.hikariVersion}")
+    implementation("org.flywaydb:flyway-core:${Versions.flywayVersion}")
+    implementation("com.bettercloud:vault-java-driver:${Versions.vaultJavaDriveVersion}")
+    testImplementation("org.testcontainers:postgresql:${Versions.postgresTestContainersVersion}")
 
     implementation("io.arrow-kt:arrow-core-data:${Versions.arrowVersion}")
     implementation("com.github.kittinunf.fuel:fuel:${Versions.fuelVersion}")
