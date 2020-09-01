@@ -5,6 +5,7 @@ import kotlinx.coroutines.*
 import net.logstash.logback.argument.StructuredArguments
 import no.nav.syfo.*
 import no.nav.syfo.oppfolgingsplan.avro.KOppfolgingsplanLPSNAV
+import no.nav.syfo.personoppgave.oppfolgingsplanlps.OppfolgingsplanLPSService
 import no.nav.syfo.util.callIdArgument
 import no.nav.syfo.util.kafkaCallId
 import org.apache.kafka.clients.consumer.ConsumerRebalanceListener
@@ -40,17 +41,23 @@ fun kafkaConsumerConfig(
 }
 
 suspend fun CoroutineScope.setupKafka(
-    vaultSecrets: VaultSecrets
+    vaultSecrets: VaultSecrets,
+    oppfolgingsplanLPSService: OppfolgingsplanLPSService
 ) {
     LOG.info("Setting up kafka consumer")
 
-    launchListeners(state, kafkaConsumerConfig(env, vaultSecrets))
+    launchListeners(
+        state,
+        kafkaConsumerConfig(env, vaultSecrets),
+        oppfolgingsplanLPSService
+    )
 }
 
 @KtorExperimentalAPI
 suspend fun CoroutineScope.launchListeners(
     applicationState: ApplicationState,
-    consumerProperties: Properties
+    consumerProperties: Properties,
+    oppfolgingsplanLPSService: OppfolgingsplanLPSService
 ) {
     val kafkaConsumerOppfolgingsplanLPSNAV = KafkaConsumer<String, KOppfolgingsplanLPSNAV>(consumerProperties)
 
@@ -71,7 +78,11 @@ suspend fun CoroutineScope.launchListeners(
     )
 
     createListener(applicationState) {
-        blockingApplicationLogic(applicationState, kafkaConsumerOppfolgingsplanLPSNAV)
+        blockingApplicationLogic(
+            applicationState,
+            kafkaConsumerOppfolgingsplanLPSNAV,
+            oppfolgingsplanLPSService
+        )
     }
 
     applicationState.initialized = true
@@ -80,7 +91,8 @@ suspend fun CoroutineScope.launchListeners(
 @KtorExperimentalAPI
 suspend fun blockingApplicationLogic(
     applicationState: ApplicationState,
-    kafkaConsumer: KafkaConsumer<String, KOppfolgingsplanLPSNAV>
+    kafkaConsumer: KafkaConsumer<String, KOppfolgingsplanLPSNAV>,
+    oppfolgingsplanLPSService: OppfolgingsplanLPSService
 ) {
     while (applicationState.running) {
         var logValues = arrayOf(
@@ -99,6 +111,11 @@ suspend fun blockingApplicationLogic(
                 StructuredArguments.keyValue("timestamp", it.timestamp())
             )
             LOG.info("Received KOppfolgingsplanLPSNAV, ready to process, $logKeys, {}", *logValues, callIdArgument(callId))
+
+            oppfolgingsplanLPSService.receiveOppfolgingsplanLPS(
+                kOppfolgingsplanLPSNAV,
+                callId
+            )
         }
         delay(100)
     }

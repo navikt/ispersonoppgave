@@ -22,6 +22,7 @@ import kotlinx.coroutines.slf4j.MDCContext
 import no.nav.syfo.api.registerPodApi
 import no.nav.syfo.api.registerPrometheusApi
 import no.nav.syfo.kafka.setupKafka
+import no.nav.syfo.personoppgave.oppfolgingsplanlps.OppfolgingsplanLPSService
 import no.nav.syfo.util.*
 import org.slf4j.LoggerFactory
 import java.util.*
@@ -112,9 +113,12 @@ fun Application.serverModule() {
 fun Application.kafkaModule(
     vaultSecrets: VaultSecrets
 ) {
+    val oppfolgingsplanLPSService = OppfolgingsplanLPSService(database)
+
     launch(backgroundTasksContext) {
         setupKafka(
-            vaultSecrets
+            vaultSecrets,
+            oppfolgingsplanLPSService
         )
     }
 }
