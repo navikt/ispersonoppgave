@@ -1,5 +1,9 @@
 {
     "applicationPort": "8081",
     "applicationThreads": "1",
-    "applicationName": "ispersonoppgave"
+    "applicationName": "ispersonoppgave",
+    "kafkaBootstrapServers": "kafkaurl",
+    "databaseName": "ispersonoppgave",
+    "ispersonoppgaveDBURL": "12314.adeo.no",
+    "mountPathVault": "vault.adeo.no"
 }
