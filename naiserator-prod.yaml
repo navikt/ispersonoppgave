@@ -50,4 +50,4 @@ spec:
     - name: ISPERSONOPPGAVE_DB_URL
       value: jdbc:postgresql://A01DBVL020.adeo.no:5432/ispersonoppgave
     - name: MOUNT_PATH_VAULT
-      value: /postgresql/preprod-fss
+      value: /postgresql/prod-fss
