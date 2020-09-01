@@ -5,5 +5,7 @@
     "kafkaBootstrapServers": "kafkaurl",
     "databaseName": "ispersonoppgave",
     "ispersonoppgaveDBURL": "12314.adeo.no",
-    "mountPathVault": "vault.adeo.no"
+    "mountPathVault": "vault.adeo.no",
+    "behandlendeenhetUrl": "http://localhost:8080",
+    "stsRestUrl": "http://localhost:8080"
 }

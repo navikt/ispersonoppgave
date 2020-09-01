@@ -8,6 +8,10 @@ import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.util.concurrent.atomic.AtomicInteger
 
+const val APP_CONSUMER_ID = "ispersonoppgave"
+const val NAV_CONSUMER_ID = "Nav-Consumer-Id"
+
+const val NAV_CALL_ID = "Nav-Call-Id"
 const val NAV_CALL_ID_HEADER = "Nav-Call-Id"
 fun PipelineContext<out Unit, ApplicationCall>.getCallId(): String {
     return this.call.request.headers[NAV_CALL_ID_HEADER].toString()

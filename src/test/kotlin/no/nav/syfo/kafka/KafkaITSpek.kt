@@ -38,7 +38,9 @@ object KafkaITSpek : Spek({
         kafkaBootstrapServers = embeddedEnvironment.brokersURL,
         databaseName = "ispersonoppgave",
         ispersonoppgaveDBURL = "12314.adeo.no",
-        mountPathVault = "vault.adeo.no"
+        mountPathVault = "vault.adeo.no",
+        behandlendeenhetUrl = "behandlendeenhet",
+        stsRestUrl = "stsurl"
     )
 
     fun Properties.overrideForTest(): Properties = apply {

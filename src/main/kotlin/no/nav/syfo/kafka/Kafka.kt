@@ -40,16 +40,35 @@ fun kafkaConsumerConfig(
     }
 }
 
+fun kafkaProducerConfig(
+    env: Environment,
+    vaultSecrets: VaultSecrets
+): Properties {
+    return Properties().apply {
+        this["group.id"] = "${env.applicationName}-producer"
+        this["security.protocol"] = "SASL_SSL"
+        this["schema.registry.url"] = "http://kafka-schema-registry.tpa.svc.nais.local:8081"
+        this["sasl.mechanism"] = "PLAIN"
+        this["sasl.jaas.config"] = "org.apache.kafka.common.security.plain.PlainLoginModule required " +
+            "username=\"${vaultSecrets.serviceuserUsername}\" password=\"${vaultSecrets.serviceuserPassword}\";"
+        this["key.serializer"] = "org.apache.kafka.common.serialization.StringSerializer"
+        this["value.serializer"] = "no.nav.syfo.kafka.JacksonKafkaSerializer"
+        this["bootstrap.servers"] = env.kafkaBootstrapServers
+    }
+}
+
 suspend fun CoroutineScope.setupKafka(
     vaultSecrets: VaultSecrets,
-    oppfolgingsplanLPSService: OppfolgingsplanLPSService
+    oppfolgingsplanLPSService: OppfolgingsplanLPSService,
+    toggleProcessing: Boolean
 ) {
     LOG.info("Setting up kafka consumer")
 
     launchListeners(
         state,
         kafkaConsumerConfig(env, vaultSecrets),
-        oppfolgingsplanLPSService
+        oppfolgingsplanLPSService,
+        toggleProcessing
     )
 }
 
@@ -57,7 +76,8 @@ suspend fun CoroutineScope.setupKafka(
 suspend fun CoroutineScope.launchListeners(
     applicationState: ApplicationState,
     consumerProperties: Properties,
-    oppfolgingsplanLPSService: OppfolgingsplanLPSService
+    oppfolgingsplanLPSService: OppfolgingsplanLPSService,
+    toggleProcessing: Boolean
 ) {
     val kafkaConsumerOppfolgingsplanLPSNAV = KafkaConsumer<String, KOppfolgingsplanLPSNAV>(consumerProperties)
 
@@ -81,7 +101,8 @@ suspend fun CoroutineScope.launchListeners(
         blockingApplicationLogic(
             applicationState,
             kafkaConsumerOppfolgingsplanLPSNAV,
-            oppfolgingsplanLPSService
+            oppfolgingsplanLPSService,
+            toggleProcessing
         )
     }
 
@@ -92,7 +113,8 @@ suspend fun CoroutineScope.launchListeners(
 suspend fun blockingApplicationLogic(
     applicationState: ApplicationState,
     kafkaConsumer: KafkaConsumer<String, KOppfolgingsplanLPSNAV>,
-    oppfolgingsplanLPSService: OppfolgingsplanLPSService
+    oppfolgingsplanLPSService: OppfolgingsplanLPSService,
+    toggleProcessing: Boolean
 ) {
     while (applicationState.running) {
         var logValues = arrayOf(
@@ -112,10 +134,12 @@ suspend fun blockingApplicationLogic(
             )
             LOG.info("Received KOppfolgingsplanLPSNAV, ready to process, $logKeys, {}", *logValues, callIdArgument(callId))
 
-            oppfolgingsplanLPSService.receiveOppfolgingsplanLPS(
-                kOppfolgingsplanLPSNAV,
-                callId
-            )
+            if (toggleProcessing == true) {
+                oppfolgingsplanLPSService.receiveOppfolgingsplanLPS(
+                    kOppfolgingsplanLPSNAV,
+                    callId
+                )
+            }
         }
         delay(100)
     }
