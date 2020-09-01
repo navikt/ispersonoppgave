@@ -20,6 +20,7 @@ object Versions {
     const val ktorVersion = "1.3.2"
     const val logbackVersion = "1.2.3"
     const val logstashEncoderVersion = "5.1"
+    const val orgJsonVersion = "20180813"
     const val postgresVersion = "42.2.5"
     const val postgresTestContainersVersion = "1.11.3"
     const val prometheusVersion = "0.8.1"
@@ -27,7 +28,6 @@ object Versions {
     const val spekVersion = "2.0.9"
     const val jacksonVersion = "2.9.9"
     const val mockkVersion = "1.10.0"
-    const val orgJsonVersion = "20180813"
     const val syfoOppfolgingsplanSchemaVersion = "1.0.2"
 }
 
@@ -104,6 +104,7 @@ dependencies {
 
     implementation("io.arrow-kt:arrow-core-data:${Versions.arrowVersion}")
     implementation("com.github.kittinunf.fuel:fuel:${Versions.fuelVersion}")
+    implementation("org.json:json:${Versions.orgJsonVersion}")
 
     testImplementation("no.nav:kafka-embedded-env:${Versions.kafkaEmbeddedVersion}")
     testImplementation("org.amshove.kluent:kluent:${Versions.kluentVersion}")

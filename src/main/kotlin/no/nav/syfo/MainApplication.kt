@@ -21,9 +21,14 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.slf4j.MDCContext
 import no.nav.syfo.api.registerPodApi
 import no.nav.syfo.api.registerPrometheusApi
-import no.nav.syfo.kafka.setupKafka
+import no.nav.syfo.client.enhet.BehandlendeEnhetClient
+import no.nav.syfo.client.sts.StsRestClient
+import no.nav.syfo.kafka.*
+import no.nav.syfo.oversikthendelse.OversikthendelseProducer
+import no.nav.syfo.oversikthendelse.domain.KOversikthendelse
 import no.nav.syfo.personoppgave.oppfolgingsplanlps.OppfolgingsplanLPSService
 import no.nav.syfo.util.*
+import org.apache.kafka.clients.producer.KafkaProducer
 import org.slf4j.LoggerFactory
 import java.util.*
 import java.util.concurrent.Executors
@@ -53,10 +58,29 @@ fun main() {
             port = env.applicationPort
         }
 
+        val stsClientRest = StsRestClient(
+            env.stsRestUrl,
+            vaultSecrets.serviceuserUsername,
+            vaultSecrets.serviceuserPassword
+        )
+        val behandlendeEnhetClient = BehandlendeEnhetClient(
+            env.behandlendeenhetUrl,
+            stsClientRest
+        )
+        val producerProperties = kafkaProducerConfig(env, vaultSecrets)
+        val oversikthendelseRecordProducer = KafkaProducer<String, KOversikthendelse>(producerProperties)
+        val oversikthendelseProducer = OversikthendelseProducer(
+            oversikthendelseRecordProducer,
+            behandlendeEnhetClient
+        )
+
         module {
             databaseModule()
             serverModule()
-            kafkaModule(vaultSecrets)
+            kafkaModule(
+                vaultSecrets,
+                oversikthendelseProducer
+            )
         }
     })
     Runtime.getRuntime().addShutdownHook(Thread {
@@ -111,14 +135,22 @@ fun Application.serverModule() {
 }
 
 fun Application.kafkaModule(
-    vaultSecrets: VaultSecrets
+    vaultSecrets: VaultSecrets,
+    oversikthendelseProducer: OversikthendelseProducer
 ) {
-    val oppfolgingsplanLPSService = OppfolgingsplanLPSService(database)
-
+    val oppfolgingsplanLPSService = OppfolgingsplanLPSService(
+        database,
+        oversikthendelseProducer
+    )
+    var toggleProcessing = false
+    isDev {
+        toggleProcessing = true
+    }
     launch(backgroundTasksContext) {
         setupKafka(
             vaultSecrets,
-            oppfolgingsplanLPSService
+            oppfolgingsplanLPSService,
+            toggleProcessing
         )
     }
 }

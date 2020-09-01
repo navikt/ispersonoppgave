@@ -19,7 +19,9 @@ fun getEnvironment(): Environment {
             getEnvVar("KAFKA_BOOTSTRAP_SERVERS_URL"),
             getEnvVar("DATABASE_NAME", "ispersonoppgave"),
             getEnvVar("ISPERSONOPPGAVE_DB_URL"),
-            getEnvVar("MOUNT_PATH_VAULT")
+            getEnvVar("MOUNT_PATH_VAULT"),
+            getEnvVar("SECURITY_TOKEN_SERVICE_REST_URL"),
+            getEnvVar("SYFOBEHANDLENDEENHET_URL", "http://syfobehandlendeenhet")
         )
     }
 }
@@ -33,7 +35,9 @@ data class Environment(
     val kafkaBootstrapServers: String,
     val databaseName: String,
     val ispersonoppgaveDBURL: String,
-    val mountPathVault: String
+    val mountPathVault: String,
+    val stsRestUrl: String,
+    val behandlendeenhetUrl: String
 )
 
 data class VaultSecrets(
