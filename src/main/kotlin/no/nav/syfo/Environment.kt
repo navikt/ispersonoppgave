@@ -16,7 +16,10 @@ fun getEnvironment(): Environment {
             getEnvVar("APPLICATION_PORT", "8080").toInt(),
             getEnvVar("APPLICATION_THREADS", "1").toInt(),
             getEnvVar("APPLICATION_NAME", "ispersonoppgave"),
-            getEnvVar("KAFKA_BOOTSTRAP_SERVERS_URL")
+            getEnvVar("KAFKA_BOOTSTRAP_SERVERS_URL"),
+            getEnvVar("DATABASE_NAME", "ispersonoppgave"),
+            getEnvVar("ISPERSONOPPGAVE_DB_URL"),
+            getEnvVar("MOUNT_PATH_VAULT")
         )
     }
 }
@@ -27,7 +30,10 @@ data class Environment(
     val applicationPort: Int,
     val applicationThreads: Int,
     val applicationName: String,
-    val kafkaBootstrapServers: String
+    val kafkaBootstrapServers: String,
+    val databaseName: String,
+    val ispersonoppgaveDBURL: String,
+    val mountPathVault: String
 )
 
 data class VaultSecrets(

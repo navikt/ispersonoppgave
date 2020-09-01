@@ -53,7 +53,7 @@ fun main() {
         }
 
         module {
-            state.running = true
+            databaseModule()
             serverModule()
             kafkaModule(vaultSecrets)
         }
@@ -117,4 +117,14 @@ fun Application.kafkaModule(
             vaultSecrets
         )
     }
+}
+
+val Application.envKind get() = environment.config.property("ktor.environment").getString()
+
+fun Application.isDev(block: () -> Unit) {
+    if (envKind == "dev") block()
+}
+
+fun Application.isProd(block: () -> Unit) {
+    if (envKind == "production") block()
 }

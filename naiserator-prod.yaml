@@ -43,5 +43,11 @@ spec:
         mountPath: /secrets/serviceuser
   webproxy: true
   env:
+    - name: KTOR_ENV
+      value: production
     - name: KAFKA_BOOTSTRAP_SERVERS_URL
       value: SASL_SSL://a01apvl00145.adeo.no:8443,SASL_SSL://a01apvl00146.adeo.no:8443,SASL_SSL://a01apvl00147.adeo.no:8443,SASL_SSL://a01apvl00149.adeo.no:8443
+    - name: ISPERSONOPPGAVE_DB_URL
+      value: jdbc:postgresql://A01DBVL020.adeo.no:5432/ispersonoppgave
+    - name: MOUNT_PATH_VAULT
+      value: /postgresql/preprod-fss

@@ -35,7 +35,10 @@ object KafkaITSpek : Spek({
         applicationPort = getRandomPort(),
         applicationThreads = 1,
         applicationName = "ispersonoppgave",
-        kafkaBootstrapServers = embeddedEnvironment.brokersURL
+        kafkaBootstrapServers = embeddedEnvironment.brokersURL,
+        databaseName = "ispersonoppgave",
+        ispersonoppgaveDBURL = "12314.adeo.no",
+        mountPathVault = "vault.adeo.no"
     )
 
     fun Properties.overrideForTest(): Properties = apply {
