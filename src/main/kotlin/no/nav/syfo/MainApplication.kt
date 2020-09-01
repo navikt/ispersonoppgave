@@ -16,11 +16,16 @@ import io.ktor.routing.routing
 import io.ktor.server.engine.*
 import io.ktor.server.netty.Netty
 import io.ktor.util.KtorExperimentalAPI
+import kotlinx.coroutines.asCoroutineDispatcher
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.slf4j.MDCContext
 import no.nav.syfo.api.registerPodApi
 import no.nav.syfo.api.registerPrometheusApi
+import no.nav.syfo.kafka.setupKafka
 import no.nav.syfo.util.*
 import org.slf4j.LoggerFactory
 import java.util.*
+import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 
 data class ApplicationState(
@@ -30,11 +35,13 @@ data class ApplicationState(
 
 val log: org.slf4j.Logger = LoggerFactory.getLogger("no.nav.syfo.MainApplicationKt")
 
+val backgroundTasksContext = Executors.newFixedThreadPool(4).asCoroutineDispatcher() + MDCContext()
+
 @KtorExperimentalAPI
 fun main() {
     val vaultSecrets = VaultSecrets(
-        serviceuserPassword = getFileAsString("/secrets/serviceuser/password"),
-        serviceuserUsername = getFileAsString("/secrets/serviceuser/username")
+        serviceuserUsername = getFileAsString("/secrets/serviceuser/username"),
+        serviceuserPassword = getFileAsString("/secrets/serviceuser/password")
     )
 
     val server = embeddedServer(Netty, applicationEngineEnvironment {
@@ -47,7 +54,8 @@ fun main() {
 
         module {
             state.running = true
-            serverModule(vaultSecrets)
+            serverModule()
+            kafkaModule(vaultSecrets)
         }
     })
     Runtime.getRuntime().addShutdownHook(Thread {
@@ -61,7 +69,7 @@ val state: ApplicationState = ApplicationState(running = false, initialized = fa
 val env: Environment = getEnvironment()
 
 @KtorExperimentalAPI
-fun Application.serverModule(vaultSecrets: VaultSecrets) {
+fun Application.serverModule() {
     install(ContentNegotiation) {
         jackson {
             registerKotlinModule()
@@ -99,4 +107,14 @@ fun Application.serverModule(vaultSecrets: VaultSecrets) {
     }
 
     state.initialized = true
+}
+
+fun Application.kafkaModule(
+    vaultSecrets: VaultSecrets
+) {
+    launch(backgroundTasksContext) {
+        setupKafka(
+            vaultSecrets
+        )
+    }
 }

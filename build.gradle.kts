@@ -7,18 +7,23 @@ version = "1.0-SNAPSHOT"
 
 object Versions {
     const val arrowVersion = "0.9.0"
+    const val avroVersion = "1.8.2"
+    const val confluentVersion = "5.3.0"
     const val coroutinesVersion = "1.3.7"
     const val fuelVersion = "1.15.1"
-    const val kluentVersion = "1.39"
+    const val kafkaVersion = "2.0.0"
+    const val kafkaEmbeddedVersion = "2.3.0"
+    const val kluentVersion = "1.52"
     const val kotlinSerializationVersion = "0.9.0"
     const val ktorVersion = "1.3.2"
     const val logbackVersion = "1.2.3"
     const val logstashEncoderVersion = "5.1"
     const val prometheusVersion = "0.8.1"
     const val spekVersion = "2.0.9"
-    const val jacksonVersion = "2.9.8"
+    const val jacksonVersion = "2.9.9"
     const val mockkVersion = "1.10.0"
     const val orgJsonVersion = "20180813"
+    const val syfoOppfolgingsplanSchemaVersion = "1.0.2"
 }
 
 tasks.withType<Jar> {
@@ -32,14 +37,8 @@ plugins {
     id("org.jlleitschuh.gradle.ktlint") version "9.2.1"
 }
 
-buildscript {
-    dependencies {
-        classpath("javax.xml.bind:jaxb-api:2.4.0-b180830.0359")
-        classpath("org.glassfish.jaxb:jaxb-runtime:2.4.0-b180830.0438")
-        classpath("com.sun.activation:javax.activation:1.2.0")
-    }
-}
-
+val githubUser: String by project
+val githubPassword: String by project
 repositories {
     mavenCentral()
     jcenter()
@@ -48,6 +47,13 @@ repositories {
     maven(url = "https://dl.bintray.com/kotlin/kotlinx/")
     maven(url = "http://packages.confluent.io/maven/")
     maven(url = "https://oss.sonatype.org/content/groups/staging/")
+    maven {
+        url = uri("https://maven.pkg.github.com/navikt/syfoopservice-schema")
+        credentials {
+            username = githubUser
+            password = githubPassword
+        }
+    }
 }
 
 dependencies {
@@ -75,14 +81,19 @@ dependencies {
 
     implementation("ch.qos.logback:logback-classic:${Versions.logbackVersion}")
     implementation("net.logstash.logback:logstash-logback-encoder:${Versions.logstashEncoderVersion}")
-    implementation("com.fasterxml.jackson.core:jackson-databind:${Versions.jacksonVersion}")
+
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin:${Versions.jacksonVersion}")
     implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:${Versions.jacksonVersion}")
 
+    implementation("org.apache.kafka:kafka_2.12:${Versions.kafkaVersion}")
+    implementation("org.apache.avro:avro:${Versions.avroVersion}")
+    implementation("io.confluent:kafka-avro-serializer:${Versions.confluentVersion}")
+    implementation("no.nav.syfo.oppfolgingsplan.avro:syfoopservice-schema:${Versions.syfoOppfolgingsplanSchemaVersion}")
+
     implementation("io.arrow-kt:arrow-core-data:${Versions.arrowVersion}")
-    implementation("org.json:json:${Versions.orgJsonVersion}")
     implementation("com.github.kittinunf.fuel:fuel:${Versions.fuelVersion}")
 
+    testImplementation("no.nav:kafka-embedded-env:${Versions.kafkaEmbeddedVersion}")
     testImplementation("org.amshove.kluent:kluent:${Versions.kluentVersion}")
     testImplementation("org.spekframework.spek2:spek-dsl-jvm:${Versions.spekVersion}")
     testImplementation("io.ktor:ktor-server-test-host:${Versions.ktorVersion}")
