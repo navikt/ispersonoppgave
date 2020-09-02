@@ -97,7 +97,7 @@ suspend fun blockingApplicationLogic(
             )
             LOG.info("Received KOppfolgingsplanLPSNAV, ready to process, $logKeys, {}", *logValues, callIdArgument(callId))
 
-            if (toggleProcessing == true) {
+            if (toggleProcessing) {
                 oppfolgingsplanLPSService.receiveOppfolgingsplanLPS(
                     kOppfolgingsplanLPSNAV,
                     callId
