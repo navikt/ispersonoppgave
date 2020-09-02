@@ -29,12 +29,12 @@ fun DatabaseInterface.getPersonOppgaveList(fnr: Fodselsnummer): List<PPersonOppg
 const val queryCreatePersonOppgave = """INSERT INTO PERSON_OPPGAVE (
         id,
         uuid,
+        referanse_uuid,
         fnr,
         virksomhetsnummer,
         type,
         opprettet,
-        sist_endret) VALUES (DEFAULT, ?, ?, ?, ?, ?, ?) RETURNING id"""
-
+        sist_endret) VALUES (DEFAULT, ?, ?, ?, ?, ?, ?, ?) RETURNING id"""
 fun DatabaseInterface.createPersonOppgave(
     kOppfolgingsplanLPSNAV: KOppfolgingsplanLPSNAV,
     type: PersonOppgaveType
@@ -47,11 +47,12 @@ fun DatabaseInterface.createPersonOppgave(
     connection.use { connection ->
         val personIdList = connection.prepareStatement(queryCreatePersonOppgave).use {
             it.setString(1, uuid)
-            it.setString(2, kOppfolgingsplanLPSNAV.getFodselsnummer())
-            it.setString(3, kOppfolgingsplanLPSNAV.getVirksomhetsnummer())
-            it.setString(4, type.name)
-            it.setTimestamp(5, now)
+            it.setString(2, kOppfolgingsplanLPSNAV.getUuid())
+            it.setString(3, kOppfolgingsplanLPSNAV.getFodselsnummer())
+            it.setString(4, kOppfolgingsplanLPSNAV.getVirksomhetsnummer())
+            it.setString(5, type.name)
             it.setTimestamp(6, now)
+            it.setTimestamp(7, now)
             it.executeQuery().toList { getInt("id") }
         }
 
@@ -69,6 +70,7 @@ fun ResultSet.toPPersonOppgave(): PPersonOppgave =
     PPersonOppgave(
         id = getInt("id"),
         uuid = UUID.fromString(getString("uuid")),
+        referanseUuid = UUID.fromString(getString("referanse_uuid")),
         fnr = getString("fnr"),
         virksomhetsnummer = getString("virksomhetsnummer"),
         type = getString("type"),
