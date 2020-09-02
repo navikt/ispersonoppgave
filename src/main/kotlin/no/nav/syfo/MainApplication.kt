@@ -17,16 +17,14 @@ import io.ktor.server.engine.*
 import io.ktor.server.netty.Netty
 import io.ktor.util.KtorExperimentalAPI
 import kotlinx.coroutines.asCoroutineDispatcher
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.slf4j.MDCContext
 import no.nav.syfo.api.registerPodApi
 import no.nav.syfo.api.registerPrometheusApi
 import no.nav.syfo.client.enhet.BehandlendeEnhetClient
 import no.nav.syfo.client.sts.StsRestClient
-import no.nav.syfo.kafka.*
+import no.nav.syfo.kafka.kafkaProducerConfig
 import no.nav.syfo.oversikthendelse.OversikthendelseProducer
 import no.nav.syfo.oversikthendelse.domain.KOversikthendelse
-import no.nav.syfo.personoppgave.oppfolgingsplanlps.OppfolgingsplanLPSService
 import no.nav.syfo.util.*
 import org.apache.kafka.clients.producer.KafkaProducer
 import org.slf4j.LoggerFactory
@@ -132,27 +130,6 @@ fun Application.serverModule() {
     }
 
     state.initialized = true
-}
-
-fun Application.kafkaModule(
-    vaultSecrets: VaultSecrets,
-    oversikthendelseProducer: OversikthendelseProducer
-) {
-    val oppfolgingsplanLPSService = OppfolgingsplanLPSService(
-        database,
-        oversikthendelseProducer
-    )
-    var toggleProcessing = false
-    isDev {
-        toggleProcessing = true
-    }
-    launch(backgroundTasksContext) {
-        setupKafka(
-            vaultSecrets,
-            oppfolgingsplanLPSService,
-            toggleProcessing
-        )
-    }
 }
 
 val Application.envKind get() = environment.config.property("ktor.environment").getString()
