@@ -16,8 +16,7 @@ import no.nav.syfo.personoppgave.domain.PersonOppgaveType
 import no.nav.syfo.testutil.*
 import no.nav.syfo.testutil.UserConstants.ARBEIDSTAKER_FNR
 import no.nav.syfo.testutil.generator.generateBehandlendeEnhet
-import org.amshove.kluent.shouldBe
-import org.amshove.kluent.shouldEqual
+import org.amshove.kluent.*
 import org.apache.kafka.clients.producer.KafkaProducer
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
@@ -84,6 +83,7 @@ object OppfolgingsplanLPSServiceSpek : Spek({
                     personListe[0].virksomhetsnummer shouldEqual kOppfolgingsplanLPSNAV.getVirksomhetsnummer()
                     personListe[0].type shouldEqual PersonOppgaveType.OPPFOLGINGSPLANLPS.name
                     personListe[0].referanseUuid shouldEqual UUID.fromString(kOppfolgingsplanLPSNAV.getUuid())
+                    personListe[0].oversikthendelseTidspunkt.shouldNotBeNull()
                 }
             }
         }

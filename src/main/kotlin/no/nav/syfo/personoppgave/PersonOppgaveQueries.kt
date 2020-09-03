@@ -26,6 +26,26 @@ fun DatabaseInterface.getPersonOppgaveList(fnr: Fodselsnummer): List<PPersonOppg
     }
 }
 
+const val queryUpdatePersonOppgaveOversikthendelse = """
+    UPDATE PERSON_OPPGAVE
+    SET oversikthendelse_tidspunkt = ?
+    WHERE id = ?
+    """
+fun DatabaseInterface.updatePersonOppgaveOversikthendelse(
+    id: Int
+) {
+    val now = Timestamp.from(Instant.now())
+
+    connection.use { connection ->
+        connection.prepareStatement(queryUpdatePersonOppgaveOversikthendelse).use {
+            it.setTimestamp(1, now)
+            it.setInt(2, id)
+            it.execute()
+        }
+        connection.commit()
+    }
+}
+
 const val queryCreatePersonOppgave = """INSERT INTO PERSON_OPPGAVE (
         id,
         uuid,
@@ -38,11 +58,9 @@ const val queryCreatePersonOppgave = """INSERT INTO PERSON_OPPGAVE (
 fun DatabaseInterface.createPersonOppgave(
     kOppfolgingsplanLPSNAV: KOppfolgingsplanLPSNAV,
     type: PersonOppgaveType
-): Int? {
+): Int {
     val uuid = UUID.randomUUID().toString()
     val now = Timestamp.from(Instant.now())
-
-    var personId: Int? = null
 
     connection.use { connection ->
         val personIdList = connection.prepareStatement(queryCreatePersonOppgave).use {
@@ -59,11 +77,10 @@ fun DatabaseInterface.createPersonOppgave(
         if (personIdList.size != 1) {
             throw SQLException("Creating person failed, no rows affected.")
         }
-        personId = personIdList.first()
-
         connection.commit()
+
+        return personIdList.first()
     }
-    return personId
 }
 
 fun ResultSet.toPPersonOppgave(): PPersonOppgave =

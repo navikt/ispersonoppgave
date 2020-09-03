@@ -24,6 +24,13 @@ val COUNT_PERSON_OPPGAVE_OPPFOLGINGSPLANLPS_NO_BEHOVFORBISTAND: Counter = Counte
     .help("Counts the number KOppfolgingsplanLPS skipped due to no BehovForBistandFraNav")
     .register()
 
+const val OVERSIKTHENDELSE_OPPFOLGINGSPLANLPS_BISTAND_MOTTATT_SENT = "oversikthendelse_oppfolgingsplanlps_bistand_mottatt_sent"
+val COUNT_OVERSIKTHENDELSE_OPPFOLGINGSPLANLPS_BISTAND_MOTTATT_SENT: Counter = Counter.build()
+    .namespace(METRICS_NS)
+    .name(OVERSIKTHENDELSE_OPPFOLGINGSPLANLPS_BISTAND_MOTTATT_SENT)
+    .help("Counts the number of Oversikthendelse with OversikthendelseType OPPFOLGINGSPLANLPS_BISTAND_MOTTATT created from a KOppfolgingsplanLPS")
+    .register()
+
 const val CALL_BEHANDLENDEENHET_SUCCESS = "call_behandlendeenhet_success_count"
 const val CALL_BEHANDLENDEENHET_FAIL = "call_behandlendeenhet_fail_count"
 const val CALL_BEHANDLENDEENHET_EMPTY = "call_behandlendeenhet_empty_count"
