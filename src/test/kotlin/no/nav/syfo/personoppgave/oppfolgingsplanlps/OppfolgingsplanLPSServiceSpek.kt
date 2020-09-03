@@ -21,6 +21,7 @@ import org.amshove.kluent.shouldEqual
 import org.apache.kafka.clients.producer.KafkaProducer
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
+import java.util.*
 
 @InternalAPI
 object OppfolgingsplanLPSServiceSpek : Spek({
@@ -82,6 +83,7 @@ object OppfolgingsplanLPSServiceSpek : Spek({
                     personListe[0].fnr shouldEqual kOppfolgingsplanLPSNAV.getFodselsnummer()
                     personListe[0].virksomhetsnummer shouldEqual kOppfolgingsplanLPSNAV.getVirksomhetsnummer()
                     personListe[0].type shouldEqual PersonOppgaveType.OPPFOLGINGSPLANLPS.name
+                    personListe[0].referanseUuid shouldEqual UUID.fromString(kOppfolgingsplanLPSNAV.getUuid())
                 }
             }
         }
