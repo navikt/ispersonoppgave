@@ -14,6 +14,10 @@ import io.ktor.routing.routing
 import io.ktor.util.KtorExperimentalAPI
 import no.nav.syfo.api.registerPodApi
 import no.nav.syfo.api.registerPrometheusApi
+import no.nav.syfo.auth.isInvalidToken
+import no.nav.syfo.client.veiledertilgang.VeilederTilgangskontrollClient
+import no.nav.syfo.personoppgave.PersonOppgaveService
+import no.nav.syfo.personoppgave.api.registerVeilederPersonOppgaveApi
 import no.nav.syfo.util.*
 import java.util.*
 
@@ -48,11 +52,25 @@ fun Application.serverModule() {
             proceed()
             return@intercept
         }
+        val cookies = call.request.cookies
+        if (isInvalidToken(cookies)) {
+            call.respond(HttpStatusCode.Unauthorized, "Ugyldig token")
+            finish()
+        } else {
+            proceed()
+        }
     }
+
+    val personOppgaveService = PersonOppgaveService(database)
+    val veilederTilgangskontrollClient = VeilederTilgangskontrollClient(env.syfotilgangskontrollUrl)
 
     routing {
         registerPodApi(state)
         registerPrometheusApi()
+        registerVeilederPersonOppgaveApi(
+            personOppgaveService,
+            veilederTilgangskontrollClient
+        )
     }
 
     state.initialized = true

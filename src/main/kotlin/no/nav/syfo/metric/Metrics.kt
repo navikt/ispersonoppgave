@@ -50,6 +50,19 @@ val COUNT_CALL_BEHANDLENDEENHET_EMPTY: Counter = Counter.build()
     .help("Counts the number of responses from syfobehandlendeenhet with status 204 received")
     .register()
 
+const val CALL_TILGANGSKONTROLL_PERSON_SUCCESS = "call_tilgangskontroll_person_success_count"
+const val CALL_TILGANGSKONTROLL_PERSON_FAIL = "call_tilgangskontroll_person_fail_count"
+val COUNT_CALL_TILGANGSKONTROLL_PERSON_SUCCESS: Counter = Counter.build()
+    .namespace(METRICS_NS)
+    .name(CALL_TILGANGSKONTROLL_PERSON_SUCCESS)
+    .help("Counts the number of successful calls to syfo-tilgangskontroll - person")
+    .register()
+val COUNT_CALL_TILGANGSKONTROLL_PERSON_FAIL: Counter = Counter.build()
+    .namespace(METRICS_NS)
+    .name(CALL_TILGANGSKONTROLL_PERSON_FAIL)
+    .help("Counts the number of failed calls to syfo-tilgangskontroll - person")
+    .register()
+
 const val OPPFOLGINGSTILFELLE_SKIPPED_BEHANDLENDEENHET = "oppfolgingstilfelle_skipped_behandlendeenhet_count"
 val COUNT_OPPFOLGINGSTILFELLE_SKIPPED_BEHANDLENDEENHET: Counter = Counter.build()
     .namespace(METRICS_NS)
