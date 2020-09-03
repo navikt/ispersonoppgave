@@ -6,10 +6,9 @@ import no.nav.syfo.metric.*
 import no.nav.syfo.oppfolgingsplan.avro.KOppfolgingsplanLPSNAV
 import no.nav.syfo.oversikthendelse.OversikthendelseProducer
 import no.nav.syfo.oversikthendelse.domain.OversikthendelseType
-import no.nav.syfo.personoppgave.createPersonOppgave
+import no.nav.syfo.personoppgave.*
 import no.nav.syfo.personoppgave.domain.PPersonOppgave
 import no.nav.syfo.personoppgave.domain.PersonOppgaveType
-import no.nav.syfo.personoppgave.getPersonOppgaveList
 import no.nav.syfo.util.callIdArgument
 import org.slf4j.LoggerFactory
 import java.util.*
@@ -28,13 +27,15 @@ class OppfolgingsplanLPSService(
             val person: PPersonOppgave? = database.getPersonOppgaveList(Fodselsnummer(kOppfolgingsplanLPSNAV.getFodselsnummer()))
                 .find { it.uuid == UUID.fromString(kOppfolgingsplanLPSNAV.getUuid()) }
             if (person == null) {
-                database.createPersonOppgave(
+                val id = database.createPersonOppgave(
                     kOppfolgingsplanLPSNAV,
                     PersonOppgaveType.OPPFOLGINGSPLANLPS
                 )
                 COUNT_PERSON_OPPGAVE_OPPFOLGINGSPLANLPS_CREATED.inc()
 
                 sendOversikthendelse(kOppfolgingsplanLPSNAV, callId)
+
+                database.updatePersonOppgaveOversikthendelse(id)
             } else {
                 log.error("Already create a PersonOppgave for OppfolgingsplanLPS with UUID {}, {}", kOppfolgingsplanLPSNAV.getUuid(), callIdArgument(callId))
                 COUNT_PERSON_OPPGAVE_OPPFOLGINGSPLANLPS_ALREADY_CREATED.inc()
@@ -54,5 +55,6 @@ class OppfolgingsplanLPSService(
             OversikthendelseType.OPPFOLGINGSPLANLPS_BISTAND_MOTTATT,
             callId
         )
+        COUNT_OVERSIKTHENDELSE_OPPFOLGINGSPLANLPS_BISTAND_MOTTATT_SENT.inc()
     }
 }
