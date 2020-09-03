@@ -17,7 +17,7 @@ val githubUser: String by project
 val githubPassword: String by project
 repositories {
     maven {
-        url = uri("https://maven.pkg.github.com/navikt/tjenestespesifikasjoner")
+        url = uri("https://maven.pkg.github.com/navikt/syfoopservice-schema")
         credentials {
             username = githubUser
             password = githubPassword
