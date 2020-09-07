@@ -11,7 +11,7 @@ Application for handling of Person-Oppgaver by SYFO-veiledere in Syfomodiaperson
 
 ## Get packages from Github Package Registry
 Some packages are downloaded from Github Package Registry and requires authentication.
-The packages can be downloaded via build.gradle:
+The packages can be downloaded via build.gradle.kts:
 ```
 val githubUser: String by project
 val githubPassword: String by project
@@ -35,7 +35,7 @@ githubPassword=<token>
 
 Where `<token>` is a personal access token with scope `read:packages`(and SSO enabled).
 
-Alternatively, the variabls can be configured as environment variables miljøvariabler or used in the command line:
+Alternatively, the variables can be configured as environment variables or used in the command line:
 
 * `ORG_GRADLE_PROJECT_githubUser`
 * `ORG_GRADLE_PROJECT_githubPassword`
