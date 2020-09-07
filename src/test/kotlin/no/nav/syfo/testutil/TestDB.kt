@@ -2,11 +2,14 @@ package no.nav.syfo.testutil
 
 import no.nav.syfo.db.*
 import no.nav.syfo.domain.Fodselsnummer
+import no.nav.syfo.oppfolgingsplan.avro.KOppfolgingsplanLPSNAV
+import no.nav.syfo.personoppgave.*
 import no.nav.syfo.personoppgave.domain.PPersonOppgave
-import no.nav.syfo.personoppgave.queryGetPersonOppgaveListForFnr
-import no.nav.syfo.personoppgave.toPPersonOppgave
+import no.nav.syfo.personoppgave.domain.PersonOppgaveType
 import org.testcontainers.containers.PostgreSQLContainer
-import java.sql.Connection
+import java.sql.*
+import java.time.Instant
+import java.util.*
 
 class TestDB : DatabaseInterface {
 
@@ -49,5 +52,33 @@ fun Connection.getPersonOppgaveList(fodselnummer: Fodselsnummer): List<PPersonOp
             it.setString(1, fodselnummer.value)
             it.executeQuery().toList { toPPersonOppgave() }
         }
+    }
+}
+
+fun Connection.createPersonOppgave(
+    kOppfolgingsplanLPSNAV: KOppfolgingsplanLPSNAV,
+    type: PersonOppgaveType
+): Int {
+    val uuid = UUID.randomUUID().toString()
+    val now = Timestamp.from(Instant.now())
+
+    use { connection ->
+        val personIdList = connection.prepareStatement(queryCreatePersonOppgave).use {
+            it.setString(1, uuid)
+            it.setString(2, kOppfolgingsplanLPSNAV.getUuid())
+            it.setString(3, kOppfolgingsplanLPSNAV.getFodselsnummer())
+            it.setString(4, kOppfolgingsplanLPSNAV.getVirksomhetsnummer())
+            it.setString(5, type.name)
+            it.setTimestamp(6, now)
+            it.setTimestamp(7, now)
+            it.executeQuery().toList { getInt("id") }
+        }
+
+        if (personIdList.size != 1) {
+            throw SQLException("Creating person failed, no rows affected.")
+        }
+        connection.commit()
+
+        return personIdList.first()
     }
 }

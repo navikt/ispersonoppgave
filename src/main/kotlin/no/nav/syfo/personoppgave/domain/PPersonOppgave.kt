@@ -1,5 +1,7 @@
 package no.nav.syfo.personoppgave.domain
 
+import no.nav.syfo.domain.Fodselsnummer
+import no.nav.syfo.domain.Virksomhetsnummer
 import java.time.LocalDateTime
 import java.util.*
 
@@ -16,3 +18,19 @@ data class PPersonOppgave(
     val opprettet: LocalDateTime,
     val sistEndret: LocalDateTime
 )
+
+fun PPersonOppgave.toPersonOppgave(): PersonOppgave {
+    return PersonOppgave(
+        id = this.id,
+        uuid = this.uuid,
+        referanseUuid = this.referanseUuid,
+        fnr = Fodselsnummer(this.fnr),
+        virksomhetsnummer = Virksomhetsnummer(this.virksomhetsnummer),
+        type = PersonOppgaveType.valueOf(this.type),
+        oversikthendelseTidspunkt = this.oversikthendelseTidspunkt,
+        behandletTidspunkt = this.behandletTidspunkt,
+        behandletVeilederIdent = this.behandletVeilederIdent,
+        opprettet = this.opprettet,
+        sistEndret = this.sistEndret
+    )
+}
