@@ -5,7 +5,6 @@ on: push
 env:
   APP_NAME: ispersonoppgave
   IMAGE: docker.pkg.github.com/${{ github.repository }}/ispersonoppgave:${{ github.sha }}
-  COMMITER_NAME: ${{ github.event.pusher.name }}
 
 jobs:
   build:
