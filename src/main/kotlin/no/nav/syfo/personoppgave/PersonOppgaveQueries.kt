@@ -26,6 +26,41 @@ fun DatabaseInterface.getPersonOppgaveList(fnr: Fodselsnummer): List<PPersonOppg
     }
 }
 
+const val queryGetPersonOppgaveListForUUID = """
+                        SELECT *
+                        FROM PERSON_OPPGAVE
+                        WHERE uuid = ?
+                """
+fun DatabaseInterface.getPersonOppgaveList(uuid: UUID): List<PPersonOppgave> {
+    return connection.use { connection ->
+        connection.prepareStatement(queryGetPersonOppgaveListForUUID).use {
+            it.setString(1, uuid.toString())
+            it.executeQuery().toList { toPPersonOppgave() }
+        }
+    }
+}
+
+const val queryUpdatePersonOppgaveBehandlet = """
+                        UPDATE PERSON_OPPGAVE
+                        SET behandlet_tidspunkt = ?, behandlet_veileder_ident = ?
+                        WHERE uuid = ?
+                """
+fun DatabaseInterface.updatePersonOppgaveBehandlet(
+    uuid: UUID,
+    veilederIdent: String
+) {
+    val now = Timestamp.from(Instant.now())
+    connection.use { connection ->
+        connection.prepareStatement(queryUpdatePersonOppgaveBehandlet).use {
+            it.setTimestamp(1, now)
+            it.setString(2, veilederIdent)
+            it.setString(3, uuid.toString())
+            it.execute()
+        }
+        connection.commit()
+    }
+}
+
 const val queryUpdatePersonOppgaveOversikthendelse = """
     UPDATE PERSON_OPPGAVE
     SET oversikthendelse_tidspunkt = ?
@@ -58,7 +93,7 @@ const val queryCreatePersonOppgave = """INSERT INTO PERSON_OPPGAVE (
 fun DatabaseInterface.createPersonOppgave(
     kOppfolgingsplanLPSNAV: KOppfolgingsplanLPSNAV,
     type: PersonOppgaveType
-): Int {
+): Pair<Int, UUID> {
     val uuid = UUID.randomUUID().toString()
     val now = Timestamp.from(Instant.now())
 
@@ -79,7 +114,7 @@ fun DatabaseInterface.createPersonOppgave(
         }
         connection.commit()
 
-        return personIdList.first()
+        return Pair(personIdList.first(), UUID.fromString(uuid))
     }
 }
 

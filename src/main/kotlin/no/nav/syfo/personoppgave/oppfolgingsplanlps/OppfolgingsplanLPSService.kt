@@ -30,7 +30,7 @@ class OppfolgingsplanLPSService(
                 val id = database.createPersonOppgave(
                     kOppfolgingsplanLPSNAV,
                     PersonOppgaveType.OPPFOLGINGSPLANLPS
-                )
+                ).first
                 COUNT_PERSON_OPPGAVE_OPPFOLGINGSPLANLPS_CREATED.inc()
 
                 sendOversikthendelse(kOppfolgingsplanLPSNAV, callId)

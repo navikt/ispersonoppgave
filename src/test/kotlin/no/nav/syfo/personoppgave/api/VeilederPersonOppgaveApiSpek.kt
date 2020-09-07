@@ -20,6 +20,7 @@ import io.ktor.server.testing.handleRequest
 import io.ktor.util.InternalAPI
 import io.mockk.every
 import io.mockk.mockkStatic
+import no.nav.syfo.auth.getTokenFromCookie
 import no.nav.syfo.auth.isInvalidToken
 import no.nav.syfo.client.veiledertilgang.Tilgang
 import no.nav.syfo.client.veiledertilgang.VeilederTilgangskontrollClient
@@ -27,6 +28,7 @@ import no.nav.syfo.personoppgave.PersonOppgaveService
 import no.nav.syfo.personoppgave.domain.PersonOppgaveType
 import no.nav.syfo.testutil.*
 import no.nav.syfo.testutil.UserConstants.ARBEIDSTAKER_FNR
+import no.nav.syfo.testutil.generator.veilederTokenGenerator
 import no.nav.syfo.util.NAV_PERSONIDENT_HEADER
 import org.amshove.kluent.*
 import org.spekframework.spek2.Spek
@@ -52,6 +54,10 @@ object VeilederPersonOppgaveApiSpek : Spek({
                 true,
                 ""
             )
+            val responseNoAccessPerson = Tilgang(
+                false,
+                ""
+            )
 
             val mockHttpServerPort = ServerSocket(0).use { it.localPort }
             val mockHttpServerUrl = "http://localhost:$mockHttpServerPort"
@@ -63,6 +69,8 @@ object VeilederPersonOppgaveApiSpek : Spek({
                     get("/syfo-tilgangskontroll/api/tilgang/bruker") {
                         if (call.parameters["fnr"] == ARBEIDSTAKER_FNR.value) {
                             call.respond(responseAccessPerson)
+                        } else {
+                            call.respond(responseNoAccessPerson)
                         }
                     }
                 }
@@ -188,6 +196,57 @@ object VeilederPersonOppgaveApiSpek : Spek({
                         personOppgave.type shouldEqual personOppgaveType.name
                         personOppgave.behandletTidspunkt.shouldBeNull()
                         personOppgave.behandletVeilederIdent.shouldBeNull()
+                        personOppgave.opprettet.shouldNotBeNull()
+                    }
+                }
+            }
+
+            describe("Process PersonOppgave for PersonIdent") {
+                it("should return OK if Veileder processed existing PersonOppgave") {
+                    every {
+                        isInvalidToken(any())
+                    } returns false
+
+                    val token = veilederTokenGenerator
+                    every {
+                        getTokenFromCookie(any())
+                    } returns token
+
+                    val kOppfolgingsplanLPSNAV = generateKOppfolgingsplanLPSNAV
+                    val personOppgaveType = PersonOppgaveType.OPPFOLGINGSPLANLPS
+
+                    val uuid = database.connection.createPersonOppgave(
+                        kOppfolgingsplanLPSNAV,
+                        personOppgaveType
+                    ).second
+
+                    val urlProcess = "$baseUrl/$uuid/behandle"
+                    val urlGet = "$baseUrl/personident"
+
+                    with(handleRequest(HttpMethod.Post, urlProcess) {
+                        call.request.cookies[cookies]
+                    }) {
+                        response.status() shouldEqual HttpStatusCode.OK
+                    }
+
+                    with(handleRequest(HttpMethod.Get, urlGet) {
+                        addHeader(NAV_PERSONIDENT_HEADER, ARBEIDSTAKER_FNR.value)
+                        call.request.cookies[cookies]
+                    }) {
+                        response.status() shouldEqual HttpStatusCode.OK
+
+                        val personOppgaveList = objectMapper.readValue<List<PersonOppgaveVeileder>>(response.content!!)
+
+                        personOppgaveList.size shouldEqual 1
+
+                        val personOppgave = personOppgaveList.first()
+                        personOppgave.uuid.shouldNotBeNull()
+                        personOppgave.referanseUuid shouldEqual kOppfolgingsplanLPSNAV.getUuid()
+                        personOppgave.fnr shouldEqual kOppfolgingsplanLPSNAV.getFodselsnummer()
+                        personOppgave.virksomhetsnummer shouldEqual kOppfolgingsplanLPSNAV.getVirksomhetsnummer()
+                        personOppgave.type shouldEqual personOppgaveType.name
+                        personOppgave.behandletTidspunkt.shouldNotBeNull()
+                        personOppgave.behandletVeilederIdent.shouldNotBeNull()
                         personOppgave.opprettet.shouldNotBeNull()
                     }
                 }
