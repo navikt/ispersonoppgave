@@ -58,7 +58,7 @@ fun Connection.getPersonOppgaveList(fodselnummer: Fodselsnummer): List<PPersonOp
 fun Connection.createPersonOppgave(
     kOppfolgingsplanLPSNAV: KOppfolgingsplanLPSNAV,
     type: PersonOppgaveType
-): Int {
+): Pair<Int, UUID> {
     val uuid = UUID.randomUUID().toString()
     val now = Timestamp.from(Instant.now())
 
@@ -79,6 +79,6 @@ fun Connection.createPersonOppgave(
         }
         connection.commit()
 
-        return personIdList.first()
+        return Pair(personIdList.first(), UUID.fromString(uuid))
     }
 }
