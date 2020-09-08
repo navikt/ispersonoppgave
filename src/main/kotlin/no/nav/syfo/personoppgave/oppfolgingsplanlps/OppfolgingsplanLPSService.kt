@@ -11,10 +11,11 @@ import no.nav.syfo.personoppgave.*
 import no.nav.syfo.personoppgave.domain.PPersonOppgave
 import no.nav.syfo.personoppgave.domain.PersonOppgaveType
 import no.nav.syfo.util.callIdArgument
+import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.util.*
 
-val log = LoggerFactory.getLogger("no.nav.syfo.personoppgave.oppfolgingsplanlps")
+val log: Logger = LoggerFactory.getLogger("no.nav.syfo.personoppgave.oppfolgingsplanlps")
 
 class OppfolgingsplanLPSService(
     private val database: DatabaseInterface,
