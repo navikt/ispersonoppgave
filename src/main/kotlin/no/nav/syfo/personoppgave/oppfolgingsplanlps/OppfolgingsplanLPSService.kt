@@ -1,5 +1,6 @@
 package no.nav.syfo.personoppgave.oppfolgingsplanlps
 
+import no.nav.syfo.client.enhet.BehandlendeEnhetClient
 import no.nav.syfo.db.DatabaseInterface
 import no.nav.syfo.domain.Fodselsnummer
 import no.nav.syfo.metric.*
@@ -17,6 +18,7 @@ val log = LoggerFactory.getLogger("no.nav.syfo.personoppgave.oppfolgingsplanlps"
 
 class OppfolgingsplanLPSService(
     private val database: DatabaseInterface,
+    private val behandlendeEnhetClient: BehandlendeEnhetClient,
     private val oversikthendelseProducer: OversikthendelseProducer
 ) {
     fun receiveOppfolgingsplanLPS(
@@ -33,9 +35,14 @@ class OppfolgingsplanLPSService(
                 ).first
                 COUNT_PERSON_OPPGAVE_OPPFOLGINGSPLANLPS_CREATED.inc()
 
-                sendOversikthendelse(kOppfolgingsplanLPSNAV, callId)
-
-                database.updatePersonOppgaveOversikthendelse(id)
+                val sent = sendOversikthendelse(kOppfolgingsplanLPSNAV, callId)
+                if (sent) {
+                    database.updatePersonOppgaveOversikthendelse(id)
+                    COUNT_OVERSIKTHENDELSE_OPPFOLGINGSPLANLPS_BISTAND_MOTTATT_SENT.inc()
+                } else {
+                    log.info("Failed to send Oversikthendelse for OppfolgingsplanLPS due to missing BehandlendeEnhet, {}", callIdArgument(callId))
+                    COUNT_OPPFOLGINGSTILFELLE_SKIPPED_BEHANDLENDEENHET.inc()
+                }
             } else {
                 log.error("Already create a PersonOppgave for OppfolgingsplanLPS with UUID {}, {}", kOppfolgingsplanLPSNAV.getUuid(), callIdArgument(callId))
                 COUNT_PERSON_OPPGAVE_OPPFOLGINGSPLANLPS_ALREADY_CREATED.inc()
@@ -49,12 +56,16 @@ class OppfolgingsplanLPSService(
     fun sendOversikthendelse(
         kOppfolgingsplanLPSNAV: KOppfolgingsplanLPSNAV,
         callId: String = ""
-    ) {
+    ): Boolean {
+        val fnr = Fodselsnummer(kOppfolgingsplanLPSNAV.getFodselsnummer())
+        val behandlendeEnhet = behandlendeEnhetClient.getEnhet(fnr, callId) ?: return false
+
         oversikthendelseProducer.sendOversikthendelse(
-            Fodselsnummer(kOppfolgingsplanLPSNAV.getFodselsnummer()),
+            fnr,
+            behandlendeEnhet,
             OversikthendelseType.OPPFOLGINGSPLANLPS_BISTAND_MOTTATT,
             callId
         )
-        COUNT_OVERSIKTHENDELSE_OPPFOLGINGSPLANLPS_BISTAND_MOTTATT_SENT.inc()
+        return true
     }
 }
