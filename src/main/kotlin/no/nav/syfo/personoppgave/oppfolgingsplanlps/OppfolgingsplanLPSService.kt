@@ -28,7 +28,7 @@ class OppfolgingsplanLPSService(
     ) {
         if (kOppfolgingsplanLPSNAV.getBehovForBistandFraNav() == true) {
             val person: PPersonOppgave? = database.getPersonOppgaveList(Fodselsnummer(kOppfolgingsplanLPSNAV.getFodselsnummer()))
-                .find { it.uuid == UUID.fromString(kOppfolgingsplanLPSNAV.getUuid()) }
+                .find { it.referanseUuid == UUID.fromString(kOppfolgingsplanLPSNAV.getUuid()) }
             if (person == null) {
                 val id = database.createPersonOppgave(
                     kOppfolgingsplanLPSNAV,
