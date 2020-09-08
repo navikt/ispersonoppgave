@@ -58,7 +58,10 @@ fun main() {
 
         module {
             databaseModule()
-            serverModule()
+            serverModule(
+                behandlendeEnhetClient,
+                oversikthendelseProducer
+            )
             kafkaModule(
                 vaultSecrets,
                 behandlendeEnhetClient,

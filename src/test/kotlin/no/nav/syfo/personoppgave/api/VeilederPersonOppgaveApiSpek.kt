@@ -18,22 +18,31 @@ import io.ktor.server.netty.Netty
 import io.ktor.server.testing.TestApplicationEngine
 import io.ktor.server.testing.handleRequest
 import io.ktor.util.InternalAPI
-import io.mockk.every
-import io.mockk.mockkStatic
+import io.mockk.*
+import no.nav.common.KafkaEnvironment
 import no.nav.syfo.auth.getTokenFromCookie
 import no.nav.syfo.auth.isInvalidToken
+import no.nav.syfo.client.enhet.BehandlendeEnhetClient
+import no.nav.syfo.client.sts.StsRestClient
 import no.nav.syfo.client.veiledertilgang.Tilgang
 import no.nav.syfo.client.veiledertilgang.VeilederTilgangskontrollClient
+import no.nav.syfo.kafka.kafkaProducerConfig
+import no.nav.syfo.oversikthendelse.OVERSIKTHENDELSE_TOPIC
+import no.nav.syfo.oversikthendelse.OversikthendelseProducer
+import no.nav.syfo.oversikthendelse.domain.KOversikthendelse
 import no.nav.syfo.personoppgave.PersonOppgaveService
 import no.nav.syfo.personoppgave.domain.PersonOppgaveType
 import no.nav.syfo.testutil.*
 import no.nav.syfo.testutil.UserConstants.ARBEIDSTAKER_FNR
+import no.nav.syfo.testutil.generator.generateBehandlendeEnhet
 import no.nav.syfo.testutil.generator.veilederTokenGenerator
 import no.nav.syfo.util.NAV_PERSONIDENT_HEADER
 import org.amshove.kluent.*
+import org.apache.kafka.clients.producer.KafkaProducer
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
 import java.net.ServerSocket
+import java.util.*
 
 private val objectMapper: ObjectMapper = ObjectMapper().apply {
     registerKotlinModule()
@@ -45,7 +54,30 @@ private val objectMapper: ObjectMapper = ObjectMapper().apply {
 @InternalAPI
 object VeilederPersonOppgaveApiSpek : Spek({
 
+    fun getRandomPort() = ServerSocket(0).use {
+        it.localPort
+    }
+
+    val embeddedEnvironment = KafkaEnvironment(
+        autoStart = false,
+        withSchemaRegistry = false,
+        topicNames = listOf(
+            OVERSIKTHENDELSE_TOPIC
+        )
+    )
+    val env = testEnvironment(getRandomPort(), embeddedEnvironment.brokersURL)
+
+    beforeGroup {
+        embeddedEnvironment.start()
+    }
+
+    afterGroup {
+        embeddedEnvironment.tearDown()
+    }
+
     describe("VeilederPersonOppgaveApi") {
+
+        val stsOidcClientMock = mockk<StsRestClient>()
 
         with(TestApplicationEngine()) {
             start()
@@ -58,6 +90,8 @@ object VeilederPersonOppgaveApiSpek : Spek({
                 false,
                 ""
             )
+
+            val responseBehandlendeEnhet = generateBehandlendeEnhet.copy()
 
             val mockHttpServerPort = ServerSocket(0).use { it.localPort }
             val mockHttpServerUrl = "http://localhost:$mockHttpServerPort"
@@ -73,16 +107,38 @@ object VeilederPersonOppgaveApiSpek : Spek({
                             call.respond(responseNoAccessPerson)
                         }
                     }
+                    get("/api/${ARBEIDSTAKER_FNR.value}") {
+                        call.respond(responseBehandlendeEnhet)
+                    }
                 }
             }.start()
 
             val database = TestDB()
             val cookies = ""
             val baseUrl = "/api/v1/personoppgave"
+            val behandlendeEnhetClient = BehandlendeEnhetClient(
+                mockHttpServerUrl,
+                stsOidcClientMock
+            )
+
+            fun Properties.overrideForTest(): Properties = apply {
+                remove("security.protocol")
+                remove("sasl.mechanism")
+            }
+
+            val producerProperties = kafkaProducerConfig(env, vaultSecrets)
+                .overrideForTest()
+            val oversikthendelseRecordProducer = KafkaProducer<String, KOversikthendelse>(producerProperties)
+            val oversikthendelseProducer = OversikthendelseProducer(oversikthendelseRecordProducer)
+
             val veilederTilgangskontrollClient = VeilederTilgangskontrollClient(
                 mockHttpServerUrl
             )
-            val personOppgaveService = PersonOppgaveService(database)
+            val personOppgaveService = PersonOppgaveService(
+                database,
+                behandlendeEnhetClient,
+                oversikthendelseProducer
+            )
 
             application.install(ContentNegotiation) {
                 jackson {
@@ -101,6 +157,7 @@ object VeilederPersonOppgaveApiSpek : Spek({
 
             beforeEachTest {
                 mockkStatic("no.nav.syfo.auth.TokenAuthKt")
+                coEvery { stsOidcClientMock.token() } returns "oidctoken"
             }
 
             afterEachTest {

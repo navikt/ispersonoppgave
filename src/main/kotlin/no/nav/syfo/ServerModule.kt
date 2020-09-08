@@ -15,14 +15,19 @@ import io.ktor.util.KtorExperimentalAPI
 import no.nav.syfo.api.registerPodApi
 import no.nav.syfo.api.registerPrometheusApi
 import no.nav.syfo.auth.isInvalidToken
+import no.nav.syfo.client.enhet.BehandlendeEnhetClient
 import no.nav.syfo.client.veiledertilgang.VeilederTilgangskontrollClient
+import no.nav.syfo.oversikthendelse.OversikthendelseProducer
 import no.nav.syfo.personoppgave.PersonOppgaveService
 import no.nav.syfo.personoppgave.api.registerVeilederPersonOppgaveApi
 import no.nav.syfo.util.*
 import java.util.*
 
 @KtorExperimentalAPI
-fun Application.serverModule() {
+fun Application.serverModule(
+    behandlendeEnhetClient: BehandlendeEnhetClient,
+    oversikthendelseProducer: OversikthendelseProducer
+) {
     install(ContentNegotiation) {
         jackson {
             registerKotlinModule()
@@ -61,7 +66,11 @@ fun Application.serverModule() {
         }
     }
 
-    val personOppgaveService = PersonOppgaveService(database)
+    val personOppgaveService = PersonOppgaveService(
+        database,
+        behandlendeEnhetClient,
+        oversikthendelseProducer
+    )
     val veilederTilgangskontrollClient = VeilederTilgangskontrollClient(env.syfotilgangskontrollUrl)
 
     routing {
