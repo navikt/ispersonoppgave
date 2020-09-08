@@ -30,12 +30,10 @@ object OppfolgingsplanLPSServiceSpek : Spek({
 
         val behandlendeEnhetClient = mockk<BehandlendeEnhetClient>()
         val mockProducer: KafkaProducer<String, KOversikthendelse> = mockk(relaxed = true)
-        val oversikthendelseProducer = OversikthendelseProducer(
-            mockProducer,
-            behandlendeEnhetClient
-        )
+        val oversikthendelseProducer = OversikthendelseProducer(mockProducer)
         val oppfolgingsplanLPSService = OppfolgingsplanLPSService(
             database,
+            behandlendeEnhetClient,
             oversikthendelseProducer
         )
 

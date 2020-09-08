@@ -54,16 +54,14 @@ fun main() {
         )
         val producerProperties = kafkaProducerConfig(env, vaultSecrets)
         val oversikthendelseRecordProducer = KafkaProducer<String, KOversikthendelse>(producerProperties)
-        val oversikthendelseProducer = OversikthendelseProducer(
-            oversikthendelseRecordProducer,
-            behandlendeEnhetClient
-        )
+        val oversikthendelseProducer = OversikthendelseProducer(oversikthendelseRecordProducer)
 
         module {
             databaseModule()
             serverModule()
             kafkaModule(
                 vaultSecrets,
+                behandlendeEnhetClient,
                 oversikthendelseProducer
             )
         }
