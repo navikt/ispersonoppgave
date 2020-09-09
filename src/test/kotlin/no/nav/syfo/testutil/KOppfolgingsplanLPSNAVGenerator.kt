@@ -14,3 +14,12 @@ val generateKOppfolgingsplanLPSNAV =
         true,
         LocalDate.now().toEpochDay().toInt()
     )
+
+val generateKOppfolgingsplanLPSNAVNoBehovforForBistand =
+    KOppfolgingsplanLPSNAV(
+        UUID.randomUUID().toString(),
+        ARBEIDSTAKER_FNR.value,
+        VIRKSOMHETSNUMMER.value,
+        false,
+        LocalDate.now().toEpochDay().toInt()
+    )
