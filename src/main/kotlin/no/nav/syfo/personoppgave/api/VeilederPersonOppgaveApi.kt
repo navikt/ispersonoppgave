@@ -72,7 +72,7 @@ fun Route.registerVeilederPersonOppgaveApi(
                             when (veilederTilgangskontrollClient.hasAccess(personoppgave.fnr, token, callId)) {
                                 true -> {
                                     val navIdent = getVeilederTokenPayload(token).navIdent
-                                    personOppgaveService.behandlePersonOppgave(uuid, navIdent)
+                                    personOppgaveService.behandlePersonOppgave(personoppgave, navIdent, callId)
                                     call.respond(HttpStatusCode.OK)
                                 }
                                 else -> {
