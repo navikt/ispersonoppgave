@@ -26,10 +26,12 @@ import no.nav.syfo.client.enhet.BehandlendeEnhetClient
 import no.nav.syfo.client.sts.StsRestClient
 import no.nav.syfo.client.veiledertilgang.Tilgang
 import no.nav.syfo.client.veiledertilgang.VeilederTilgangskontrollClient
+import no.nav.syfo.kafka.kafkaConsumerConfig
 import no.nav.syfo.kafka.kafkaProducerConfig
 import no.nav.syfo.oversikthendelse.OVERSIKTHENDELSE_TOPIC
 import no.nav.syfo.oversikthendelse.OversikthendelseProducer
 import no.nav.syfo.oversikthendelse.domain.KOversikthendelse
+import no.nav.syfo.oversikthendelse.domain.OversikthendelseType
 import no.nav.syfo.personoppgave.PersonOppgaveService
 import no.nav.syfo.personoppgave.domain.PersonOppgaveType
 import no.nav.syfo.testutil.*
@@ -38,10 +40,12 @@ import no.nav.syfo.testutil.generator.generateBehandlendeEnhet
 import no.nav.syfo.testutil.generator.veilederTokenGenerator
 import no.nav.syfo.util.NAV_PERSONIDENT_HEADER
 import org.amshove.kluent.*
+import org.apache.kafka.clients.consumer.KafkaConsumer
 import org.apache.kafka.clients.producer.KafkaProducer
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
 import java.net.ServerSocket
+import java.time.Duration
 import java.util.*
 
 private val objectMapper: ObjectMapper = ObjectMapper().apply {
@@ -66,6 +70,7 @@ object VeilederPersonOppgaveApiSpek : Spek({
         )
     )
     val env = testEnvironment(getRandomPort(), embeddedEnvironment.brokersURL)
+    val credentials = vaultSecrets
 
     beforeGroup {
         embeddedEnvironment.start()
@@ -125,6 +130,15 @@ object VeilederPersonOppgaveApiSpek : Spek({
                 remove("security.protocol")
                 remove("sasl.mechanism")
             }
+            val consumerPropertiesOversikthendelse = kafkaConsumerConfig(env, credentials)
+                .overrideForTest()
+                .apply {
+                    put("specific.avro.reader", false)
+                    put("key.deserializer", "org.apache.kafka.common.serialization.StringDeserializer")
+                    put("value.deserializer", "org.apache.kafka.common.serialization.StringDeserializer")
+                }
+            val consumerOversikthendelse = KafkaConsumer<String, String>(consumerPropertiesOversikthendelse)
+            consumerOversikthendelse.subscribe(listOf(OVERSIKTHENDELSE_TOPIC))
 
             val producerProperties = kafkaProducerConfig(env, vaultSecrets)
                 .overrideForTest()
@@ -306,6 +320,16 @@ object VeilederPersonOppgaveApiSpek : Spek({
                         personOppgave.behandletVeilederIdent.shouldNotBeNull()
                         personOppgave.opprettet.shouldNotBeNull()
                     }
+
+                    val messages: ArrayList<KOversikthendelse> = arrayListOf()
+                    consumerOversikthendelse.poll(Duration.ofMillis(5000)).forEach {
+                        val consumedOversikthendelse: KOversikthendelse = objectMapper.readValue(it.value())
+                        messages.add(consumedOversikthendelse)
+                    }
+                    messages.size shouldEqual 1
+                    messages.first().fnr shouldEqual kOppfolgingsplanLPSNAV.getFodselsnummer()
+                    messages.first().enhetId shouldEqual responseBehandlendeEnhet.enhetId
+                    messages.first().hendelseId shouldEqual OversikthendelseType.OPPFOLGINGSPLANLPS_BISTAND_BEHANDLET.name
                 }
             }
         }
