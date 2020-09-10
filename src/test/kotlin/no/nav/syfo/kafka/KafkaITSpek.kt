@@ -5,20 +5,16 @@ import no.nav.syfo.Environment
 import no.nav.syfo.VaultSecrets
 import no.nav.syfo.oppfolgingsplan.avro.KOppfolgingsplanLPSNAV
 import no.nav.syfo.testutil.generateKOppfolgingsplanLPSNAV
+import no.nav.syfo.testutil.getRandomPort
 import org.amshove.kluent.shouldEqual
 import org.apache.kafka.clients.consumer.KafkaConsumer
 import org.apache.kafka.clients.producer.KafkaProducer
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
-import java.net.ServerSocket
 import java.time.Duration
 import java.util.*
 
 object KafkaITSpek : Spek({
-
-    fun getRandomPort() = ServerSocket(0).use {
-        it.localPort
-    }
 
     val embeddedEnvironment = KafkaEnvironment(
         autoStart = false,

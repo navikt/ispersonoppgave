@@ -58,10 +58,6 @@ private val objectMapper: ObjectMapper = ObjectMapper().apply {
 @InternalAPI
 object VeilederPersonOppgaveApiSpek : Spek({
 
-    fun getRandomPort() = ServerSocket(0).use {
-        it.localPort
-    }
-
     val embeddedEnvironment = KafkaEnvironment(
         autoStart = false,
         withSchemaRegistry = false,
@@ -130,6 +126,7 @@ object VeilederPersonOppgaveApiSpek : Spek({
                 remove("security.protocol")
                 remove("sasl.mechanism")
             }
+
             val consumerPropertiesOversikthendelse = kafkaConsumerConfig(env, credentials)
                 .overrideForTest()
                 .apply {
