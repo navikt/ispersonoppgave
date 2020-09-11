@@ -20,12 +20,12 @@ object KafkaITSpek : Spek({
         autoStart = false,
         withSchemaRegistry = true,
         topicNames = listOf(
-            OPPFOLGINGSPLAN_LPS_NAV_TOPIC
+            OPPFOLGINGSPLAN_LPS_NAV_TOPIC,
         )
     )
     val credentials = VaultSecrets(
         "",
-        ""
+        "",
     )
     val env = Environment(
         applicationPort = getRandomPort(),
@@ -41,7 +41,7 @@ object KafkaITSpek : Spek({
         mountPathVault = "vault.adeo.no",
         behandlendeenhetUrl = "behandlendeenhet",
         stsRestUrl = "stsurl",
-        syfotilgangskontrollUrl = "tilgangskontroll"
+        syfotilgangskontrollUrl = "tilgangskontroll",
     )
 
     fun Properties.overrideForTest(): Properties = apply {
@@ -78,7 +78,7 @@ object KafkaITSpek : Spek({
             producerOppfolgingsplanLPS.send(SyfoProducerRecord(
                 OPPFOLGINGSPLAN_LPS_NAV_TOPIC,
                 UUID.randomUUID().toString(),
-                kOppfolgingsplanLPSNAV
+                kOppfolgingsplanLPSNAV,
             ))
 
             val messages: ArrayList<KOppfolgingsplanLPSNAV> = arrayListOf()
