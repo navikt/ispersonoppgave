@@ -21,12 +21,14 @@ class BehandlendeEnhetClient(
         val bearer = stsRestClient.token()
 
         val (_, response, result) = getBehandlendeEnhetUrl(fnr).httpGet()
-            .header(mapOf(
-                HttpHeaders.Authorization to bearerHeader(bearer),
-                HttpHeaders.Accept to "application/json",
-                NAV_CALL_ID to callId,
-                NAV_CONSUMER_ID to APP_CONSUMER_ID
-            ))
+            .header(
+                mapOf(
+                    HttpHeaders.Authorization to bearerHeader(bearer),
+                    HttpHeaders.Accept to "application/json",
+                    NAV_CALL_ID to callId,
+                    NAV_CONSUMER_ID to APP_CONSUMER_ID
+                )
+            )
             .responseString()
 
         result.fold(
@@ -51,7 +53,8 @@ class BehandlendeEnhetClient(
                 val exception = it.exception
                 LOG.error("Error with responseCode=${response.statusCode} with callId=$callId while requesting behandlendeenhet from syfobehandlendeenhet: ${exception.message}", exception)
                 return null
-            })
+            }
+        )
     }
 
     private fun getBehandlendeEnhetUrl(brukerFnr: Fodselsnummer): String {

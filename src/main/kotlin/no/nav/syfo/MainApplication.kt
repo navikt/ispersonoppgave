@@ -30,45 +30,48 @@ val backgroundTasksContext = Executors.newFixedThreadPool(4).asCoroutineDispatch
 
 @KtorExperimentalAPI
 fun main() {
-    val server = embeddedServer(Netty, applicationEngineEnvironment {
-        log = LoggerFactory.getLogger("ktor.application")
-        config = HoconApplicationConfig(ConfigFactory.load())
+    val server = embeddedServer(
+        Netty,
+        applicationEngineEnvironment {
+            log = LoggerFactory.getLogger("ktor.application")
+            config = HoconApplicationConfig(ConfigFactory.load())
 
-        connector {
-            port = env.applicationPort
-        }
+            connector {
+                port = env.applicationPort
+            }
 
-        val vaultSecrets = VaultSecrets(
-            serviceuserUsername = getFileAsString("/secrets/serviceuser/username"),
-            serviceuserPassword = getFileAsString("/secrets/serviceuser/password")
-        )
-
-        val stsClientRest = StsRestClient(
-            env.stsRestUrl,
-            vaultSecrets.serviceuserUsername,
-            vaultSecrets.serviceuserPassword
-        )
-        val behandlendeEnhetClient = BehandlendeEnhetClient(
-            env.behandlendeenhetUrl,
-            stsClientRest
-        )
-        val producerProperties = kafkaProducerConfig(env, vaultSecrets)
-        val oversikthendelseRecordProducer = KafkaProducer<String, KOversikthendelse>(producerProperties)
-        val oversikthendelseProducer = OversikthendelseProducer(oversikthendelseRecordProducer)
-
-        module {
-            databaseModule()
-            serverModule(
-                behandlendeEnhetClient,
-                oversikthendelseProducer
+            val vaultSecrets = VaultSecrets(
+                serviceuserUsername = getFileAsString("/secrets/serviceuser/username"),
+                serviceuserPassword = getFileAsString("/secrets/serviceuser/password")
             )
-            kafkaModule(
-                vaultSecrets,
-                behandlendeEnhetClient,
-                oversikthendelseProducer
+
+            val stsClientRest = StsRestClient(
+                env.stsRestUrl,
+                vaultSecrets.serviceuserUsername,
+                vaultSecrets.serviceuserPassword
             )
+            val behandlendeEnhetClient = BehandlendeEnhetClient(
+                env.behandlendeenhetUrl,
+                stsClientRest
+            )
+            val producerProperties = kafkaProducerConfig(env, vaultSecrets)
+            val oversikthendelseRecordProducer = KafkaProducer<String, KOversikthendelse>(producerProperties)
+            val oversikthendelseProducer = OversikthendelseProducer(oversikthendelseRecordProducer)
+
+            module {
+                databaseModule()
+                serverModule(
+                    behandlendeEnhetClient,
+                    oversikthendelseProducer
+                )
+                kafkaModule(
+                    vaultSecrets,
+                    behandlendeEnhetClient,
+                    oversikthendelseProducer
+                )
+            }
         }
-    })
+    )
     Runtime.getRuntime().addShutdownHook(
         Thread {
             server.stop(10, 10, TimeUnit.SECONDS)

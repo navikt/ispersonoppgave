@@ -13,7 +13,7 @@ import java.util.*
 
 class TestDB : DatabaseInterface {
 
-    val container = PostgreSQLContainer<Nothing>("postgres:11.1").apply {
+    private val container = PostgreSQLContainer<Nothing>("postgres:11.1").apply {
         withDatabaseName("db_test")
         withUsername("username")
         withPassword("password")
@@ -25,12 +25,14 @@ class TestDB : DatabaseInterface {
 
     init {
         container.start()
-        db = DevDatabase(DbConfig(
-            jdbcUrl = container.jdbcUrl,
-            username = "username",
-            password = "password",
-            databaseName = "db_test"
-        ))
+        db = DevDatabase(
+            DbConfig(
+                jdbcUrl = container.jdbcUrl,
+                username = "username",
+                password = "password",
+                databaseName = "db_test"
+            )
+        )
     }
 
     fun stop() {

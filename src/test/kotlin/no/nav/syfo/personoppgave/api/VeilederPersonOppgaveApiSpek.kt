@@ -4,20 +4,16 @@ import com.fasterxml.jackson.databind.*
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.readValue
 import com.fasterxml.jackson.module.kotlin.registerKotlinModule
-import io.ktor.application.call
-import io.ktor.application.install
-import io.ktor.features.ContentNegotiation
-import io.ktor.http.HttpMethod
-import io.ktor.http.HttpStatusCode
-import io.ktor.jackson.jackson
-import io.ktor.response.respond
-import io.ktor.routing.get
-import io.ktor.routing.routing
-import io.ktor.server.engine.embeddedServer
-import io.ktor.server.netty.Netty
-import io.ktor.server.testing.TestApplicationEngine
-import io.ktor.server.testing.handleRequest
-import io.ktor.util.InternalAPI
+import io.ktor.application.*
+import io.ktor.features.*
+import io.ktor.http.*
+import io.ktor.jackson.*
+import io.ktor.response.*
+import io.ktor.routing.*
+import io.ktor.server.engine.*
+import io.ktor.server.netty.*
+import io.ktor.server.testing.*
+import io.ktor.util.*
 import io.mockk.*
 import no.nav.common.KafkaEnvironment
 import no.nav.syfo.auth.getTokenFromCookie
@@ -188,9 +184,11 @@ object VeilederPersonOppgaveApiSpek : Spek({
                         isInvalidToken(any())
                     } returns false
 
-                    with(handleRequest(HttpMethod.Get, url) {
-                        call.request.cookies[cookies]
-                    }) {
+                    with(
+                        handleRequest(HttpMethod.Get, url) {
+                            call.request.cookies[cookies]
+                        }
+                    ) {
                         response.status() shouldBeEqualTo HttpStatusCode.BadRequest
                     }
                 }
@@ -200,10 +198,12 @@ object VeilederPersonOppgaveApiSpek : Spek({
                         isInvalidToken(any())
                     } returns false
 
-                    with(handleRequest(HttpMethod.Get, url) {
-                        addHeader(NAV_PERSONIDENT_HEADER, ARBEIDSTAKER_FNR.value.drop(1))
-                        call.request.cookies[cookies]
-                    }) {
+                    with(
+                        handleRequest(HttpMethod.Get, url) {
+                            addHeader(NAV_PERSONIDENT_HEADER, ARBEIDSTAKER_FNR.value.drop(1))
+                            call.request.cookies[cookies]
+                        }
+                    ) {
                         response.status() shouldBeEqualTo HttpStatusCode.BadRequest
                     }
                 }
@@ -213,10 +213,12 @@ object VeilederPersonOppgaveApiSpek : Spek({
                         isInvalidToken(any())
                     } returns false
 
-                    with(handleRequest(HttpMethod.Get, url) {
-                        addHeader(NAV_PERSONIDENT_HEADER, ARBEIDSTAKER_FNR.value.drop(1).plus("0"))
-                        call.request.cookies[cookies]
-                    }) {
+                    with(
+                        handleRequest(HttpMethod.Get, url) {
+                            addHeader(NAV_PERSONIDENT_HEADER, ARBEIDSTAKER_FNR.value.drop(1).plus("0"))
+                            call.request.cookies[cookies]
+                        }
+                    ) {
                         response.status() shouldBeEqualTo HttpStatusCode.Forbidden
                     }
                 }
@@ -226,10 +228,12 @@ object VeilederPersonOppgaveApiSpek : Spek({
                         isInvalidToken(any())
                     } returns false
 
-                    with(handleRequest(HttpMethod.Get, url) {
-                        addHeader(NAV_PERSONIDENT_HEADER, ARBEIDSTAKER_FNR.value)
-                        call.request.cookies[cookies]
-                    }) {
+                    with(
+                        handleRequest(HttpMethod.Get, url) {
+                            addHeader(NAV_PERSONIDENT_HEADER, ARBEIDSTAKER_FNR.value)
+                            call.request.cookies[cookies]
+                        }
+                    ) {
                         response.status() shouldBeEqualTo HttpStatusCode.NoContent
                     }
                 }
@@ -246,10 +250,12 @@ object VeilederPersonOppgaveApiSpek : Spek({
                         personOppgaveType
                     )
 
-                    with(handleRequest(HttpMethod.Get, url) {
-                        addHeader(NAV_PERSONIDENT_HEADER, ARBEIDSTAKER_FNR.value)
-                        call.request.cookies[cookies]
-                    }) {
+                    with(
+                        handleRequest(HttpMethod.Get, url) {
+                            addHeader(NAV_PERSONIDENT_HEADER, ARBEIDSTAKER_FNR.value)
+                            call.request.cookies[cookies]
+                        }
+                    ) {
                         response.status() shouldBeEqualTo HttpStatusCode.OK
 
                         val personOppgaveList = objectMapper.readValue<List<PersonOppgaveVeileder>>(response.content!!)
@@ -291,16 +297,20 @@ object VeilederPersonOppgaveApiSpek : Spek({
                     val urlProcess = "$baseUrl/$uuid/behandle"
                     val urlGet = "$baseUrl/personident"
 
-                    with(handleRequest(HttpMethod.Post, urlProcess) {
-                        call.request.cookies[cookies]
-                    }) {
+                    with(
+                        handleRequest(HttpMethod.Post, urlProcess) {
+                            call.request.cookies[cookies]
+                        }
+                    ) {
                         response.status() shouldBeEqualTo HttpStatusCode.OK
                     }
 
-                    with(handleRequest(HttpMethod.Get, urlGet) {
-                        addHeader(NAV_PERSONIDENT_HEADER, ARBEIDSTAKER_FNR.value)
-                        call.request.cookies[cookies]
-                    }) {
+                    with(
+                        handleRequest(HttpMethod.Get, urlGet) {
+                            addHeader(NAV_PERSONIDENT_HEADER, ARBEIDSTAKER_FNR.value)
+                            call.request.cookies[cookies]
+                        }
+                    ) {
                         response.status() shouldBeEqualTo HttpStatusCode.OK
 
                         val personOppgaveList = objectMapper.readValue<List<PersonOppgaveVeileder>>(response.content!!)

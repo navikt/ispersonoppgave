@@ -12,11 +12,13 @@ import java.sql.*
 import java.time.Instant
 import java.util.*
 
-const val queryGetPersonOppgaveListForFnr = """
-                        SELECT *
-                        FROM PERSON_OPPGAVE
-                        WHERE fnr = ?
-                """
+const val queryGetPersonOppgaveListForFnr =
+    """
+    SELECT *
+    FROM PERSON_OPPGAVE
+    WHERE fnr = ?
+    """
+
 fun DatabaseInterface.getPersonOppgaveList(fnr: Fodselsnummer): List<PPersonOppgave> {
     return connection.use { connection ->
         connection.prepareStatement(queryGetPersonOppgaveListForFnr).use {
@@ -26,11 +28,13 @@ fun DatabaseInterface.getPersonOppgaveList(fnr: Fodselsnummer): List<PPersonOppg
     }
 }
 
-const val queryGetPersonOppgaveListForUUID = """
-                        SELECT *
-                        FROM PERSON_OPPGAVE
-                        WHERE uuid = ?
-                """
+const val queryGetPersonOppgaveListForUUID =
+    """
+    SELECT *
+    FROM PERSON_OPPGAVE
+    WHERE uuid = ?
+    """
+
 fun DatabaseInterface.getPersonOppgaveList(uuid: UUID): List<PPersonOppgave> {
     return connection.use { connection ->
         connection.prepareStatement(queryGetPersonOppgaveListForUUID).use {
@@ -40,11 +44,13 @@ fun DatabaseInterface.getPersonOppgaveList(uuid: UUID): List<PPersonOppgave> {
     }
 }
 
-const val queryUpdatePersonOppgaveBehandlet = """
-                        UPDATE PERSON_OPPGAVE
-                        SET behandlet_tidspunkt = ?, behandlet_veileder_ident = ?
-                        WHERE uuid = ?
-                """
+const val queryUpdatePersonOppgaveBehandlet =
+    """
+    UPDATE PERSON_OPPGAVE
+    SET behandlet_tidspunkt = ?, behandlet_veileder_ident = ?
+    WHERE uuid = ?
+    """
+
 fun DatabaseInterface.updatePersonOppgaveBehandlet(
     uuid: UUID,
     veilederIdent: String
@@ -61,11 +67,13 @@ fun DatabaseInterface.updatePersonOppgaveBehandlet(
     }
 }
 
-const val queryUpdatePersonOppgaveOversikthendelse = """
+const val queryUpdatePersonOppgaveOversikthendelse =
+    """
     UPDATE PERSON_OPPGAVE
     SET oversikthendelse_tidspunkt = ?
     WHERE id = ?
     """
+
 fun DatabaseInterface.updatePersonOppgaveOversikthendelse(
     id: Int
 ) {
@@ -81,7 +89,8 @@ fun DatabaseInterface.updatePersonOppgaveOversikthendelse(
     }
 }
 
-const val queryCreatePersonOppgave = """INSERT INTO PERSON_OPPGAVE (
+const val queryCreatePersonOppgave =
+    """INSERT INTO PERSON_OPPGAVE (
         id,
         uuid,
         referanse_uuid,
@@ -89,7 +98,9 @@ const val queryCreatePersonOppgave = """INSERT INTO PERSON_OPPGAVE (
         virksomhetsnummer,
         type,
         opprettet,
-        sist_endret) VALUES (DEFAULT, ?, ?, ?, ?, ?, ?, ?) RETURNING id"""
+        sist_endret) VALUES (DEFAULT, ?, ?, ?, ?, ?, ?, ?) RETURNING id
+    """
+
 fun DatabaseInterface.createPersonOppgave(
     kOppfolgingsplanLPSNAV: KOppfolgingsplanLPSNAV,
     type: PersonOppgaveType

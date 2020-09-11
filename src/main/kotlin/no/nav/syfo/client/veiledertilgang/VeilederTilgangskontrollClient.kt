@@ -25,11 +25,13 @@ class VeilederTilgangskontrollClient(
         callId: String
     ): Boolean {
         val (_, _, result) = getTilgangskontrollUrl(fnr).httpGet()
-            .header(mapOf(
-                "Authorization" to bearerHeader(token),
-                "Content-Type" to "application/json",
-                NAV_CALL_ID_HEADER to callId
-            ))
+            .header(
+                mapOf(
+                    "Authorization" to bearerHeader(token),
+                    "Content-Type" to "application/json",
+                    NAV_CALL_ID_HEADER to callId
+                )
+            )
             .responseString()
 
         result.fold(
@@ -43,7 +45,8 @@ class VeilederTilgangskontrollClient(
                 val exception = it.exception
                 log.error("Error while requesting access to list of person from syfo-tilgangskontroll: ${exception.message}", exception)
                 return false
-            })
+            }
+        )
     }
 
     private fun getTilgangskontrollUrl(brukerFnr: Fodselsnummer): String {

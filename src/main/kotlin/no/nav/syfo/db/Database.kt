@@ -39,11 +39,8 @@ class ProdDatabase(daoConfig: DbConfig, initBlock: (context: Database) -> Unit) 
  */
 abstract class Database(val daoConfig: DbConfig, private val initBlock: ((context: Database) -> Unit)?) : DatabaseInterface {
 
-    var dataSource: HikariDataSource
-
-    init {
-
-        dataSource = HikariDataSource(HikariConfig().apply {
+    var dataSource: HikariDataSource = HikariDataSource(
+        HikariConfig().apply {
             jdbcUrl = daoConfig.jdbcUrl
             username = daoConfig.username
             password = daoConfig.password
@@ -52,7 +49,10 @@ abstract class Database(val daoConfig: DbConfig, private val initBlock: ((contex
             isAutoCommit = false
             transactionIsolation = "TRANSACTION_REPEATABLE_READ"
             validate()
-        })
+        }
+    )
+
+    init {
 
         afterInit()
     }
