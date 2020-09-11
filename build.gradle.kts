@@ -50,7 +50,7 @@ repositories {
     maven(url = "https://dl.bintray.com/kotlin/ktor")
     maven(url = "https://dl.bintray.com/spekframework/spek-dev")
     maven(url = "https://dl.bintray.com/kotlin/kotlinx/")
-    maven(url = "http://packages.confluent.io/maven/")
+    maven(url = "https://packages.confluent.io/maven/")
     maven(url = "https://oss.sonatype.org/content/groups/staging/")
     maven {
         url = uri("https://maven.pkg.github.com/navikt/syfoopservice-schema")
