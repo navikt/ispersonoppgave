@@ -6,7 +6,7 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.readValue
 import com.fasterxml.jackson.module.kotlin.registerKotlinModule
 import com.github.kittinunf.fuel.httpGet
-import io.ktor.http.HttpHeaders
+import io.ktor.http.*
 import no.nav.syfo.client.sts.StsRestClient
 import no.nav.syfo.domain.Fodselsnummer
 import no.nav.syfo.metric.*
@@ -29,27 +29,29 @@ class BehandlendeEnhetClient(
             ))
             .responseString()
 
-        result.fold(success = {
-            return if (response.statusCode == 204) {
-                COUNT_CALL_BEHANDLENDEENHET_EMPTY.inc()
-                null
-            } else {
-                val behandlendeEnhet = objectMapper.readValue<BehandlendeEnhet>(result.get())
-                if (isValid(behandlendeEnhet)) {
-                    COUNT_CALL_BEHANDLENDEENHET_SUCCESS.inc()
-                    behandlendeEnhet
-                } else {
-                    COUNT_CALL_BEHANDLENDEENHET_FAIL.inc()
-                    LOG.error("Error while requesting behandlendeenhet from syfobehandlendeenhet: Received invalid EnhetId with more than 4 chars for EnhetId {}", behandlendeEnhet.enhetId)
+        result.fold(
+            success = {
+                return if (response.statusCode == 204) {
+                    COUNT_CALL_BEHANDLENDEENHET_EMPTY.inc()
                     null
+                } else {
+                    val behandlendeEnhet = objectMapper.readValue<BehandlendeEnhet>(result.get())
+                    if (isValid(behandlendeEnhet)) {
+                        COUNT_CALL_BEHANDLENDEENHET_SUCCESS.inc()
+                        behandlendeEnhet
+                    } else {
+                        COUNT_CALL_BEHANDLENDEENHET_FAIL.inc()
+                        LOG.error("Error while requesting behandlendeenhet from syfobehandlendeenhet: Received invalid EnhetId with more than 4 chars for EnhetId {}", behandlendeEnhet.enhetId)
+                        null
+                    }
                 }
-            }
-        }, failure = {
-            COUNT_CALL_BEHANDLENDEENHET_FAIL.inc()
-            val exception = it.exception
-            LOG.error("Error with responseCode=${response.statusCode} with callId=$callId while requesting behandlendeenhet from syfobehandlendeenhet: ${exception.message}", exception)
-            return null
-        })
+            },
+            failure = {
+                COUNT_CALL_BEHANDLENDEENHET_FAIL.inc()
+                val exception = it.exception
+                LOG.error("Error with responseCode=${response.statusCode} with callId=$callId while requesting behandlendeenhet from syfobehandlendeenhet: ${exception.message}", exception)
+                return null
+            })
     }
 
     private fun getBehandlendeEnhetUrl(brukerFnr: Fodselsnummer): String {

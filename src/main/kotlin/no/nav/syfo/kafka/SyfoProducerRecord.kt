@@ -16,12 +16,12 @@ const val CALL_ID = "callId"
 const val NAV_CALLID = "Nav-Callid"
 
 class SyfoProducerRecord<K, V>(topic: String, key: K, value: V, headers: Map<String, Any> = emptyMap()) :
-        ProducerRecord<K, V>(topic, null, System.currentTimeMillis(), key, value, defaultHeaders<V>(value, headers)) {
+    ProducerRecord<K, V>(topic, null, System.currentTimeMillis(), key, value, defaultHeaders<V>(value, headers)) {
 
     fun addHeaders(headers: Map<String, Any>) {
         headers.entries
-                .map { entry -> RecordHeader(entry.key, toUtf8Bytes(entry.value)) }
-                .forEach { headers().add(it) }
+            .map { entry -> RecordHeader(entry.key, toUtf8Bytes(entry.value)) }
+            .forEach { headers().add(it) }
     }
 
     companion object {
@@ -43,6 +43,6 @@ class SyfoProducerRecord<K, V>(topic: String, key: K, value: V, headers: Map<Str
         }
 
         private fun toUtf8Bytes(any: Any?): ByteArray =
-                any?.toString()?.toByteArray(UTF_8) ?: ByteArray(0)
+            any?.toString()?.toByteArray(UTF_8) ?: ByteArray(0)
     }
 }

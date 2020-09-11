@@ -32,16 +32,18 @@ class VeilederTilgangskontrollClient(
             ))
             .responseString()
 
-        result.fold(success = {
-            COUNT_CALL_TILGANGSKONTROLL_PERSON_SUCCESS.inc()
-            val tilgang = objectMapper.readValue<Tilgang>(result.get())
-            return tilgang.harTilgang
-        }, failure = {
-            COUNT_CALL_TILGANGSKONTROLL_PERSON_FAIL.inc()
-            val exception = it.exception
-            log.error("Error while requesting access to list of person from syfo-tilgangskontroll: ${exception.message}", exception)
-            return false
-        })
+        result.fold(
+            success = {
+                COUNT_CALL_TILGANGSKONTROLL_PERSON_SUCCESS.inc()
+                val tilgang = objectMapper.readValue<Tilgang>(result.get())
+                return tilgang.harTilgang
+            },
+            failure = {
+                COUNT_CALL_TILGANGSKONTROLL_PERSON_FAIL.inc()
+                val exception = it.exception
+                log.error("Error while requesting access to list of person from syfo-tilgangskontroll: ${exception.message}", exception)
+                return false
+            })
     }
 
     private fun getTilgangskontrollUrl(brukerFnr: Fodselsnummer): String {

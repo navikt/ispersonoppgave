@@ -1,6 +1,6 @@
 package no.nav.syfo
 
-import io.ktor.application.Application
+import io.ktor.application.*
 import kotlinx.coroutines.launch
 import no.nav.syfo.db.*
 import no.nav.syfo.vault.Vault
@@ -8,13 +8,14 @@ import no.nav.syfo.vault.Vault
 lateinit var database: DatabaseInterface
 fun Application.databaseModule() {
     isDev {
-        database = DevDatabase(DbConfig(
-            jdbcUrl = "jdbc:postgresql://localhost:5432/ispersonoppgave_dev",
-            databaseName = "ispersonoppgave_dev",
-            password = "password",
-            username = "username")
+        database = DevDatabase(
+            DbConfig(
+                jdbcUrl = "jdbc:postgresql://localhost:5432/ispersonoppgave_dev",
+                databaseName = "ispersonoppgave_dev",
+                password = "password",
+                username = "username"
+            )
         )
-
         state.running = true
     }
 
@@ -23,12 +24,15 @@ fun Application.databaseModule() {
 
         val newCredentials = vaultCredentialService.getNewCredentials(env.mountPathVault, env.databaseName, Role.USER)
 
-        database = ProdDatabase(DbConfig(
-            jdbcUrl = env.ispersonoppgaveDBURL,
-            username = newCredentials.username,
-            password = newCredentials.password,
-            databaseName = env.databaseName,
-            runMigrationsOninit = false)) { prodDatabase ->
+        database = ProdDatabase(
+            DbConfig(
+                jdbcUrl = env.ispersonoppgaveDBURL,
+                username = newCredentials.username,
+                password = newCredentials.password,
+                databaseName = env.databaseName,
+                runMigrationsOninit = false
+            )
+        ) { prodDatabase ->
 
             // i prod må vi kjøre flyway migrations med et eget sett brukernavn/passord
             vaultCredentialService.getNewCredentials(env.mountPathVault, env.databaseName, Role.ADMIN).let {

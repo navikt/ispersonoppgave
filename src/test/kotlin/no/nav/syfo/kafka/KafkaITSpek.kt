@@ -75,11 +75,13 @@ object KafkaITSpek : Spek({
     describe("Produce and consume messages from topic") {
         it("Topic $OPPFOLGINGSPLAN_LPS_NAV_TOPIC") {
             val kOppfolgingsplanLPSNAV = generateKOppfolgingsplanLPSNAV
-            producerOppfolgingsplanLPS.send(SyfoProducerRecord(
-                OPPFOLGINGSPLAN_LPS_NAV_TOPIC,
-                UUID.randomUUID().toString(),
-                kOppfolgingsplanLPSNAV
-            ))
+            producerOppfolgingsplanLPS.send(
+                SyfoProducerRecord(
+                    OPPFOLGINGSPLAN_LPS_NAV_TOPIC,
+                    UUID.randomUUID().toString(),
+                    kOppfolgingsplanLPSNAV
+                )
+            )
 
             val messages: ArrayList<KOppfolgingsplanLPSNAV> = arrayListOf()
             consumerOppfolgingsplanLPS.poll(Duration.ofMillis(5000)).forEach {

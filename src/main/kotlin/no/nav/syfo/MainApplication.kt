@@ -1,11 +1,11 @@
 package no.nav.syfo
 
 import com.typesafe.config.ConfigFactory
-import io.ktor.application.Application
-import io.ktor.config.HoconApplicationConfig
+import io.ktor.application.*
+import io.ktor.config.*
 import io.ktor.server.engine.*
-import io.ktor.server.netty.Netty
-import io.ktor.util.KtorExperimentalAPI
+import io.ktor.server.netty.*
+import io.ktor.util.*
 import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.slf4j.MDCContext
 import no.nav.syfo.client.enhet.BehandlendeEnhetClient
@@ -69,9 +69,11 @@ fun main() {
             )
         }
     })
-    Runtime.getRuntime().addShutdownHook(Thread {
-        server.stop(10, 10, TimeUnit.SECONDS)
-    })
+    Runtime.getRuntime().addShutdownHook(
+        Thread {
+            server.stop(10, 10, TimeUnit.SECONDS)
+        }
+    )
 
     server.start(wait = false)
 }
