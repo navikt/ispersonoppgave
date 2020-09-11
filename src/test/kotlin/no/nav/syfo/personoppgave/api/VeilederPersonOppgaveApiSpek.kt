@@ -191,7 +191,7 @@ object VeilederPersonOppgaveApiSpek : Spek({
                     with(handleRequest(HttpMethod.Get, url) {
                         call.request.cookies[cookies]
                     }) {
-                        response.status() shouldEqual HttpStatusCode.BadRequest
+                        response.status() shouldBeEqualTo HttpStatusCode.BadRequest
                     }
                 }
 
@@ -204,7 +204,7 @@ object VeilederPersonOppgaveApiSpek : Spek({
                         addHeader(NAV_PERSONIDENT_HEADER, ARBEIDSTAKER_FNR.value.drop(1))
                         call.request.cookies[cookies]
                     }) {
-                        response.status() shouldEqual HttpStatusCode.BadRequest
+                        response.status() shouldBeEqualTo HttpStatusCode.BadRequest
                     }
                 }
 
@@ -217,7 +217,7 @@ object VeilederPersonOppgaveApiSpek : Spek({
                         addHeader(NAV_PERSONIDENT_HEADER, ARBEIDSTAKER_FNR.value.drop(1).plus("0"))
                         call.request.cookies[cookies]
                     }) {
-                        response.status() shouldEqual HttpStatusCode.Forbidden
+                        response.status() shouldBeEqualTo HttpStatusCode.Forbidden
                     }
                 }
 
@@ -230,7 +230,7 @@ object VeilederPersonOppgaveApiSpek : Spek({
                         addHeader(NAV_PERSONIDENT_HEADER, ARBEIDSTAKER_FNR.value)
                         call.request.cookies[cookies]
                     }) {
-                        response.status() shouldEqual HttpStatusCode.NoContent
+                        response.status() shouldBeEqualTo HttpStatusCode.NoContent
                     }
                 }
 
@@ -250,18 +250,18 @@ object VeilederPersonOppgaveApiSpek : Spek({
                         addHeader(NAV_PERSONIDENT_HEADER, ARBEIDSTAKER_FNR.value)
                         call.request.cookies[cookies]
                     }) {
-                        response.status() shouldEqual HttpStatusCode.OK
+                        response.status() shouldBeEqualTo HttpStatusCode.OK
 
                         val personOppgaveList = objectMapper.readValue<List<PersonOppgaveVeileder>>(response.content!!)
 
-                        personOppgaveList.size shouldEqual 1
+                        personOppgaveList.size shouldBeEqualTo 1
 
                         val personOppgave = personOppgaveList.first()
                         personOppgave.uuid.shouldNotBeNull()
-                        personOppgave.referanseUuid shouldEqual kOppfolgingsplanLPSNAV.getUuid()
-                        personOppgave.fnr shouldEqual kOppfolgingsplanLPSNAV.getFodselsnummer()
-                        personOppgave.virksomhetsnummer shouldEqual kOppfolgingsplanLPSNAV.getVirksomhetsnummer()
-                        personOppgave.type shouldEqual personOppgaveType.name
+                        personOppgave.referanseUuid shouldBeEqualTo kOppfolgingsplanLPSNAV.getUuid()
+                        personOppgave.fnr shouldBeEqualTo kOppfolgingsplanLPSNAV.getFodselsnummer()
+                        personOppgave.virksomhetsnummer shouldBeEqualTo kOppfolgingsplanLPSNAV.getVirksomhetsnummer()
+                        personOppgave.type shouldBeEqualTo personOppgaveType.name
                         personOppgave.behandletTidspunkt.shouldBeNull()
                         personOppgave.behandletVeilederIdent.shouldBeNull()
                         personOppgave.opprettet.shouldNotBeNull()
@@ -294,25 +294,25 @@ object VeilederPersonOppgaveApiSpek : Spek({
                     with(handleRequest(HttpMethod.Post, urlProcess) {
                         call.request.cookies[cookies]
                     }) {
-                        response.status() shouldEqual HttpStatusCode.OK
+                        response.status() shouldBeEqualTo HttpStatusCode.OK
                     }
 
                     with(handleRequest(HttpMethod.Get, urlGet) {
                         addHeader(NAV_PERSONIDENT_HEADER, ARBEIDSTAKER_FNR.value)
                         call.request.cookies[cookies]
                     }) {
-                        response.status() shouldEqual HttpStatusCode.OK
+                        response.status() shouldBeEqualTo HttpStatusCode.OK
 
                         val personOppgaveList = objectMapper.readValue<List<PersonOppgaveVeileder>>(response.content!!)
 
-                        personOppgaveList.size shouldEqual 1
+                        personOppgaveList.size shouldBeEqualTo 1
 
                         val personOppgave = personOppgaveList.first()
                         personOppgave.uuid.shouldNotBeNull()
-                        personOppgave.referanseUuid shouldEqual kOppfolgingsplanLPSNAV.getUuid()
-                        personOppgave.fnr shouldEqual kOppfolgingsplanLPSNAV.getFodselsnummer()
-                        personOppgave.virksomhetsnummer shouldEqual kOppfolgingsplanLPSNAV.getVirksomhetsnummer()
-                        personOppgave.type shouldEqual personOppgaveType.name
+                        personOppgave.referanseUuid shouldBeEqualTo kOppfolgingsplanLPSNAV.getUuid()
+                        personOppgave.fnr shouldBeEqualTo kOppfolgingsplanLPSNAV.getFodselsnummer()
+                        personOppgave.virksomhetsnummer shouldBeEqualTo kOppfolgingsplanLPSNAV.getVirksomhetsnummer()
+                        personOppgave.type shouldBeEqualTo personOppgaveType.name
                         personOppgave.behandletTidspunkt.shouldNotBeNull()
                         personOppgave.behandletVeilederIdent.shouldNotBeNull()
                         personOppgave.opprettet.shouldNotBeNull()
@@ -323,10 +323,10 @@ object VeilederPersonOppgaveApiSpek : Spek({
                         val consumedOversikthendelse: KOversikthendelse = objectMapper.readValue(it.value())
                         messages.add(consumedOversikthendelse)
                     }
-                    messages.size shouldEqual 1
-                    messages.first().fnr shouldEqual kOppfolgingsplanLPSNAV.getFodselsnummer()
-                    messages.first().enhetId shouldEqual responseBehandlendeEnhet.enhetId
-                    messages.first().hendelseId shouldEqual OversikthendelseType.OPPFOLGINGSPLANLPS_BISTAND_BEHANDLET.name
+                    messages.size shouldBeEqualTo 1
+                    messages.first().fnr shouldBeEqualTo kOppfolgingsplanLPSNAV.getFodselsnummer()
+                    messages.first().enhetId shouldBeEqualTo responseBehandlendeEnhet.enhetId
+                    messages.first().hendelseId shouldBeEqualTo OversikthendelseType.OPPFOLGINGSPLANLPS_BISTAND_BEHANDLET.name
                 }
             }
         }

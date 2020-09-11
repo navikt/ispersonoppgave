@@ -6,7 +6,7 @@ import no.nav.syfo.VaultSecrets
 import no.nav.syfo.oppfolgingsplan.avro.KOppfolgingsplanLPSNAV
 import no.nav.syfo.testutil.generateKOppfolgingsplanLPSNAV
 import no.nav.syfo.testutil.getRandomPort
-import org.amshove.kluent.shouldEqual
+import org.amshove.kluent.shouldBeEqualTo
 import org.apache.kafka.clients.consumer.KafkaConsumer
 import org.apache.kafka.clients.producer.KafkaProducer
 import org.spekframework.spek2.Spek
@@ -20,12 +20,12 @@ object KafkaITSpek : Spek({
         autoStart = false,
         withSchemaRegistry = true,
         topicNames = listOf(
-            OPPFOLGINGSPLAN_LPS_NAV_TOPIC,
+            OPPFOLGINGSPLAN_LPS_NAV_TOPIC
         )
     )
     val credentials = VaultSecrets(
         "",
-        "",
+        ""
     )
     val env = Environment(
         applicationPort = getRandomPort(),
@@ -41,7 +41,7 @@ object KafkaITSpek : Spek({
         mountPathVault = "vault.adeo.no",
         behandlendeenhetUrl = "behandlendeenhet",
         stsRestUrl = "stsurl",
-        syfotilgangskontrollUrl = "tilgangskontroll",
+        syfotilgangskontrollUrl = "tilgangskontroll"
     )
 
     fun Properties.overrideForTest(): Properties = apply {
@@ -78,7 +78,7 @@ object KafkaITSpek : Spek({
             producerOppfolgingsplanLPS.send(SyfoProducerRecord(
                 OPPFOLGINGSPLAN_LPS_NAV_TOPIC,
                 UUID.randomUUID().toString(),
-                kOppfolgingsplanLPSNAV,
+                kOppfolgingsplanLPSNAV
             ))
 
             val messages: ArrayList<KOppfolgingsplanLPSNAV> = arrayListOf()
@@ -86,8 +86,8 @@ object KafkaITSpek : Spek({
                 val consumedOppfolgingsplanLPSNAV = it.value()
                 messages.add(consumedOppfolgingsplanLPSNAV)
             }
-            messages.size shouldEqual 1
-            messages.first() shouldEqual kOppfolgingsplanLPSNAV
+            messages.size shouldBeEqualTo 1
+            messages.first() shouldBeEqualTo kOppfolgingsplanLPSNAV
         }
     }
 })

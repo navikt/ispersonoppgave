@@ -119,10 +119,10 @@ object OppfolgingsplanLPSServiceSpek : Spek({
                     val personListe = database.connection.getPersonOppgaveList(ARBEIDSTAKER_FNR)
 
                     personListe.size shouldBe 1
-                    personListe[0].fnr shouldEqual kOppfolgingsplanLPSNAV.getFodselsnummer()
-                    personListe[0].virksomhetsnummer shouldEqual kOppfolgingsplanLPSNAV.getVirksomhetsnummer()
-                    personListe[0].type shouldEqual PersonOppgaveType.OPPFOLGINGSPLANLPS.name
-                    personListe[0].referanseUuid shouldEqual UUID.fromString(kOppfolgingsplanLPSNAV.getUuid())
+                    personListe[0].fnr shouldBeEqualTo kOppfolgingsplanLPSNAV.getFodselsnummer()
+                    personListe[0].virksomhetsnummer shouldBeEqualTo kOppfolgingsplanLPSNAV.getVirksomhetsnummer()
+                    personListe[0].type shouldBeEqualTo PersonOppgaveType.OPPFOLGINGSPLANLPS.name
+                    personListe[0].referanseUuid shouldBeEqualTo UUID.fromString(kOppfolgingsplanLPSNAV.getUuid())
                     personListe[0].oversikthendelseTidspunkt.shouldNotBeNull()
 
                     val messages: ArrayList<KOversikthendelse> = arrayListOf()
@@ -131,10 +131,10 @@ object OppfolgingsplanLPSServiceSpek : Spek({
                         messages.add(consumedOversikthendelse)
                     }
 
-                    messages.size shouldEqual 1
-                    messages.first().fnr shouldEqual kOppfolgingsplanLPSNAV.getFodselsnummer()
-                    messages.first().enhetId shouldEqual responseBehandlendeEnhet.enhetId
-                    messages.first().hendelseId shouldEqual OversikthendelseType.OPPFOLGINGSPLANLPS_BISTAND_MOTTATT.name
+                    messages.size shouldBeEqualTo 1
+                    messages.first().fnr shouldBeEqualTo kOppfolgingsplanLPSNAV.getFodselsnummer()
+                    messages.first().enhetId shouldBeEqualTo responseBehandlendeEnhet.enhetId
+                    messages.first().hendelseId shouldBeEqualTo OversikthendelseType.OPPFOLGINGSPLANLPS_BISTAND_MOTTATT.name
                 }
 
                 it("should not create a new PPersonOppgave with correct type when behovForBistand=false") {
@@ -151,7 +151,7 @@ object OppfolgingsplanLPSServiceSpek : Spek({
                         val consumedOversikthendelse: KOversikthendelse = objectMapper.readValue(it.value())
                         messages.add(consumedOversikthendelse)
                     }
-                    messages.size shouldEqual 0
+                    messages.size shouldBeEqualTo 0
                 }
             }
         }
