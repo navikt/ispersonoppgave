@@ -18,7 +18,7 @@ fun Application.kafkaModule(
         oversikthendelseProducer
     )
     var toggleProcessing = false
-    isDev {
+    if (isPreProd()) {
         toggleProcessing = true
     }
     launch(backgroundTasksContext) {
