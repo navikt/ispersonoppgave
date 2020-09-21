@@ -276,7 +276,91 @@ object VeilederPersonOppgaveApiSpek : Spek({
             }
 
             describe("Process PersonOppgave for PersonIdent") {
-                it("should return OK if Veileder processed existing PersonOppgave") {
+                it("should return OK and not send Oversikthendelse if processed 1 of 2 existing PersonOppgave") {
+                    every {
+                        isInvalidToken(any())
+                    } returns false
+
+                    val token = veilederTokenGenerator
+                    every {
+                        getTokenFromCookie(any())
+                    } returns token
+
+                    val kOppfolgingsplanLPSNAV = generateKOppfolgingsplanLPSNAV
+                    val kOppfolgingsplanLPSNAV2 = generateKOppfolgingsplanLPSNAV2
+                    val personOppgaveType = PersonOppgaveType.OPPFOLGINGSPLANLPS
+
+                    val uuid = database.connection.createPersonOppgave(
+                        kOppfolgingsplanLPSNAV,
+                        personOppgaveType
+                    ).second
+
+                    database.connection.createPersonOppgave(
+                        kOppfolgingsplanLPSNAV2,
+                        personOppgaveType
+                    ).second
+
+                    val urlProcess = "$baseUrl/$uuid/behandle"
+                    val urlGet = "$baseUrl/personident"
+
+                    with(
+                        handleRequest(HttpMethod.Post, urlProcess) {
+                            call.request.cookies[cookies]
+                        }
+                    ) {
+                        response.status() shouldBeEqualTo HttpStatusCode.OK
+                    }
+
+                    with(
+                        handleRequest(HttpMethod.Get, urlGet) {
+                            addHeader(NAV_PERSONIDENT_HEADER, ARBEIDSTAKER_FNR.value)
+                            call.request.cookies[cookies]
+                        }
+                    ) {
+                        response.status() shouldBeEqualTo HttpStatusCode.OK
+
+                        val personOppgaveList = objectMapper.readValue<List<PersonOppgaveVeileder>>(response.content!!)
+
+                        personOppgaveList.size shouldBeEqualTo 2
+
+                        val personOppgaveBehandletList = personOppgaveList.filter {
+                            it.behandletTidspunkt != null
+                        }
+                        personOppgaveBehandletList.size shouldBeEqualTo 1
+                        val personOppgaveBehandlet = personOppgaveBehandletList.first()
+                        personOppgaveBehandlet.uuid.shouldNotBeNull()
+                        personOppgaveBehandlet.referanseUuid shouldBeEqualTo kOppfolgingsplanLPSNAV.getUuid()
+                        personOppgaveBehandlet.fnr shouldBeEqualTo kOppfolgingsplanLPSNAV.getFodselsnummer()
+                        personOppgaveBehandlet.virksomhetsnummer shouldBeEqualTo kOppfolgingsplanLPSNAV.getVirksomhetsnummer()
+                        personOppgaveBehandlet.type shouldBeEqualTo personOppgaveType.name
+                        personOppgaveBehandlet.behandletTidspunkt.shouldNotBeNull()
+                        personOppgaveBehandlet.behandletVeilederIdent.shouldNotBeNull()
+                        personOppgaveBehandlet.opprettet.shouldNotBeNull()
+
+                        val personOppgaveUbehandletList = personOppgaveList.filter {
+                            it.behandletTidspunkt == null
+                        }
+                        personOppgaveUbehandletList.size shouldBeEqualTo 1
+                        val personOppgaveUbehandlet = personOppgaveUbehandletList.first()
+                        personOppgaveUbehandlet.uuid.shouldNotBeNull()
+                        personOppgaveUbehandlet.referanseUuid shouldBeEqualTo kOppfolgingsplanLPSNAV2.getUuid()
+                        personOppgaveUbehandlet.fnr shouldBeEqualTo kOppfolgingsplanLPSNAV2.getFodselsnummer()
+                        personOppgaveUbehandlet.virksomhetsnummer shouldBeEqualTo kOppfolgingsplanLPSNAV2.getVirksomhetsnummer()
+                        personOppgaveUbehandlet.type shouldBeEqualTo personOppgaveType.name
+                        personOppgaveUbehandlet.behandletTidspunkt.shouldBeNull()
+                        personOppgaveUbehandlet.behandletVeilederIdent.shouldBeNull()
+                        personOppgaveUbehandlet.opprettet.shouldNotBeNull()
+
+                        val messages: ArrayList<KOversikthendelse> = arrayListOf()
+                        consumerOversikthendelse.poll(Duration.ofMillis(5000)).forEach {
+                            val consumedOversikthendelse: KOversikthendelse = objectMapper.readValue(it.value())
+                            messages.add(consumedOversikthendelse)
+                        }
+                        messages.size shouldBeEqualTo 0
+                    }
+                }
+
+                it("should return OK and send Oversikthendelse if processed 1 of  existing PersonOppgave") {
                     every {
                         isInvalidToken(any())
                     } returns false

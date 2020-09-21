@@ -5,8 +5,7 @@ import no.nav.syfo.db.DatabaseInterface
 import no.nav.syfo.domain.Fodselsnummer
 import no.nav.syfo.oversikthendelse.OversikthendelseProducer
 import no.nav.syfo.oversikthendelse.domain.OversikthendelseType
-import no.nav.syfo.personoppgave.domain.PersonOppgave
-import no.nav.syfo.personoppgave.domain.toPersonOppgave
+import no.nav.syfo.personoppgave.domain.*
 import java.util.*
 
 class PersonOppgaveService(
@@ -42,13 +41,18 @@ class PersonOppgaveService(
         val behandlendeEnhet = behandlendeEnhetClient.getEnhet(personFnr, callId)
             ?: throw BehandlePersonOppgaveFailedException("Veileder $veilederIdent failed to get BehandleEnhet for PersonIdent Fodselsnummer")
 
-        oversikthendelseProducer.sendOversikthendelse(
-            personFnr,
-            behandlendeEnhet,
-            OversikthendelseType.OPPFOLGINGSPLANLPS_BISTAND_BEHANDLET,
-            callId
-        )
+        val isOnePersonOppgaveUbehandlet = getPersonOppgaveList(personFnr)
+            .filter { it.behandletTidspunkt == null && it.type == PersonOppgaveType.OPPFOLGINGSPLANLPS }
+            .size == 1
 
+        if (isOnePersonOppgaveUbehandlet) {
+            oversikthendelseProducer.sendOversikthendelse(
+                personFnr,
+                behandlendeEnhet,
+                OversikthendelseType.OPPFOLGINGSPLANLPS_BISTAND_BEHANDLET,
+                callId
+            )
+        }
         database.updatePersonOppgaveBehandlet(
             personoppgave.uuid,
             veilederIdent
