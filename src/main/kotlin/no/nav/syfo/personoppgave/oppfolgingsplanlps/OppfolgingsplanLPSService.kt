@@ -42,7 +42,7 @@ class OppfolgingsplanLPSService(
                     COUNT_OVERSIKTHENDELSE_OPPFOLGINGSPLANLPS_BISTAND_MOTTATT_SENT.inc()
                 } else {
                     log.error("Failed to send Oversikthendelse for OppfolgingsplanLPS due to missing BehandlendeEnhet, {}", callIdArgument(callId))
-                    COUNT_OPPFOLGINGSTILFELLE_SKIPPED_BEHANDLENDEENHET.inc()
+                    COUNT_OPPFOLGINGSPLANLPS_SKIPPED_BEHANDLENDEENHET.inc()
                 }
             } else {
                 log.error("Already create a PersonOppgave for OppfolgingsplanLPS with UUID {}, {}", kOppfolgingsplanLPSNAV.getUuid(), callIdArgument(callId))

@@ -63,9 +63,9 @@ val COUNT_CALL_TILGANGSKONTROLL_PERSON_FAIL: Counter = Counter.build()
     .help("Counts the number of failed calls to syfo-tilgangskontroll - person")
     .register()
 
-const val OPPFOLGINGSTILFELLE_SKIPPED_BEHANDLENDEENHET = "oppfolgingstilfelle_skipped_behandlendeenhet_count"
-val COUNT_OPPFOLGINGSTILFELLE_SKIPPED_BEHANDLENDEENHET: Counter = Counter.build()
+const val OPPFOLGINGSPLANLPS_SKIPPED_BEHANDLENDEENHET = "oppfolgingsplanlps_skipped_behandlendeenhet_count"
+val COUNT_OPPFOLGINGSPLANLPS_SKIPPED_BEHANDLENDEENHET: Counter = Counter.build()
     .namespace(METRICS_NS)
-    .name(OPPFOLGINGSTILFELLE_SKIPPED_BEHANDLENDEENHET)
-    .help("Counts the number of Oppfolgingstilfeller skipped because BehandlendeEnhet was not found")
+    .name(OPPFOLGINGSPLANLPS_SKIPPED_BEHANDLENDEENHET)
+    .help("Counts the number of KOppfolgingsplanLPS skipped because BehandlendeEnhet was not found")
     .register()
