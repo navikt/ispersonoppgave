@@ -41,7 +41,7 @@ class OppfolgingsplanLPSService(
                     database.updatePersonOppgaveOversikthendelse(id)
                     COUNT_OVERSIKTHENDELSE_OPPFOLGINGSPLANLPS_BISTAND_MOTTATT_SENT.inc()
                 } else {
-                    log.info("Failed to send Oversikthendelse for OppfolgingsplanLPS due to missing BehandlendeEnhet, {}", callIdArgument(callId))
+                    log.error("Failed to send Oversikthendelse for OppfolgingsplanLPS due to missing BehandlendeEnhet, {}", callIdArgument(callId))
                     COUNT_OPPFOLGINGSTILFELLE_SKIPPED_BEHANDLENDEENHET.inc()
                 }
             } else {
