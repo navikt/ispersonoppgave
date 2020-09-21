@@ -24,7 +24,7 @@ val COUNT_PERSON_OPPGAVE_OPPFOLGINGSPLANLPS_NO_BEHOVFORBISTAND: Counter = Counte
     .help("Counts the number KOppfolgingsplanLPS skipped due to no BehovForBistandFraNav")
     .register()
 
-const val OVERSIKTHENDELSE_OPPFOLGINGSPLANLPS_BISTAND_MOTTATT_SENT = "oversikthendelse_oppfolgingsplanlps_bistand_mottatt_sent"
+const val OVERSIKTHENDELSE_OPPFOLGINGSPLANLPS_BISTAND_MOTTATT_SENT = "oversikthendelse_oppfolgingsplanlps_bistand_mottatt_sent_count"
 val COUNT_OVERSIKTHENDELSE_OPPFOLGINGSPLANLPS_BISTAND_MOTTATT_SENT: Counter = Counter.build()
     .namespace(METRICS_NS)
     .name(OVERSIKTHENDELSE_OPPFOLGINGSPLANLPS_BISTAND_MOTTATT_SENT)
