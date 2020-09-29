@@ -1,6 +1,6 @@
 package no.nav.syfo.kafka
 
-import io.ktor.util.KtorExperimentalAPI
+import io.ktor.util.*
 import kotlinx.coroutines.*
 import net.logstash.logback.argument.StructuredArguments
 import no.nav.syfo.*
@@ -8,13 +8,11 @@ import no.nav.syfo.oppfolgingsplan.avro.KOppfolgingsplanLPSNAV
 import no.nav.syfo.personoppgave.oppfolgingsplanlps.OppfolgingsplanLPSService
 import no.nav.syfo.util.callIdArgument
 import no.nav.syfo.util.kafkaCallId
-import org.apache.kafka.clients.consumer.ConsumerRebalanceListener
 import org.apache.kafka.clients.consumer.KafkaConsumer
-import org.apache.kafka.common.TopicPartition
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.time.Duration
-import java.util.Properties
+import java.util.*
 
 private val LOG: Logger = LoggerFactory.getLogger("no.nav.syfo.Kafka")
 
@@ -44,20 +42,8 @@ suspend fun CoroutineScope.launchListeners(
 ) {
     val kafkaConsumerOppfolgingsplanLPSNAV = KafkaConsumer<String, KOppfolgingsplanLPSNAV>(consumerProperties)
 
-    val subscriptionCallback = object : ConsumerRebalanceListener {
-        override fun onPartitionsAssigned(partitions: MutableCollection<TopicPartition>?) {
-            if (false) {
-                log.info("onPartitionsAssigned called for ${partitions?.size ?: 0} partitions. Seeking to beginning.")
-                kafkaConsumerOppfolgingsplanLPSNAV.seekToBeginning(partitions)
-            }
-        }
-
-        override fun onPartitionsRevoked(partitions: MutableCollection<TopicPartition>?) {}
-    }
-
     kafkaConsumerOppfolgingsplanLPSNAV.subscribe(
-        listOf(OPPFOLGINGSPLAN_LPS_NAV_TOPIC),
-        subscriptionCallback
+        listOf(OPPFOLGINGSPLAN_LPS_NAV_TOPIC)
     )
 
     createListener(applicationState) {
