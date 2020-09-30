@@ -17,7 +17,7 @@ fun Application.kafkaModule(
         behandlendeEnhetClient,
         oversikthendelseProducer
     )
-    var toggleProcessing = false
+    var toggleProcessing = true
     if (isPreProd()) {
         toggleProcessing = true
     }
