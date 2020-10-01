@@ -43,7 +43,7 @@ class VeilederTilgangskontrollClient(
             failure = {
                 COUNT_CALL_TILGANGSKONTROLL_PERSON_FAIL.inc()
                 val exception = it.exception
-                log.error("Error while requesting access to list of person from syfo-tilgangskontroll: ${exception.message}", exception)
+                log.error("Error while requesting access to person from syfo-tilgangskontroll: ${exception.message}", exception)
                 return false
             }
         )
