@@ -3,6 +3,7 @@ package no.nav.syfo.auth
 import com.auth0.jwk.JwkProviderBuilder
 import com.auth0.jwt.JWT
 import com.auth0.jwt.algorithms.Algorithm
+import com.auth0.jwt.exceptions.JWTVerificationException
 import com.auth0.jwt.interfaces.DecodedJWT
 import io.ktor.request.RequestCookies
 import net.logstash.logback.argument.StructuredArguments
@@ -30,6 +31,7 @@ fun getDecodedTokenFromCookie(cookies: RequestCookies): DecodedJWT? {
     return if (token != null) {
         verifyToken(token, getEnvironment())
     } else {
+        log.info("Token not verified: Found no token in cookie")
         null
     }
 }
@@ -53,8 +55,8 @@ fun isInvalidToken(cookies: RequestCookies): Boolean {
     val decodedToken = getDecodedTokenFromCookie(cookies)
     val env = getEnvironment()
 
-    if (decodedToken != null) {
-        return if (!decodedToken.audience.contains(env.loginserviceClientId)) {
+    return if (decodedToken != null) {
+        if (!decodedToken.audience.contains(env.loginserviceClientId)) {
             log.warn(
                 "Auth: Unexpected audience for jwt {}, {}, {}",
                 StructuredArguments.keyValue("issuer", decodedToken.issuer),
@@ -66,12 +68,11 @@ fun isInvalidToken(cookies: RequestCookies): Boolean {
             false
         }
     } else {
-        log.warn("Token not verified: No token")
-        return true
+        true
     }
 }
 
-fun verifyToken(token: String, env: Environment): DecodedJWT {
+fun verifyToken(token: String, env: Environment): DecodedJWT? {
     val wellKnown = getWellKnown(env.aadDiscoveryUrl)
     val jwkProvider = JwkProviderBuilder(URL(wellKnown.jwks_uri))
         .cached(10, 24, TimeUnit.HOURS)
@@ -99,5 +100,10 @@ fun verifyToken(token: String, env: Environment): DecodedJWT {
         .withAudience(env.loginserviceClientId) // aud
         .build()
 
-    return verifier.verify(token)
+    return try {
+        verifier.verify(token)
+    } catch (e: JWTVerificationException) {
+        log.info("Token not verified: Verification of token failed", e)
+        null
+    }
 }
