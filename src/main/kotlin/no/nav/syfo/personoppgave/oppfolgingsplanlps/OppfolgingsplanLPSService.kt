@@ -36,7 +36,8 @@ class OppfolgingsplanLPSService(
                 ).first
                 COUNT_PERSON_OPPGAVE_OPPFOLGINGSPLANLPS_CREATED.inc()
 
-                val sent = sendOversikthendelse(kOppfolgingsplanLPSNAV, callId)
+                val fodselsnummer = Fodselsnummer(kOppfolgingsplanLPSNAV.getFodselsnummer())
+                val sent = sendOversikthendelse(fodselsnummer, callId)
                 if (sent) {
                     database.updatePersonOppgaveOversikthendelse(id)
                     COUNT_OVERSIKTHENDELSE_OPPFOLGINGSPLANLPS_BISTAND_MOTTATT_SENT.inc()
@@ -55,14 +56,13 @@ class OppfolgingsplanLPSService(
     }
 
     fun sendOversikthendelse(
-        kOppfolgingsplanLPSNAV: KOppfolgingsplanLPSNAV,
+        fodselsnummer: Fodselsnummer,
         callId: String = ""
     ): Boolean {
-        val fnr = Fodselsnummer(kOppfolgingsplanLPSNAV.getFodselsnummer())
-        val behandlendeEnhet = behandlendeEnhetClient.getEnhet(fnr, callId) ?: return false
+        val behandlendeEnhet = behandlendeEnhetClient.getEnhet(fodselsnummer, callId) ?: return false
 
         oversikthendelseProducer.sendOversikthendelse(
-            fnr,
+            fodselsnummer,
             behandlendeEnhet,
             OversikthendelseType.OPPFOLGINGSPLANLPS_BISTAND_MOTTATT,
             callId
