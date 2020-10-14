@@ -7,6 +7,7 @@ import no.nav.syfo.metric.*
 import no.nav.syfo.oppfolgingsplan.avro.KOppfolgingsplanLPSNAV
 import no.nav.syfo.oversikthendelse.OversikthendelseProducer
 import no.nav.syfo.oversikthendelse.domain.OversikthendelseType
+import no.nav.syfo.oversikthendelse.retry.OversikthendelseRetryProducer
 import no.nav.syfo.personoppgave.*
 import no.nav.syfo.personoppgave.domain.PPersonOppgave
 import no.nav.syfo.personoppgave.domain.PersonOppgaveType
@@ -20,7 +21,8 @@ val log: Logger = LoggerFactory.getLogger("no.nav.syfo.personoppgave.oppfolgings
 class OppfolgingsplanLPSService(
     private val database: DatabaseInterface,
     private val behandlendeEnhetClient: BehandlendeEnhetClient,
-    private val oversikthendelseProducer: OversikthendelseProducer
+    private val oversikthendelseProducer: OversikthendelseProducer,
+    private val oversikthendelseRetryProducer: OversikthendelseRetryProducer
 ) {
     fun receiveOppfolgingsplanLPS(
         kOppfolgingsplanLPSNAV: KOppfolgingsplanLPSNAV,
@@ -42,8 +44,14 @@ class OppfolgingsplanLPSService(
                     database.updatePersonOppgaveOversikthendelse(id)
                     COUNT_OVERSIKTHENDELSE_OPPFOLGINGSPLANLPS_BISTAND_MOTTATT_SENT.inc()
                 } else {
-                    log.error("Failed to send Oversikthendelse for OppfolgingsplanLPS due to missing BehandlendeEnhet, {}", callIdArgument(callId))
-                    COUNT_OPPFOLGINGSPLANLPS_SKIPPED_BEHANDLENDEENHET.inc()
+                    log.warn("Failed to send Oversikthendelse for OppfolgingsplanLPS due to missing BehandlendeEnhet. Sending Retry message {}", callIdArgument(callId))
+                    oversikthendelseRetryProducer.sendFirstOversikthendelseRetry(
+                        fnr = fodselsnummer,
+                        oversikthendelseType = OversikthendelseType.OPPFOLGINGSPLANLPS_BISTAND_MOTTATT,
+                        personOppgaveId = id,
+                        callId = callId
+                    )
+                    COUNT_OPPFOLGINGSPLANLPS_FIRST_OVERSIKTHENDELSE_RETRY.inc()
                 }
             } else {
                 log.error("Already create a PersonOppgave for OppfolgingsplanLPS with UUID {}, {}", kOppfolgingsplanLPSNAV.getUuid(), callIdArgument(callId))

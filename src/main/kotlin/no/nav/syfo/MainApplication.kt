@@ -13,6 +13,8 @@ import no.nav.syfo.client.sts.StsRestClient
 import no.nav.syfo.kafka.kafkaProducerConfig
 import no.nav.syfo.oversikthendelse.OversikthendelseProducer
 import no.nav.syfo.oversikthendelse.domain.KOversikthendelse
+import no.nav.syfo.oversikthendelse.retry.KOversikthendelseRetry
+import no.nav.syfo.oversikthendelse.retry.OversikthendelseRetryProducer
 import no.nav.syfo.util.getFileAsString
 import org.apache.kafka.clients.producer.KafkaProducer
 import org.slf4j.LoggerFactory
@@ -26,7 +28,7 @@ data class ApplicationState(
 
 val log: org.slf4j.Logger = LoggerFactory.getLogger("no.nav.syfo.MainApplicationKt")
 
-val backgroundTasksContext = Executors.newFixedThreadPool(4).asCoroutineDispatcher() + MDCContext()
+val backgroundTasksContext = Executors.newFixedThreadPool(6).asCoroutineDispatcher() + MDCContext()
 
 @KtorExperimentalAPI
 fun main() {
@@ -58,6 +60,10 @@ fun main() {
             val oversikthendelseRecordProducer = KafkaProducer<String, KOversikthendelse>(producerProperties)
             val oversikthendelseProducer = OversikthendelseProducer(oversikthendelseRecordProducer)
 
+            val oversikthendelseRetryProducerProperties = kafkaProducerConfig(env, vaultSecrets)
+            val oversikthendelseRetryRecordProducer = KafkaProducer<String, KOversikthendelseRetry>(oversikthendelseRetryProducerProperties)
+            val oversikthendelseRetryProducer = OversikthendelseRetryProducer(oversikthendelseRetryRecordProducer)
+
             module {
                 databaseModule()
                 serverModule(
@@ -67,7 +73,8 @@ fun main() {
                 kafkaModule(
                     vaultSecrets,
                     behandlendeEnhetClient,
-                    oversikthendelseProducer
+                    oversikthendelseProducer,
+                    oversikthendelseRetryProducer
                 )
             }
         }
