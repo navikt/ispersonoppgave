@@ -32,7 +32,7 @@ fun Application.kafkaModule(
         oversikthendelseProducer,
         oversikthendelseRetryProducer
     )
-    var toggleRetry = false
+    var toggleRetry = true
     if (isPreProd()) {
         toggleRetry = true
     }
