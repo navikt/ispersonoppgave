@@ -11,15 +11,21 @@ spec:
       channel: '#syfo-alarm'
       prependText: '<!here> | '
   alerts:
-    - alert: ISPERSONOPPGAVE prøver å sende Oversikthendelse(r) på nytt!
+    - alert: ISPERSONOPPGAVE IS DOWN
+      expr: up{app="ispersonoppgave", job="kubernetes-pods"} == 0
+      for: 5m
+      description: "Det er ingen pods for app kjørende i namespace og dermed er appen nede"
+      action: "Undersøk hvofor pods er nede og få den kjørende igjen!"
+      severity: danger
+    - alert: ISPERSONOPPGAVE prøver å sende Oversikthendelse(r) på nytt
       expr: sum(increase(ispersonoppgave_oversikthendelse_retry_again_count{app="ispersonoppgave"} [1h])) > 0
       for: 5m
-      description: "Minst 1 Oversikthendelse har ikke blitt sent til topic og app er i gang med retry av sending."
-      action: "Overvåk situasjonen og sjekk om syfobehandlendeenhet er tilgjengelig og fungerer som forventet"
-      severity: danger
+      description: "Minst 1 Oversikthendelse har ikke blitt sent til topic og app er i gang med retry"
+      action: "Overvåk situasjonen og se etter feil i ispersonoppgave eller syfobehandlendenhet."
+      severity: warning
     - alert: ISPERSONOPPGAVE mislykkes i å sende send Oversikthendelse for OPPFOLGINGSPLANLPS_BISTAND_MOTTATT!
       expr: sum(increase(ispersonoppgave_oppfolgingsplanlps_skipped_retry_count{app="ispersonoppgave"} [1h])) > 0
       for: 5m
       description: "Minst 1 Oversikthendelse med type OPPFOLGINGSPLANLPS_BISTAND_MOTTATT har ikke blitt sent til topic."
-      action: "Dette må håndteres manuelt"
+      action: "Minst 1 hendelse har ikke kommet frem dit den skal. Dette må håndteres manuelt slik at Oversikthendelse blir sendt."
       severity: danger
