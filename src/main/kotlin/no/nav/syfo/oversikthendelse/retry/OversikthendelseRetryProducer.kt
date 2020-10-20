@@ -3,6 +3,7 @@ package no.nav.syfo.oversikthendelse.retry
 import net.logstash.logback.argument.StructuredArguments
 import no.nav.syfo.domain.Fodselsnummer
 import no.nav.syfo.kafka.SyfoProducerRecord
+import no.nav.syfo.metric.*
 import no.nav.syfo.oversikthendelse.domain.OversikthendelseType
 import no.nav.syfo.util.callIdArgument
 import org.apache.kafka.clients.producer.KafkaProducer
@@ -39,6 +40,7 @@ class OversikthendelseRetryProducer(
             StructuredArguments.keyValue("retryTime", firstKOversikthendelseRetry.retryTime)!!,
             callIdArgument(callId)
         )
+        COUNT_OVERSIKTHENDELSE_RETRY_FIRST.inc()
     }
 
     fun sendRetriedOversikthendelseRetry(
@@ -60,6 +62,7 @@ class OversikthendelseRetryProducer(
             StructuredArguments.keyValue("retryTime", newKOversikthendelseRetry.retryTime)!!,
             callIdArgument(callId)
         )
+        COUNT_OVERSIKTHENDELSE_RETRY_NEW.inc()
     }
 
     fun sendAgainOversikthendelseRetry(
@@ -74,6 +77,7 @@ class OversikthendelseRetryProducer(
             StructuredArguments.keyValue("retryTime", kOversikthendelseRetry.retryTime)!!,
             callIdArgument(callId)
         )
+        COUNT_OVERSIKTHENDELSE_RETRY_AGAIN.inc()
     }
 
     private fun producerRecord(oversikthendelseRetry: KOversikthendelseRetry) =

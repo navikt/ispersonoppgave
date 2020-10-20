@@ -76,3 +76,22 @@ val COUNT_OVERSIKTHENDELSE_RETRY_OPPFOLGINGSPLANLPS_BISTAND_MOTTATT_SKIPPED: Cou
     .name(OVERSIKTHENDELSE_RETRY_OPPFOLGINGSPLANLPS_BISTAND_MOTTATT_SKIPPED)
     .help("Counts the number of Oversikthendelse with type OPPFOLGINGSPLANLPS_MOTTATT not sent due to reached try limit for")
     .register()
+
+const val OVERSIKTHENDELSE_RETRY_FIRST = "oversikthendelse_retry_first_count"
+val COUNT_OVERSIKTHENDELSE_RETRY_FIRST: Counter = Counter.build()
+    .namespace(METRICS_NS)
+    .name(OVERSIKTHENDELSE_RETRY_FIRST)
+    .help("Counts the number of OversikthendelseRetry with unchanged retryCount sent")
+    .register()
+const val OVERSIKTHENDELSE_RETRY_NEW = "oversikthendelse_retry_new_count"
+val COUNT_OVERSIKTHENDELSE_RETRY_NEW: Counter = Counter.build()
+    .namespace(METRICS_NS)
+    .name(OVERSIKTHENDELSE_RETRY_NEW)
+    .help("Counts the number of OversikthendelseRetry with increased retryCount sent")
+    .register()
+const val OVERSIKTHENDELSE_RETRY_AGAIN = "oversikthendelse_retry_again_count"
+val COUNT_OVERSIKTHENDELSE_RETRY_AGAIN: Counter = Counter.build()
+    .namespace(METRICS_NS)
+    .name(OVERSIKTHENDELSE_RETRY_AGAIN)
+    .help("Counts the number of OversikthendelseRetry with increased retryCount sent")
+    .register()

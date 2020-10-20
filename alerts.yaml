@@ -1,0 +1,25 @@
+apiVersion: "nais.io/v1"
+kind: "Alert"
+metadata:
+  name: ispersonoppgave-alerts
+  namespace: default
+  labels:
+    team: teamsykefravr
+spec:
+  receivers:
+    slack:
+      channel: '#syfo-alarm'
+      prependText: '<!here> | '
+  alerts:
+    - alert: ISPERSONOPPGAVE prøver å sende Oversikthendelse(r) på nytt!
+      expr: sum(increase(ispersonoppgave_oversikthendelse_retry_again_count{app="ispersonoppgave"} [1h])) > 0
+      for: 5m
+      description: "Minst 1 Oversikthendelse har ikke blitt sent til topic og app er i gang med retry av sending."
+      action: "Overvåk situasjonen og sjekk om syfobehandlendeenhet er tilgjengelig og fungerer som forventet"
+      severity: danger
+    - alert: ISPERSONOPPGAVE mislykkes i å sende send Oversikthendelse for OPPFOLGINGSPLANLPS_BISTAND_MOTTATT!
+      expr: sum(increase(ispersonoppgave_oppfolgingsplanlps_skipped_retry_count{app="ispersonoppgave"} [1h])) > 0
+      for: 5m
+      description: "Minst 1 Oversikthendelse med type OPPFOLGINGSPLANLPS_BISTAND_MOTTATT har ikke blitt sent til topic."
+      action: "Dette må håndteres manuelt"
+      severity: danger
