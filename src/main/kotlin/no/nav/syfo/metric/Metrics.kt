@@ -63,9 +63,16 @@ val COUNT_CALL_TILGANGSKONTROLL_PERSON_FAIL: Counter = Counter.build()
     .help("Counts the number of failed calls to syfo-tilgangskontroll - person")
     .register()
 
-const val OPPFOLGINGSPLANLPS_SKIPPED_BEHANDLENDEENHET = "oppfolgingsplanlps_skipped_behandlendeenhet_count"
-val COUNT_OPPFOLGINGSPLANLPS_SKIPPED_BEHANDLENDEENHET: Counter = Counter.build()
+const val OPPFOLGINGSPLANLPS_FIRST_OVERSIKTHENDELSE_RETRY = "oppfolgingsplanlps_first_oversikthendelse_retry_count"
+val COUNT_OPPFOLGINGSPLANLPS_FIRST_OVERSIKTHENDELSE_RETRY: Counter = Counter.build()
     .namespace(METRICS_NS)
-    .name(OPPFOLGINGSPLANLPS_SKIPPED_BEHANDLENDEENHET)
-    .help("Counts the number of KOppfolgingsplanLPS skipped because BehandlendeEnhet was not found")
+    .name(OPPFOLGINGSPLANLPS_FIRST_OVERSIKTHENDELSE_RETRY)
+    .help("Counts the number of KOppfolgingsplanLPS generated new OversikthendelseRetry because BehandlendeEnhet was not found")
+    .register()
+
+const val OVERSIKTHENDELSE_RETRY_OPPFOLGINGSPLANLPS_BISTAND_MOTTATT_SKIPPED = "oppfolgingsplanlps_skipped_retry_count"
+val COUNT_OVERSIKTHENDELSE_RETRY_OPPFOLGINGSPLANLPS_BISTAND_MOTTATT_SKIPPED: Counter = Counter.build()
+    .namespace(METRICS_NS)
+    .name(OVERSIKTHENDELSE_RETRY_OPPFOLGINGSPLANLPS_BISTAND_MOTTATT_SKIPPED)
+    .help("Counts the number of Oversikthendelse with type OPPFOLGINGSPLANLPS_MOTTATT not sent due to reached try limit for")
     .register()

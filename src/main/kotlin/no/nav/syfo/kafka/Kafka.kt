@@ -5,6 +5,7 @@ import kotlinx.coroutines.*
 import net.logstash.logback.argument.StructuredArguments
 import no.nav.syfo.*
 import no.nav.syfo.oppfolgingsplan.avro.KOppfolgingsplanLPSNAV
+import no.nav.syfo.oversikthendelse.retry.*
 import no.nav.syfo.personoppgave.oppfolgingsplanlps.OppfolgingsplanLPSService
 import no.nav.syfo.util.callIdArgument
 import no.nav.syfo.util.kafkaCallId
@@ -21,9 +22,11 @@ const val OPPFOLGINGSPLAN_LPS_NAV_TOPIC = "aapen-syfo-oppfolgingsplan-lps-nav-v1
 suspend fun CoroutineScope.setupKafka(
     vaultSecrets: VaultSecrets,
     oppfolgingsplanLPSService: OppfolgingsplanLPSService,
-    toggleProcessing: Boolean
+    oversikthendelseRetryService: OversikthendelseRetryService,
+    toggleProcessing: Boolean,
+    toggleRetry: Boolean,
 ) {
-    LOG.info("Setting up kafka consumer")
+    LOG.info("Setting up kafka consumer OppfolgingsplanLPS")
 
     launchListeners(
         state,
@@ -31,6 +34,17 @@ suspend fun CoroutineScope.setupKafka(
         oppfolgingsplanLPSService,
         toggleProcessing
     )
+
+    LOG.info("Setting up kafka consumer OversikthendelseRetry")
+
+    launchListenerOversikthendelseRetry(
+        state,
+        kafkaConsumerOversikthendelseRetryProperties(env, vaultSecrets),
+        oversikthendelseRetryService,
+        toggleRetry
+    )
+
+    state.initialized = true
 }
 
 @KtorExperimentalAPI
@@ -54,8 +68,28 @@ suspend fun CoroutineScope.launchListeners(
             toggleProcessing
         )
     }
+}
 
-    applicationState.initialized = true
+@KtorExperimentalAPI
+suspend fun CoroutineScope.launchListenerOversikthendelseRetry(
+    applicationState: ApplicationState,
+    consumerOversikthendelseRetryProperties: Properties,
+    oversikthendelseRetryService: OversikthendelseRetryService,
+    toggleRetry: Boolean,
+) {
+    val kafkaConsumerOversikthendelseRetry = KafkaConsumer<String, String>(consumerOversikthendelseRetryProperties)
+
+    kafkaConsumerOversikthendelseRetry.subscribe(
+        listOf(OVERSIKTHENDELSE_RETRY_TOPIC)
+    )
+    createListenerOversikthendelseRetry(applicationState) {
+        blockingApplicationLogicOversikthendelseRetry(
+            applicationState,
+            kafkaConsumerOversikthendelseRetry,
+            oversikthendelseRetryService,
+            toggleRetry
+        )
+    }
 }
 
 @KtorExperimentalAPI

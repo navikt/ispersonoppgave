@@ -4,21 +4,21 @@ import com.fasterxml.jackson.databind.*
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.readValue
 import com.fasterxml.jackson.module.kotlin.registerKotlinModule
-import io.ktor.application.install
-import io.ktor.features.ContentNegotiation
-import io.ktor.jackson.jackson
-import io.ktor.server.testing.TestApplicationEngine
-import io.ktor.util.InternalAPI
-import io.mockk.every
-import io.mockk.mockk
+import io.ktor.application.*
+import io.ktor.features.*
+import io.ktor.jackson.*
+import io.ktor.server.testing.*
+import io.ktor.util.*
+import io.mockk.*
 import no.nav.common.KafkaEnvironment
 import no.nav.syfo.client.enhet.BehandlendeEnhetClient
-import no.nav.syfo.kafka.kafkaConsumerConfig
-import no.nav.syfo.kafka.kafkaProducerConfig
+import no.nav.syfo.domain.Fodselsnummer
+import no.nav.syfo.kafka.*
 import no.nav.syfo.oversikthendelse.OVERSIKTHENDELSE_TOPIC
 import no.nav.syfo.oversikthendelse.OversikthendelseProducer
 import no.nav.syfo.oversikthendelse.domain.KOversikthendelse
 import no.nav.syfo.oversikthendelse.domain.OversikthendelseType
+import no.nav.syfo.oversikthendelse.retry.*
 import no.nav.syfo.personoppgave.domain.PersonOppgaveType
 import no.nav.syfo.testutil.*
 import no.nav.syfo.testutil.UserConstants.ARBEIDSTAKER_FNR
@@ -62,6 +62,11 @@ object OppfolgingsplanLPSServiceSpek : Spek({
     val consumerOversikthendelse = KafkaConsumer<String, String>(consumerPropertiesOversikthendelse)
     consumerOversikthendelse.subscribe(listOf(OVERSIKTHENDELSE_TOPIC))
 
+    val consumerPropertiesOversikthendelseRetry = kafkaConsumerOversikthendelseRetryProperties(env, credentials)
+        .overrideForTest()
+    val consumerOversikthendelseRetry = KafkaConsumer<String, String>(consumerPropertiesOversikthendelseRetry)
+    consumerOversikthendelseRetry.subscribe(listOf(OVERSIKTHENDELSE_RETRY_TOPIC))
+
     describe("OppfolgingsplanLPSService") {
         val database by lazy { TestDB() }
 
@@ -73,10 +78,16 @@ object OppfolgingsplanLPSServiceSpek : Spek({
         val oversikthendelseRecordProducer = KafkaProducer<String, KOversikthendelse>(producerProperties)
         val oversikthendelseProducer = OversikthendelseProducer(oversikthendelseRecordProducer)
 
+        val oversikthendelseRetryProducerProperties = kafkaProducerConfig(env, vaultSecrets)
+            .overrideForTest()
+        val oversikthendelseRetryRecordProducer = KafkaProducer<String, KOversikthendelseRetry>(oversikthendelseRetryProducerProperties)
+        val oversikthendelseRetryProducer = OversikthendelseRetryProducer(oversikthendelseRetryRecordProducer)
+
         val oppfolgingsplanLPSService = OppfolgingsplanLPSService(
             database,
             behandlendeEnhetClient,
-            oversikthendelseProducer
+            oversikthendelseProducer,
+            oversikthendelseRetryProducer
         )
 
         beforeGroup {
@@ -101,9 +112,6 @@ object OppfolgingsplanLPSServiceSpek : Spek({
 
             beforeEachTest {
                 database.connection.dropData()
-                every {
-                    behandlendeEnhetClient.getEnhet(ARBEIDSTAKER_FNR, "")
-                } returns responseBehandlendeEnhet
             }
 
             afterEachTest {
@@ -112,6 +120,10 @@ object OppfolgingsplanLPSServiceSpek : Spek({
 
             describe("Receive kOppfolgingsplanLPSNAV") {
                 it("should create a new PPersonOppgave with correct type when behovForBistand=true") {
+                    every {
+                        behandlendeEnhetClient.getEnhet(ARBEIDSTAKER_FNR, "")
+                    } returns responseBehandlendeEnhet
+
                     val kOppfolgingsplanLPSNAV = generateKOppfolgingsplanLPSNAV
 
                     oppfolgingsplanLPSService.receiveOppfolgingsplanLPS(kOppfolgingsplanLPSNAV)
@@ -137,7 +149,53 @@ object OppfolgingsplanLPSServiceSpek : Spek({
                     messages.first().hendelseId shouldBeEqualTo OversikthendelseType.OPPFOLGINGSPLANLPS_BISTAND_MOTTATT.name
                 }
 
+                it("should create a new PPersonOppgave with correct type and send KOversikthendelseRetry when behovForBistand=true and behandlendeEnhet=null") {
+                    val mockOversikthendelseRetryProducer = mockk<OversikthendelseRetryProducer>()
+                    justRun { mockOversikthendelseRetryProducer.sendFirstOversikthendelseRetry(any(), any(), any()) }
+
+                    val oppfolgingsplanLPSServiceWithMockOversikthendelseRetryProcuer = OppfolgingsplanLPSService(
+                        database,
+                        behandlendeEnhetClient,
+                        oversikthendelseProducer,
+                        mockOversikthendelseRetryProducer
+                    )
+
+                    val kOppfolgingsplanLPSNAV = generateKOppfolgingsplanLPSNAV
+
+                    val fodselsnummer = Fodselsnummer(kOppfolgingsplanLPSNAV.getFodselsnummer())
+
+                    every {
+                        behandlendeEnhetClient.getEnhet(fodselsnummer, "")
+                    } returns null
+
+                    oppfolgingsplanLPSServiceWithMockOversikthendelseRetryProcuer.receiveOppfolgingsplanLPS(kOppfolgingsplanLPSNAV)
+
+                    val personOppgaveListe = database.connection.getPersonOppgaveList(fodselsnummer)
+                    personOppgaveListe.size shouldBe 1
+                    val personOppgave = personOppgaveListe.first()
+                    personOppgave.oversikthendelseTidspunkt.shouldBeNull()
+
+                    val messagesOversikthendelse: ArrayList<KOversikthendelse> = arrayListOf()
+                    consumerOversikthendelse.poll(Duration.ofMillis(5000)).forEach {
+                        val consumedOversikthendelse: KOversikthendelse = objectMapper.readValue(it.value())
+                        messagesOversikthendelse.add(consumedOversikthendelse)
+                    }
+                    messagesOversikthendelse.size shouldBeEqualTo 0
+
+                    verify(exactly = 1) {
+                        mockOversikthendelseRetryProducer.sendFirstOversikthendelseRetry(
+                            fnr = fodselsnummer,
+                            oversikthendelseType = OversikthendelseType.OPPFOLGINGSPLANLPS_BISTAND_MOTTATT,
+                            personOppgaveId = personOppgave.id
+                        )
+                    }
+                }
+
                 it("should not create a new PPersonOppgave with correct type when behovForBistand=false") {
+                    every {
+                        behandlendeEnhetClient.getEnhet(ARBEIDSTAKER_FNR, "")
+                    } returns responseBehandlendeEnhet
+
                     val kOppfolgingsplanLPSNAV = generateKOppfolgingsplanLPSNAVNoBehovforForBistand
 
                     oppfolgingsplanLPSService.receiveOppfolgingsplanLPS(kOppfolgingsplanLPSNAV)
