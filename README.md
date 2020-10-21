@@ -4,8 +4,7 @@ Person-Oppgave are created based on events and are available to SYFO-veiledere f
 Each time a Person-Oppgave is created or processed, an event is produced to notify Syfooversikt of a change in the situation of a person.
 
 The application currently handles one type of Person-Oppgave, which is a received Oppfolgingsplan from LPS that has been shared with NAV and has Bistandsbehov.\
-In the future the goal is also move the Person-Oppgave for received answer to Motebehov from Syfomotebehov to this application.
-
+A future goal is to move the Person-Oppgave for received answers to Motebehov from Syfomotebehov to this application.
 
 ## Technologies Used
 * Docker
