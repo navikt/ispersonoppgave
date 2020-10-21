@@ -46,7 +46,7 @@ githubUser=x-access-token
 githubPassword=<token>
 ```
 
-Where `<token>` is a personal access token with scope `read:packages`(and SSO enabled).
+`<token>` is a personal access token with scope `read:packages`(and SSO enabled).
 
 Alternatively, the variables can be configured as environment variables or used in the command line:
 
@@ -76,7 +76,7 @@ Creating a docker image should be as simple as `docker build -t ispersonoppgave 
 
 ## Application Description
 The application has three main flows:
-receive OppfolgingsplanLPS, retreive PersonOppgave list and process PersonOppgave.
+receive OppfolgingsplanLPS, retrieve PersonOppgave list and process PersonOppgave.
 
 #### Receive OppfolgingsplanLPS
 ##### Flow
@@ -90,7 +90,7 @@ the application will create a retry-object and publish it to a retry-topic.
 The application will attempt to retry sending of Oversikthendelse until the limit for maximum retries is reached.
 If the maximum number of retries is reached, the application will stop retry of sending of Oversikthendels and manual handling of sending is needed.
 
-#### Retreive PersonOppgave list
+#### Retrieve PersonOppgave list
 ##### Flow:
 1. Receive request from NAV-Veileder to the PersonOppgave list of a person.
 2. Check if NAV-Veileder has access to the person.
