@@ -21,29 +21,17 @@ fun Application.kafkaModule(
         oversikthendelseProducer,
         oversikthendelseRetryProducer
     )
-    var toggleProcessing = true
-    if (isPreProd()) {
-        toggleProcessing = true
-    }
-
     val oversikthendelseRetryService = OversikthendelseRetryService(
         behandlendeEnhetClient,
         database,
         oversikthendelseProducer,
         oversikthendelseRetryProducer
     )
-    var toggleRetry = true
-    if (isPreProd()) {
-        toggleRetry = true
-    }
-
     launch(backgroundTasksContext) {
         setupKafka(
             vaultSecrets,
             oppfolgingsplanLPSService,
-            oversikthendelseRetryService,
-            toggleProcessing,
-            toggleRetry
+            oversikthendelseRetryService
         )
     }
 }

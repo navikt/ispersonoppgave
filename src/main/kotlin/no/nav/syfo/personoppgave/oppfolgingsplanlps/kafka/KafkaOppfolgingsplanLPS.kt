@@ -22,8 +22,7 @@ const val OPPFOLGINGSPLAN_LPS_NAV_TOPIC = "aapen-syfo-oppfolgingsplan-lps-nav-v1
 suspend fun CoroutineScope.launchListenerOppfolgingsplanLPS(
     applicationState: ApplicationState,
     consumerProperties: Properties,
-    oppfolgingsplanLPSService: OppfolgingsplanLPSService,
-    toggleProcessing: Boolean
+    oppfolgingsplanLPSService: OppfolgingsplanLPSService
 ) {
     val kafkaConsumerOppfolgingsplanLPSNAV = KafkaConsumer<String, KOppfolgingsplanLPSNAV>(consumerProperties)
 
@@ -35,8 +34,7 @@ suspend fun CoroutineScope.launchListenerOppfolgingsplanLPS(
         blockingApplicationLogicOppfolgingsplanLPS(
             applicationState,
             kafkaConsumerOppfolgingsplanLPSNAV,
-            oppfolgingsplanLPSService,
-            toggleProcessing
+            oppfolgingsplanLPSService
         )
     }
 }
@@ -45,8 +43,7 @@ suspend fun CoroutineScope.launchListenerOppfolgingsplanLPS(
 suspend fun blockingApplicationLogicOppfolgingsplanLPS(
     applicationState: ApplicationState,
     kafkaConsumer: KafkaConsumer<String, KOppfolgingsplanLPSNAV>,
-    oppfolgingsplanLPSService: OppfolgingsplanLPSService,
-    toggleProcessing: Boolean
+    oppfolgingsplanLPSService: OppfolgingsplanLPSService
 ) {
     while (applicationState.running) {
         var logValues = arrayOf(
@@ -66,12 +63,10 @@ suspend fun blockingApplicationLogicOppfolgingsplanLPS(
             )
             LOG.info("Received KOppfolgingsplanLPSNAV, ready to process, $logKeys, {}", *logValues, callIdArgument(callId))
 
-            if (toggleProcessing) {
-                oppfolgingsplanLPSService.receiveOppfolgingsplanLPS(
-                    kOppfolgingsplanLPSNAV,
-                    callId
-                )
-            }
+            oppfolgingsplanLPSService.receiveOppfolgingsplanLPS(
+                kOppfolgingsplanLPSNAV,
+                callId
+            )
         }
         delay(100)
     }

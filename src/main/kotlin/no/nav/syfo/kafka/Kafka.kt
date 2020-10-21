@@ -15,16 +15,13 @@ suspend fun CoroutineScope.setupKafka(
     vaultSecrets: VaultSecrets,
     oppfolgingsplanLPSService: OppfolgingsplanLPSService,
     oversikthendelseRetryService: OversikthendelseRetryService,
-    toggleProcessing: Boolean,
-    toggleRetry: Boolean,
 ) {
     LOG.info("Setting up kafka consumer OppfolgingsplanLPS")
 
     launchListenerOppfolgingsplanLPS(
         state,
         kafkaConsumerConfig(env, vaultSecrets),
-        oppfolgingsplanLPSService,
-        toggleProcessing
+        oppfolgingsplanLPSService
     )
 
     LOG.info("Setting up kafka consumer OversikthendelseRetry")
@@ -32,8 +29,7 @@ suspend fun CoroutineScope.setupKafka(
     launchListenerOversikthendelseRetry(
         state,
         kafkaConsumerOversikthendelseRetryProperties(env, vaultSecrets),
-        oversikthendelseRetryService,
-        toggleRetry
+        oversikthendelseRetryService
     )
 
     state.initialized = true

@@ -158,8 +158,7 @@ object KafkaOversikthendelseRetrySpek : Spek({
                 runBlocking {
                     pollAndProcessOversikthendelseRetryTopic(
                         kafkaConsumer = mockConsumerOversikthendelseRetry,
-                        oversikthendelseRetryService = oversikthendelseRetryService,
-                        toggleRetry = true
+                        oversikthendelseRetryService = oversikthendelseRetryService
                     )
                 }
 
@@ -218,8 +217,7 @@ object KafkaOversikthendelseRetrySpek : Spek({
                 runBlocking {
                     pollAndProcessOversikthendelseRetryTopic(
                         kafkaConsumer = mockConsumerOversikthendelseRetry,
-                        oversikthendelseRetryService = oversikthendelseRetryService,
-                        toggleRetry = true
+                        oversikthendelseRetryService = oversikthendelseRetryService
                     )
                 }
 
@@ -299,8 +297,7 @@ object KafkaOversikthendelseRetrySpek : Spek({
                 runBlocking {
                     pollAndProcessOversikthendelseRetryTopic(
                         kafkaConsumer = mockConsumerOversikthendelseRetry,
-                        oversikthendelseRetryService = oversikthendelseRetryService,
-                        toggleRetry = true
+                        oversikthendelseRetryService = oversikthendelseRetryService
                     )
                 }
 
@@ -360,8 +357,7 @@ object KafkaOversikthendelseRetrySpek : Spek({
                 runBlocking {
                     pollAndProcessOversikthendelseRetryTopic(
                         kafkaConsumer = mockConsumerOversikthendelseRetry,
-                        oversikthendelseRetryService = oversikthendelseRetryService,
-                        toggleRetry = true
+                        oversikthendelseRetryService = oversikthendelseRetryService
                     )
                 }
 

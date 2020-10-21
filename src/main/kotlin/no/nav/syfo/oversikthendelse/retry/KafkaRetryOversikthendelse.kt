@@ -22,8 +22,7 @@ private val LOG: Logger = LoggerFactory.getLogger("no.nav.syfo.oversikthendelse.
 suspend fun CoroutineScope.launchListenerOversikthendelseRetry(
     applicationState: ApplicationState,
     consumerOversikthendelseRetryProperties: Properties,
-    oversikthendelseRetryService: OversikthendelseRetryService,
-    toggleRetry: Boolean,
+    oversikthendelseRetryService: OversikthendelseRetryService
 ) {
     val kafkaConsumerOversikthendelseRetry = KafkaConsumer<String, String>(consumerOversikthendelseRetryProperties)
 
@@ -34,8 +33,7 @@ suspend fun CoroutineScope.launchListenerOversikthendelseRetry(
         blockingApplicationLogicOversikthendelseRetry(
             applicationState,
             kafkaConsumerOversikthendelseRetry,
-            oversikthendelseRetryService,
-            toggleRetry
+            oversikthendelseRetryService
         )
     }
 }
@@ -43,14 +41,12 @@ suspend fun CoroutineScope.launchListenerOversikthendelseRetry(
 suspend fun blockingApplicationLogicOversikthendelseRetry(
     applicationState: ApplicationState,
     kafkaConsumer: KafkaConsumer<String, String>,
-    oversikthendelseRetryService: OversikthendelseRetryService,
-    toggleRetry: Boolean
+    oversikthendelseRetryService: OversikthendelseRetryService
 ) {
     while (applicationState.running) {
         pollAndProcessOversikthendelseRetryTopic(
             kafkaConsumer = kafkaConsumer,
-            oversikthendelseRetryService = oversikthendelseRetryService,
-            toggleRetry = toggleRetry
+            oversikthendelseRetryService = oversikthendelseRetryService
         )
         delay(5000L)
     }
@@ -58,8 +54,7 @@ suspend fun blockingApplicationLogicOversikthendelseRetry(
 
 fun pollAndProcessOversikthendelseRetryTopic(
     kafkaConsumer: KafkaConsumer<String, String>,
-    oversikthendelseRetryService: OversikthendelseRetryService,
-    toggleRetry: Boolean
+    oversikthendelseRetryService: OversikthendelseRetryService
 ) {
     var logValues = arrayOf(
         StructuredArguments.keyValue("id", "missing"),
@@ -79,11 +74,7 @@ fun pollAndProcessOversikthendelseRetryTopic(
             StructuredArguments.keyValue("timestamp", it.timestamp())
         )
         LOG.info("Received KOversikthendelseRetry, ready to process, $logKeys, {}", *logValues, callIdArgument(callId))
-        if (toggleRetry) {
-            oversikthendelseRetryService.receiveOversikthendelseRetry(kOversikthendelseRetry)
-        } else {
-            LOG.info("Retry is turned off: Skipped receival of KOversikthendelseRetry")
-        }
+        oversikthendelseRetryService.receiveOversikthendelseRetry(kOversikthendelseRetry)
         kafkaConsumer.commitSync()
     }
 }
