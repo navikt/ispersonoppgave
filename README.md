@@ -1,19 +1,30 @@
 # ispersonoppgave
-Application for handling of Person-Oppgaver by SYFO-veiledere in Syfomodiaperson(https://github.com/navikt/syfomodiaperson) in Modia.
+Ispersonoppgave is a backend microservice for handling of Person-Oppgaver by SYFO-veiledere in Syfomodiaperson(https://github.com/navikt/syfomodiaperson) in Modia.
+Person-Oppgave are created based on events and are available to SYFO-veiledere for manual processing.
+Each time a Person-Oppgave is created or processed, an event is produced to notify Syfooversikt of a change in the situation of a person.
 
-PersonOppgave types:
-* OppfolgingsplanLPS (Oppfolgingsplan from LPS that has been shared with NAV and has Bistandsbehov)
+The application currently handles one type of Person-Oppgave, which is a received Oppfolgingsplan from LPS that has been shared with NAV and has Bistandsbehov.\
+In the future the goal is also move the Person-Oppgave for received answer to Motebehov from Syfomotebehov to this application.
 
-## Technologies used
-* Kotlin
-* Ktor
+
+## Technologies Used
+* Docker
 * Gradle
-* Spek
-* Vault
+* Kotlin
+* Kafka
+* Ktor
 * Postgres
+* Vault
 
-## Get packages from Github Package Registry
-Some packages are downloaded from Github Package Registry and requires authentication.
+##### Test Libraries:
+* Kluent
+* Mockk
+* Spek
+
+## Local Development
+
+### Get Protected Packages
+Protected navikt-packages are downloaded from Github Package Registry and requires authentication.
 The packages can be downloaded via build.gradle.kts:
 ```
 val githubUser: String by project
@@ -47,16 +58,21 @@ Alternatively, the variables can be configured as environment variables or used 
 ./gradlew -PgithubUser=x-access-token -PgithubPassword=[token]
 ```
 
-#### Build
+### Build
 Run `./gradlew clean shadowJar`
 
 ### Lint
 Run `./gradlew --continue ktlintCheck`
 
-#### Creating a docker image
+### Test
+Run `./gradlew test -i`
+
+### Run Application
+
+#### Create Docker Image
 Creating a docker image should be as simple as `docker build -t ispersonoppgave .`
 
-#### Running a docker image
+#### Run Docker Image
 `docker run --rm -it -p 8080:8080 ispersonoppgave`
 
 ## Application Description
