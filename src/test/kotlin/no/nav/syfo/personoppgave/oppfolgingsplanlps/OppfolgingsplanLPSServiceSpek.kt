@@ -12,6 +12,7 @@ import io.ktor.util.*
 import io.mockk.*
 import no.nav.common.KafkaEnvironment
 import no.nav.syfo.client.enhet.BehandlendeEnhetClient
+import no.nav.syfo.client.sts.StsRestClient
 import no.nav.syfo.domain.Fodselsnummer
 import no.nav.syfo.kafka.*
 import no.nav.syfo.oversikthendelse.OVERSIKTHENDELSE_TOPIC
@@ -21,8 +22,10 @@ import no.nav.syfo.oversikthendelse.domain.OversikthendelseType
 import no.nav.syfo.oversikthendelse.retry.*
 import no.nav.syfo.personoppgave.domain.PersonOppgaveType
 import no.nav.syfo.testutil.*
+import no.nav.syfo.testutil.UserConstants.ARBEIDSTAKER_2_FNR
 import no.nav.syfo.testutil.UserConstants.ARBEIDSTAKER_FNR
-import no.nav.syfo.testutil.generator.generateBehandlendeEnhet
+import no.nav.syfo.testutil.mock.BehandlendeEnhetMock
+import no.nav.syfo.testutil.mock.StsRestMock
 import org.amshove.kluent.*
 import org.apache.kafka.clients.consumer.KafkaConsumer
 import org.apache.kafka.clients.producer.KafkaProducer
@@ -70,8 +73,18 @@ object OppfolgingsplanLPSServiceSpek : Spek({
     describe("OppfolgingsplanLPSService") {
         val database by lazy { TestDB() }
 
-        val responseBehandlendeEnhet = generateBehandlendeEnhet
-        val behandlendeEnhetClient = mockk<BehandlendeEnhetClient>()
+        val stsRestMock = StsRestMock()
+        val stsRestClient = StsRestClient(
+            baseUrl = stsRestMock.url,
+            username = vaultSecrets.serviceuserUsername,
+            password = vaultSecrets.serviceuserPassword
+        )
+
+        val behandlendeEnhetMock = BehandlendeEnhetMock()
+        val behandlendeEnhetClient = BehandlendeEnhetClient(
+            baseUrl = behandlendeEnhetMock.url,
+            stsRestClient = stsRestClient
+        )
 
         val producerProperties = kafkaProducerConfig(env, vaultSecrets)
             .overrideForTest()
@@ -92,11 +105,17 @@ object OppfolgingsplanLPSServiceSpek : Spek({
 
         beforeGroup {
             embeddedEnvironment.start()
+
+            stsRestMock.server.start()
+            behandlendeEnhetMock.server.start()
         }
 
         afterGroup {
             embeddedEnvironment.tearDown()
             database.stop()
+
+            stsRestMock.server.stop(1L, 10L)
+            behandlendeEnhetMock.server.stop(1L, 10L)
         }
 
         with(TestApplicationEngine()) {
@@ -120,10 +139,6 @@ object OppfolgingsplanLPSServiceSpek : Spek({
 
             describe("Receive kOppfolgingsplanLPSNAV") {
                 it("should create a new PPersonOppgave with correct type when behovForBistand=true") {
-                    every {
-                        behandlendeEnhetClient.getEnhet(ARBEIDSTAKER_FNR, "")
-                    } returns responseBehandlendeEnhet
-
                     val kOppfolgingsplanLPSNAV = generateKOppfolgingsplanLPSNAV
 
                     oppfolgingsplanLPSService.receiveOppfolgingsplanLPS(kOppfolgingsplanLPSNAV)
@@ -145,7 +160,7 @@ object OppfolgingsplanLPSServiceSpek : Spek({
 
                     messages.size shouldBeEqualTo 1
                     messages.first().fnr shouldBeEqualTo kOppfolgingsplanLPSNAV.getFodselsnummer()
-                    messages.first().enhetId shouldBeEqualTo responseBehandlendeEnhet.enhetId
+                    messages.first().enhetId shouldBeEqualTo behandlendeEnhetMock.behandlendeEnhet.enhetId
                     messages.first().hendelseId shouldBeEqualTo OversikthendelseType.OPPFOLGINGSPLANLPS_BISTAND_MOTTATT.name
                 }
 
@@ -160,13 +175,9 @@ object OppfolgingsplanLPSServiceSpek : Spek({
                         mockOversikthendelseRetryProducer
                     )
 
-                    val kOppfolgingsplanLPSNAV = generateKOppfolgingsplanLPSNAV
+                    val kOppfolgingsplanLPSNAV = generateKOppfolgingsplanLPSNAV(ARBEIDSTAKER_2_FNR)
 
                     val fodselsnummer = Fodselsnummer(kOppfolgingsplanLPSNAV.getFodselsnummer())
-
-                    every {
-                        behandlendeEnhetClient.getEnhet(fodselsnummer, "")
-                    } returns null
 
                     oppfolgingsplanLPSServiceWithMockOversikthendelseRetryProcuer.receiveOppfolgingsplanLPS(kOppfolgingsplanLPSNAV)
 
@@ -192,10 +203,6 @@ object OppfolgingsplanLPSServiceSpek : Spek({
                 }
 
                 it("should not create a new PPersonOppgave with correct type when behovForBistand=false") {
-                    every {
-                        behandlendeEnhetClient.getEnhet(ARBEIDSTAKER_FNR, "")
-                    } returns responseBehandlendeEnhet
-
                     val kOppfolgingsplanLPSNAV = generateKOppfolgingsplanLPSNAVNoBehovforForBistand
 
                     oppfolgingsplanLPSService.receiveOppfolgingsplanLPS(kOppfolgingsplanLPSNAV)
