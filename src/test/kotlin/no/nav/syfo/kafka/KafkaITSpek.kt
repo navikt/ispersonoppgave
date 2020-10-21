@@ -4,6 +4,7 @@ import no.nav.common.KafkaEnvironment
 import no.nav.syfo.Environment
 import no.nav.syfo.VaultSecrets
 import no.nav.syfo.oppfolgingsplan.avro.KOppfolgingsplanLPSNAV
+import no.nav.syfo.personoppgave.oppfolgingsplanlps.kafka.OPPFOLGINGSPLAN_LPS_NAV_TOPIC
 import no.nav.syfo.testutil.generateKOppfolgingsplanLPSNAV
 import no.nav.syfo.testutil.getRandomPort
 import org.amshove.kluent.shouldBeEqualTo

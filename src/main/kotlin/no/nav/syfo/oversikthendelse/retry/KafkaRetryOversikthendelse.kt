@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.*
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.readValue
 import com.fasterxml.jackson.module.kotlin.registerKotlinModule
+import io.ktor.util.*
 import kotlinx.coroutines.*
 import net.logstash.logback.argument.StructuredArguments
 import no.nav.syfo.ApplicationState
@@ -13,8 +14,31 @@ import org.apache.kafka.clients.consumer.KafkaConsumer
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.time.Duration
+import java.util.*
 
 private val LOG: Logger = LoggerFactory.getLogger("no.nav.syfo.oversikthendelse.retry")
+
+@KtorExperimentalAPI
+suspend fun CoroutineScope.launchListenerOversikthendelseRetry(
+    applicationState: ApplicationState,
+    consumerOversikthendelseRetryProperties: Properties,
+    oversikthendelseRetryService: OversikthendelseRetryService,
+    toggleRetry: Boolean,
+) {
+    val kafkaConsumerOversikthendelseRetry = KafkaConsumer<String, String>(consumerOversikthendelseRetryProperties)
+
+    kafkaConsumerOversikthendelseRetry.subscribe(
+        listOf(OVERSIKTHENDELSE_RETRY_TOPIC)
+    )
+    createListenerOversikthendelseRetry(applicationState) {
+        blockingApplicationLogicOversikthendelseRetry(
+            applicationState,
+            kafkaConsumerOversikthendelseRetry,
+            oversikthendelseRetryService,
+            toggleRetry
+        )
+    }
+}
 
 suspend fun blockingApplicationLogicOversikthendelseRetry(
     applicationState: ApplicationState,
