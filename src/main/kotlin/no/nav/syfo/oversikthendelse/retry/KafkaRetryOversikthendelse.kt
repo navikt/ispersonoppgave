@@ -4,48 +4,37 @@ import com.fasterxml.jackson.databind.*
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.readValue
 import com.fasterxml.jackson.module.kotlin.registerKotlinModule
-import io.ktor.util.*
 import kotlinx.coroutines.*
 import net.logstash.logback.argument.StructuredArguments
-import no.nav.syfo.ApplicationState
+import no.nav.syfo.*
+import no.nav.syfo.kafka.kafkaConsumerOversikthendelseRetryProperties
 import no.nav.syfo.util.callIdArgument
 import no.nav.syfo.util.kafkaCallId
 import org.apache.kafka.clients.consumer.KafkaConsumer
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.time.Duration
-import java.util.*
 
 private val LOG: Logger = LoggerFactory.getLogger("no.nav.syfo.oversikthendelse.retry")
 
-@KtorExperimentalAPI
-suspend fun CoroutineScope.launchListenerOversikthendelseRetry(
+suspend fun blockingApplicationLogicOversikthendelseRetry(
     applicationState: ApplicationState,
-    consumerOversikthendelseRetryProperties: Properties,
+    environment: Environment,
+    vaultSecrets: VaultSecrets,
     oversikthendelseRetryService: OversikthendelseRetryService
 ) {
+    LOG.info("Setting up kafka consumer OversikthendelseRetry")
+
+    val consumerOversikthendelseRetryProperties = kafkaConsumerOversikthendelseRetryProperties(environment, vaultSecrets)
     val kafkaConsumerOversikthendelseRetry = KafkaConsumer<String, String>(consumerOversikthendelseRetryProperties)
 
     kafkaConsumerOversikthendelseRetry.subscribe(
         listOf(OVERSIKTHENDELSE_RETRY_TOPIC)
     )
-    createListenerOversikthendelseRetry(applicationState) {
-        blockingApplicationLogicOversikthendelseRetry(
-            applicationState,
-            kafkaConsumerOversikthendelseRetry,
-            oversikthendelseRetryService
-        )
-    }
-}
 
-suspend fun blockingApplicationLogicOversikthendelseRetry(
-    applicationState: ApplicationState,
-    kafkaConsumer: KafkaConsumer<String, String>,
-    oversikthendelseRetryService: OversikthendelseRetryService
-) {
     while (applicationState.running) {
         pollAndProcessOversikthendelseRetryTopic(
-            kafkaConsumer = kafkaConsumer,
+            kafkaConsumer = kafkaConsumerOversikthendelseRetry,
             oversikthendelseRetryService = oversikthendelseRetryService
         )
         delay(5000L)
