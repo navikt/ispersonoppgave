@@ -8,19 +8,16 @@ import io.ktor.application.*
 import io.ktor.features.*
 import io.ktor.http.*
 import io.ktor.jackson.*
-import io.ktor.response.*
 import io.ktor.routing.*
-import io.ktor.server.engine.*
-import io.ktor.server.netty.*
 import io.ktor.server.testing.*
 import io.ktor.util.*
-import io.mockk.*
+import io.mockk.every
+import io.mockk.mockkStatic
 import no.nav.common.KafkaEnvironment
 import no.nav.syfo.auth.getTokenFromCookie
 import no.nav.syfo.auth.isInvalidToken
 import no.nav.syfo.client.enhet.BehandlendeEnhetClient
 import no.nav.syfo.client.sts.StsRestClient
-import no.nav.syfo.client.veiledertilgang.Tilgang
 import no.nav.syfo.client.veiledertilgang.VeilederTilgangskontrollClient
 import no.nav.syfo.kafka.kafkaConsumerConfig
 import no.nav.syfo.kafka.kafkaProducerConfig
@@ -32,15 +29,14 @@ import no.nav.syfo.personoppgave.PersonOppgaveService
 import no.nav.syfo.personoppgave.domain.PersonOppgaveType
 import no.nav.syfo.testutil.*
 import no.nav.syfo.testutil.UserConstants.ARBEIDSTAKER_FNR
-import no.nav.syfo.testutil.generator.generateBehandlendeEnhet
 import no.nav.syfo.testutil.generator.veilederTokenGenerator
+import no.nav.syfo.testutil.mock.*
 import no.nav.syfo.util.NAV_PERSONIDENT_HEADER
 import org.amshove.kluent.*
 import org.apache.kafka.clients.consumer.KafkaConsumer
 import org.apache.kafka.clients.producer.KafkaProducer
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
-import java.net.ServerSocket
 import java.time.Duration
 import java.util.*
 
@@ -74,49 +70,30 @@ object VeilederPersonOppgaveApiSpek : Spek({
 
     describe("VeilederPersonOppgaveApi") {
 
-        val stsOidcClientMock = mockk<StsRestClient>()
-
         with(TestApplicationEngine()) {
             start()
 
-            val responseAccessPerson = Tilgang(
-                true,
-                ""
-            )
-            val responseNoAccessPerson = Tilgang(
-                false,
-                ""
+            val stsRestMock = StsRestMock()
+            val stsRestClient = StsRestClient(
+                baseUrl = stsRestMock.url,
+                username = vaultSecrets.serviceuserUsername,
+                password = vaultSecrets.serviceuserPassword
             )
 
-            val responseBehandlendeEnhet = generateBehandlendeEnhet.copy()
+            val behandlendeEnhetMock = BehandlendeEnhetMock()
+            val behandlendeEnhetClient = BehandlendeEnhetClient(
+                baseUrl = behandlendeEnhetMock.url,
+                stsRestClient = stsRestClient
+            )
 
-            val mockHttpServerPort = ServerSocket(0).use { it.localPort }
-            val mockHttpServerUrl = "http://localhost:$mockHttpServerPort"
-            val mockServer = embeddedServer(Netty, mockHttpServerPort) {
-                install(ContentNegotiation) {
-                    jackson {}
-                }
-                routing {
-                    get("/syfo-tilgangskontroll/api/tilgang/bruker") {
-                        if (call.parameters["fnr"] == ARBEIDSTAKER_FNR.value) {
-                            call.respond(responseAccessPerson)
-                        } else {
-                            call.respond(responseNoAccessPerson)
-                        }
-                    }
-                    get("/api/${ARBEIDSTAKER_FNR.value}") {
-                        call.respond(responseBehandlendeEnhet)
-                    }
-                }
-            }.start()
+            val tilgangskontrollMock = VeilederTilgangskontrollMock()
+            val veilederTilgangskontrollClient = VeilederTilgangskontrollClient(
+                tilgangskontrollMock.url
+            )
 
             val database = TestDB()
             val cookies = ""
             val baseUrl = "/api/v1/personoppgave"
-            val behandlendeEnhetClient = BehandlendeEnhetClient(
-                mockHttpServerUrl,
-                stsOidcClientMock
-            )
 
             fun Properties.overrideForTest(): Properties = apply {
                 remove("security.protocol")
@@ -138,9 +115,6 @@ object VeilederPersonOppgaveApiSpek : Spek({
             val oversikthendelseRecordProducer = KafkaProducer<String, KOversikthendelse>(producerProperties)
             val oversikthendelseProducer = OversikthendelseProducer(oversikthendelseRecordProducer)
 
-            val veilederTilgangskontrollClient = VeilederTilgangskontrollClient(
-                mockHttpServerUrl
-            )
             val personOppgaveService = PersonOppgaveService(
                 database,
                 behandlendeEnhetClient,
@@ -164,16 +138,24 @@ object VeilederPersonOppgaveApiSpek : Spek({
 
             beforeEachTest {
                 mockkStatic("no.nav.syfo.auth.TokenAuthKt")
-                coEvery { stsOidcClientMock.token() } returns "oidctoken"
             }
 
             afterEachTest {
                 database.connection.dropData()
             }
 
+            beforeGroup {
+                behandlendeEnhetMock.server.start()
+                stsRestMock.server.start()
+                tilgangskontrollMock.server.start()
+            }
+
             afterGroup {
-                mockServer.stop(1L, 10L)
                 database.stop()
+
+                behandlendeEnhetMock.server.stop(1L, 10L)
+                stsRestMock.server.stop(1L, 10L)
+                tilgangskontrollMock.server.stop(1L, 10L)
             }
 
             describe("Get PersonOppgave for PersonIdent") {
@@ -419,7 +401,7 @@ object VeilederPersonOppgaveApiSpek : Spek({
                     }
                     messages.size shouldBeEqualTo 1
                     messages.first().fnr shouldBeEqualTo kOppfolgingsplanLPSNAV.getFodselsnummer()
-                    messages.first().enhetId shouldBeEqualTo responseBehandlendeEnhet.enhetId
+                    messages.first().enhetId shouldBeEqualTo behandlendeEnhetMock.behandlendeEnhet.enhetId
                     messages.first().hendelseId shouldBeEqualTo OversikthendelseType.OPPFOLGINGSPLANLPS_BISTAND_BEHANDLET.name
                 }
             }
