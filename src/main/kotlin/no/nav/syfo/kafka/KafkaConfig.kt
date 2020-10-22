@@ -1,9 +1,12 @@
 package no.nav.syfo.kafka
 
+import io.confluent.kafka.serializers.KafkaAvroDeserializer
 import no.nav.syfo.Environment
 import no.nav.syfo.VaultSecrets
 import org.apache.kafka.clients.CommonClientConfigs
 import org.apache.kafka.clients.consumer.ConsumerConfig
+import org.apache.kafka.common.serialization.StringDeserializer
+import org.apache.kafka.common.serialization.StringSerializer
 import java.util.*
 
 fun kafkaConsumerConfig(
@@ -18,8 +21,8 @@ fun kafkaConsumerConfig(
         this["sasl.mechanism"] = "PLAIN"
         this["schema.registry.url"] = "http://kafka-schema-registry.tpa.svc.nais.local:8081"
         this["specific.avro.reader"] = true
-        this["key.deserializer"] = "io.confluent.kafka.serializers.KafkaAvroDeserializer"
-        this["value.deserializer"] = "io.confluent.kafka.serializers.KafkaAvroDeserializer"
+        this["key.deserializer"] = KafkaAvroDeserializer::class.java.canonicalName
+        this["value.deserializer"] = KafkaAvroDeserializer::class.java.canonicalName
         this["sasl.jaas.config"] = "org.apache.kafka.common.security.plain.PlainLoginModule required " +
             "username=\"${vaultSecrets.serviceuserUsername}\" password=\"${vaultSecrets.serviceuserPassword}\";"
         this["bootstrap.servers"] = env.kafkaBootstrapServers
@@ -39,8 +42,8 @@ fun kafkaConsumerOversikthendelseRetryProperties(
     this["security.protocol"] = "SASL_SSL"
     this["sasl.mechanism"] = "PLAIN"
     this["schema.registry.url"] = "http://kafka-schema-registry.tpa:8081"
-    this[ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG] = "org.apache.kafka.common.serialization.StringDeserializer"
-    this[ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG] = "org.apache.kafka.common.serialization.StringDeserializer"
+    this[ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG] = StringDeserializer::class.java.canonicalName
+    this[ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG] = StringDeserializer::class.java.canonicalName
 
     this["sasl.jaas.config"] = "org.apache.kafka.common.security.plain.PlainLoginModule required " +
         "username=\"${vaultSecrets.serviceuserUsername}\" password=\"${vaultSecrets.serviceuserPassword}\";"
@@ -58,8 +61,8 @@ fun kafkaProducerConfig(
         this["sasl.mechanism"] = "PLAIN"
         this["sasl.jaas.config"] = "org.apache.kafka.common.security.plain.PlainLoginModule required " +
             "username=\"${vaultSecrets.serviceuserUsername}\" password=\"${vaultSecrets.serviceuserPassword}\";"
-        this["key.serializer"] = "org.apache.kafka.common.serialization.StringSerializer"
-        this["value.serializer"] = "no.nav.syfo.kafka.JacksonKafkaSerializer"
+        this["key.serializer"] = StringSerializer::class.java.canonicalName
+        this["value.serializer"] = JacksonKafkaSerializer::class.java.canonicalName
         this["bootstrap.servers"] = env.kafkaBootstrapServers
     }
 }
