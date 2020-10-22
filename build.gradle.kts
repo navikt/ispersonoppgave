@@ -37,7 +37,6 @@ tasks.withType<Jar> {
 
 plugins {
     kotlin("jvm") version "1.4.10"
-    id("com.diffplug.gradle.spotless") version "3.18.0"
     id("com.github.johnrengelman.shadow") version "4.0.4"
     id("org.jlleitschuh.gradle.ktlint") version "9.4.0"
 }
@@ -47,11 +46,7 @@ val githubPassword: String by project
 repositories {
     mavenCentral()
     jcenter()
-    maven(url = "https://dl.bintray.com/kotlin/ktor")
-    maven(url = "https://dl.bintray.com/spekframework/spek-dev")
-    maven(url = "https://dl.bintray.com/kotlin/kotlinx/")
     maven(url = "https://packages.confluent.io/maven/")
-    maven(url = "https://oss.sonatype.org/content/groups/staging/")
     maven {
         url = uri("https://maven.pkg.github.com/navikt/syfoopservice-schema")
         credentials {
