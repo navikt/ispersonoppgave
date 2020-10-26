@@ -111,9 +111,6 @@ dependencies {
     testImplementation("io.mockk:mockk:${Versions.mockkVersion}")
     testRuntimeOnly("org.spekframework.spek2:spek-runtime-jvm:${Versions.spekVersion}")
     testRuntimeOnly("org.spekframework.spek2:spek-runner-junit5:${Versions.spekVersion}")
-
-    api("io.ktor:ktor-client-mock:${Versions.ktorVersion}")
-    api("io.ktor:ktor-client-mock-jvm:${Versions.ktorVersion}")
 }
 
 tasks {
