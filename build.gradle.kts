@@ -8,13 +8,13 @@ version = "1.0-SNAPSHOT"
 object Versions {
     const val arrowVersion = "0.11.0"
     const val avroVersion = "1.8.2"
-    const val confluentVersion = "5.4.0"
+    const val confluentVersion = "5.5.0"
     const val coroutinesVersion = "1.3.9"
     const val flywayVersion = "6.4.4"
     const val fuelVersion = "1.15.1"
     const val hikariVersion = "3.3.0"
-    const val kafkaVersion = "2.4.0"
-    const val kafkaEmbeddedVersion = "2.4.0"
+    const val kafkaVersion = "2.5.1"
+    const val kafkaEmbeddedVersion = "2.5.0"
     const val kluentVersion = "1.61"
     const val kotlinSerializationVersion = "0.20.0"
     const val ktorVersion = "1.3.2"
@@ -47,6 +47,7 @@ repositories {
     mavenCentral()
     jcenter()
     maven(url = "https://packages.confluent.io/maven/")
+    maven(url = "https://repository.mulesoft.org/nexus/content/repositories/public/")
     maven {
         url = uri("https://maven.pkg.github.com/navikt/syfoopservice-schema")
         credentials {
@@ -89,6 +90,7 @@ dependencies {
     implementation("org.apache.kafka:kafka_2.12:${Versions.kafkaVersion}")
     implementation("org.apache.avro:avro:${Versions.avroVersion}")
     implementation("io.confluent:kafka-avro-serializer:${Versions.confluentVersion}")
+    implementation("io.confluent:kafka-schema-registry:${Versions.confluentVersion}")
     implementation("no.nav.syfo.oppfolgingsplan.avro:syfoopservice-schema:${Versions.syfoOppfolgingsplanSchemaVersion}")
 
     // Database
