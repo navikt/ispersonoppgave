@@ -18,7 +18,7 @@ spec:
       action: "Undersøk hvofor pods er nede og få den kjørende igjen!"
       severity: danger
     - alert: ISPERSONOPPGAVE is restarting alot(DEV)
-      expr: sum(increase(kube_pod_container_status_restarts_total{container="isprediksjon"}[1h])) > 5
+      expr: sum(increase(kube_pod_container_status_restarts_total{container="ispersonoppgave"}[1h])) > 5
       for: 10m
       description: "App restarter mange ganger"
       action: "Undersøk hvorfor pods restarter ofte."
