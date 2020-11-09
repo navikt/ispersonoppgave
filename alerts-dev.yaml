@@ -1,0 +1,37 @@
+apiVersion: "nais.io/v1"
+kind: "Alert"
+metadata:
+  name: ispersonoppgave-alerts
+  namespace: default
+  labels:
+    team: teamsykefravr
+spec:
+  receivers:
+    slack:
+      channel: '#syfo-alarm'
+      prependText: '<!here> | '
+  alerts:
+    - alert: ISPERSONOPPGAVE IS DOWN(DEV)
+      expr: count(kube_pod_container_status_running{container="ispersonoppgave"}) == 0
+      for: 5m
+      description: "Det er ingen pods for app kjørende i namespace og dermed er appen nede"
+      action: "Undersøk hvofor pods er nede og få den kjørende igjen!"
+      severity: danger
+    - alert: ISPERSONOPPGAVE is restarting alot(DEV)
+      expr: sum(increase(kube_pod_container_status_restarts_total{container="isprediksjon"}[1h])) > 5
+      for: 10m
+      description: "App restarter mange ganger"
+      action: "Undersøk hvorfor pods restarter ofte."
+      severity: warning
+    - alert: ISPERSONOPPGAVE prøver å sende Oversikthendelse(r) på nytt(DEV)
+      expr: sum(increase(ispersonoppgave_oversikthendelse_retry_again_count{app="ispersonoppgave"} [1h])) > 0
+      for: 5m
+      description: "Minst 1 Oversikthendelse har ikke blitt sent til topic og app er i gang med retry"
+      action: "Overvåk situasjonen og se etter feil i ispersonoppgave eller syfobehandlendenhet."
+      severity: warning
+    - alert: ISPERSONOPPGAVE mislykkes i å sende Oversikthendelse for OPPFOLGINGSPLANLPS_BISTAND_MOTTATT!(DEV)
+      expr: sum(increase(ispersonoppgave_oppfolgingsplanlps_skipped_retry_count{app="ispersonoppgave"} [1h])) > 0
+      for: 5m
+      description: "Minst 1 Oversikthendelse med type OPPFOLGINGSPLANLPS_BISTAND_MOTTATT har ikke blitt sent til topic."
+      action: "Minst 1 hendelse har ikke kommet frem dit den skal. Dette må håndteres manuelt slik at Oversikthendelse blir sendt."
+      severity: danger
