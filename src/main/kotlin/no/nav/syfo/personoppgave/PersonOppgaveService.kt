@@ -1,11 +1,13 @@
 package no.nav.syfo.personoppgave
 
+import net.logstash.logback.argument.StructuredArguments
 import no.nav.syfo.client.enhet.BehandlendeEnhetClient
 import no.nav.syfo.db.DatabaseInterface
 import no.nav.syfo.domain.Fodselsnummer
 import no.nav.syfo.oversikthendelse.OversikthendelseProducer
 import no.nav.syfo.oversikthendelse.domain.OversikthendelseType
 import no.nav.syfo.personoppgave.domain.*
+import org.slf4j.LoggerFactory
 import java.util.*
 
 class PersonOppgaveService(
@@ -52,10 +54,18 @@ class PersonOppgaveService(
                 OversikthendelseType.OPPFOLGINGSPLANLPS_BISTAND_BEHANDLET,
                 callId
             )
+            LOG.info(
+                "Sent Oversikthendelse ${OversikthendelseType.OPPFOLGINGSPLANLPS_BISTAND_BEHANDLET}, {}",
+                StructuredArguments.keyValue("veilederident", veilederIdent)
+            )
         }
         database.updatePersonOppgaveBehandlet(
             personoppgave.uuid,
             veilederIdent
         )
+    }
+
+    companion object {
+        private val LOG = LoggerFactory.getLogger(PersonOppgaveService::class.java)
     }
 }

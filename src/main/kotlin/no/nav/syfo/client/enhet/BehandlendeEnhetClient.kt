@@ -35,6 +35,7 @@ class BehandlendeEnhetClient(
             success = {
                 return if (response.statusCode == 204) {
                     COUNT_CALL_BEHANDLENDEENHET_EMPTY.inc()
+                    LOG.warn("Request was successful, but no BehandlendeEnhet was found")
                     null
                 } else {
                     val behandlendeEnhet = objectMapper.readValue<BehandlendeEnhet>(result.get())
