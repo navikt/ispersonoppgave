@@ -55,7 +55,14 @@ class PersonOppgaveService(
                 callId
             )
             LOG.info(
-                "Sent Oversikthendelse ${OversikthendelseType.OPPFOLGINGSPLANLPS_BISTAND_BEHANDLET}, {}",
+                "Sent Oversikthendelse, {}, {}",
+                StructuredArguments.keyValue("type", OversikthendelseType.OPPFOLGINGSPLANLPS_BISTAND_BEHANDLET),
+                StructuredArguments.keyValue("veilederident", veilederIdent)
+            )
+        } else {
+            LOG.info(
+                "No Oversikthendelse sent, isOnePersonOppgaveUbehandlet=false, {}, {}",
+                StructuredArguments.keyValue("type", OversikthendelseType.OPPFOLGINGSPLANLPS_BISTAND_BEHANDLET),
                 StructuredArguments.keyValue("veilederident", veilederIdent)
             )
         }
