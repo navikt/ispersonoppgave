@@ -49,6 +49,7 @@ class PersonOppgaveService(
 
         if (isOnePersonOppgaveUbehandlet) {
             oversikthendelseProducer.sendOversikthendelse(
+                personoppgave.uuid,
                 personFnr,
                 behandlendeEnhet,
                 OversikthendelseType.OPPFOLGINGSPLANLPS_BISTAND_BEHANDLET,

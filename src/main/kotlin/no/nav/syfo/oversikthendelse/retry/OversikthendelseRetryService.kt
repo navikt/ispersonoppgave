@@ -10,6 +10,7 @@ import no.nav.syfo.oversikthendelse.domain.OversikthendelseType
 import no.nav.syfo.personoppgave.getPersonOppgaveList
 import no.nav.syfo.personoppgave.updatePersonOppgaveOversikthendelse
 import org.slf4j.LoggerFactory
+import java.util.*
 
 class OversikthendelseRetryService(
     private val behandlendeEnhetClient: BehandlendeEnhetClient,
@@ -64,6 +65,7 @@ class OversikthendelseRetryService(
                     personOppgave.oversikthendelseTidspunkt == null
             }?.let {
                 oversikthendelseProducer.sendOversikthendelse(
+                    UUID.fromString(kOversikthendelseRetry.personOppgaveUUID),
                     fodselsnummer,
                     behandlendeEnhet,
                     OversikthendelseType.valueOf(kOversikthendelseRetry.oversikthendelseType),

@@ -266,17 +266,18 @@ object KafkaOversikthendelseRetrySpek : Spek({
             it("should resend KOversikthendelseRetry to topic when it has not exceeded retry limit and is not ready for retry") {
                 val kOppfolgingsplanLPSNAV = generateKOppfolgingsplanLPSNAV(ARBEIDSTAKER_FNR)
                 val personOppgaveType = PersonOppgaveType.OPPFOLGINGSPLANLPS
-                val createdPersonOppgaveId = database.connection.createPersonOppgave(
+                val createdPersonOppgaveIdPair = database.connection.createPersonOppgave(
                     kOppfolgingsplanLPSNAV,
                     personOppgaveType
-                ).first
+                )
 
                 val kOversikthendelseRetry = generateKOversikthendelseRetry.copy(
                     fnr = ARBEIDSTAKER_FNR.value,
                     created = LocalDateTime.now(),
                     retryTime = LocalDateTime.now().plusHours(1),
                     retriedCount = 0,
-                    personOppgaveId = createdPersonOppgaveId
+                    personOppgaveId = createdPersonOppgaveIdPair.first,
+                    personOppgaveUUID = createdPersonOppgaveIdPair.second.toString()
                 )
                 val kOversiktHendelseRetryJson = objectMapper.writeValueAsString(kOversikthendelseRetry)
                 val oversiktHendelseRetryRecord = ConsumerRecord(
