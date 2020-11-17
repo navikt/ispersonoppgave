@@ -166,7 +166,7 @@ object OppfolgingsplanLPSServiceSpek : Spek({
 
                 it("should create a new PPersonOppgave with correct type and send KOversikthendelseRetry when behovForBistand=true and behandlendeEnhet=null") {
                     val mockOversikthendelseRetryProducer = mockk<OversikthendelseRetryProducer>()
-                    justRun { mockOversikthendelseRetryProducer.sendFirstOversikthendelseRetry(any(), any(), any()) }
+                    justRun { mockOversikthendelseRetryProducer.sendFirstOversikthendelseRetry(any(), any(), any(), any()) }
 
                     val oppfolgingsplanLPSServiceWithMockOversikthendelseRetryProcuer = OppfolgingsplanLPSService(
                         database,
@@ -197,7 +197,8 @@ object OppfolgingsplanLPSServiceSpek : Spek({
                         mockOversikthendelseRetryProducer.sendFirstOversikthendelseRetry(
                             fnr = fodselsnummer,
                             oversikthendelseType = OversikthendelseType.OPPFOLGINGSPLANLPS_BISTAND_MOTTATT,
-                            personOppgaveId = personOppgave.id
+                            personOppgaveId = personOppgave.id,
+                            personOppgaveUUID = personOppgave.uuid
                         )
                     }
                 }

@@ -12,7 +12,8 @@ data class KOversikthendelseRetry(
     val retriedCount: Int,
     val fnr: String,
     val oversikthendelseType: String,
-    val personOppgaveId: Int
+    val personOppgaveId: Int,
+    val personOppgaveUUID: String
 )
 
 fun KOversikthendelseRetry.hasExceededRetryLimit(): Boolean {

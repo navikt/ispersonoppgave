@@ -18,6 +18,7 @@ class OversikthendelseProducer(
     private val producer: KafkaProducer<String, KOversikthendelse>
 ) {
     fun sendOversikthendelse(
+        key: UUID,
         fnr: Fodselsnummer,
         behandlendeEnhet: BehandlendeEnhet,
         oversikthendelseType: OversikthendelseType,
@@ -29,13 +30,13 @@ class OversikthendelseProducer(
             enhetId = behandlendeEnhet.enhetId,
             tidspunkt = LocalDateTime.now()
         )
-        producer.send(producerRecord(kOversikthendelse))
+        producer.send(producerRecord(key, kOversikthendelse))
     }
 }
 
-private fun producerRecord(oversikthendelse: KOversikthendelse) =
+private fun producerRecord(key: UUID, oversikthendelse: KOversikthendelse) =
     SyfoProducerRecord(
         topic = OVERSIKTHENDELSE_TOPIC,
-        key = UUID.randomUUID().toString(),
+        key = key.toString(),
         value = oversikthendelse
     )

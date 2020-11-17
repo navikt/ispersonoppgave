@@ -32,23 +32,24 @@ class OppfolgingsplanLPSService(
             val person: PPersonOppgave? = database.getPersonOppgaveList(Fodselsnummer(kOppfolgingsplanLPSNAV.getFodselsnummer()))
                 .find { it.referanseUuid == UUID.fromString(kOppfolgingsplanLPSNAV.getUuid()) }
             if (person == null) {
-                val id = database.createPersonOppgave(
+                val idPair = database.createPersonOppgave(
                     kOppfolgingsplanLPSNAV,
                     PersonOppgaveType.OPPFOLGINGSPLANLPS
-                ).first
+                )
                 COUNT_PERSON_OPPGAVE_OPPFOLGINGSPLANLPS_CREATED.inc()
 
                 val fodselsnummer = Fodselsnummer(kOppfolgingsplanLPSNAV.getFodselsnummer())
-                val sent = sendOversikthendelse(fodselsnummer, callId)
+                val sent = sendOversikthendelse(idPair.second, fodselsnummer, callId)
                 if (sent) {
-                    database.updatePersonOppgaveOversikthendelse(id)
+                    database.updatePersonOppgaveOversikthendelse(idPair.first)
                     COUNT_OVERSIKTHENDELSE_OPPFOLGINGSPLANLPS_BISTAND_MOTTATT_SENT.inc()
                 } else {
                     log.warn("Failed to send Oversikthendelse for OppfolgingsplanLPS due to missing BehandlendeEnhet. Sending Retry message {}", callIdArgument(callId))
                     oversikthendelseRetryProducer.sendFirstOversikthendelseRetry(
                         fnr = fodselsnummer,
                         oversikthendelseType = OversikthendelseType.OPPFOLGINGSPLANLPS_BISTAND_MOTTATT,
-                        personOppgaveId = id,
+                        personOppgaveId = idPair.first,
+                        personOppgaveUUID = idPair.second,
                         callId = callId
                     )
                     COUNT_OPPFOLGINGSPLANLPS_FIRST_OVERSIKTHENDELSE_RETRY.inc()
@@ -64,12 +65,14 @@ class OppfolgingsplanLPSService(
     }
 
     fun sendOversikthendelse(
+        personOppgaveUUID: UUID,
         fodselsnummer: Fodselsnummer,
         callId: String = ""
     ): Boolean {
         val behandlendeEnhet = behandlendeEnhetClient.getEnhet(fodselsnummer, callId) ?: return false
 
         oversikthendelseProducer.sendOversikthendelse(
+            personOppgaveUUID,
             fodselsnummer,
             behandlendeEnhet,
             OversikthendelseType.OPPFOLGINGSPLANLPS_BISTAND_MOTTATT,

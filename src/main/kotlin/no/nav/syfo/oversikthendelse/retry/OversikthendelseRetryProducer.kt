@@ -21,6 +21,7 @@ class OversikthendelseRetryProducer(
         fnr: Fodselsnummer,
         oversikthendelseType: OversikthendelseType,
         personOppgaveId: Int,
+        personOppgaveUUID: UUID,
         callId: String = ""
     ) {
         val now = LocalDateTime.now()
@@ -30,7 +31,8 @@ class OversikthendelseRetryProducer(
             retriedCount = 0,
             fnr = fnr.value,
             oversikthendelseType = oversikthendelseType.name,
-            personOppgaveId = personOppgaveId
+            personOppgaveId = personOppgaveId,
+            personOppgaveUUID = personOppgaveUUID.toString()
         )
         producer.send(producerRecord(firstKOversikthendelseRetry))
         log.warn(
@@ -83,7 +85,7 @@ class OversikthendelseRetryProducer(
     private fun producerRecord(oversikthendelseRetry: KOversikthendelseRetry) =
         SyfoProducerRecord(
             topic = OVERSIKTHENDELSE_RETRY_TOPIC,
-            key = UUID.randomUUID().toString(),
+            key = oversikthendelseRetry.personOppgaveUUID,
             value = oversikthendelseRetry
         )
 
