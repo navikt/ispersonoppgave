@@ -34,7 +34,7 @@ class PersonOppgaveService(
         }
     }
 
-    fun behandlePersonOppgave(
+    suspend fun behandlePersonOppgave(
         personoppgave: PersonOppgave,
         veilederIdent: String,
         callId: String

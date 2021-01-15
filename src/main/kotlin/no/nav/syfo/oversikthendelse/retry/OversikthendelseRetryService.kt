@@ -18,7 +18,7 @@ class OversikthendelseRetryService(
     private val oversikthendelseProducer: OversikthendelseProducer,
     private val oversikthendelseRetryProducer: OversikthendelseRetryProducer
 ) {
-    fun receiveOversikthendelseRetry(
+    suspend fun receiveOversikthendelseRetry(
         kOversikthendelseRetry: KOversikthendelseRetry,
         callId: String = ""
     ) {

@@ -9,7 +9,6 @@ object Versions {
     const val confluentVersion = "5.5.0"
     const val coroutinesVersion = "1.3.9"
     const val flywayVersion = "6.4.4"
-    const val fuelVersion = "1.15.1"
     const val hikariVersion = "3.3.0"
     const val kafkaVersion = "2.5.1"
     const val kafkaEmbeddedVersion = "2.5.0"
@@ -18,7 +17,6 @@ object Versions {
     const val ktorVersion = "1.3.2"
     const val logbackVersion = "1.2.3"
     const val logstashEncoderVersion = "6.3"
-    const val orgJsonVersion = "20180813"
     const val postgresVersion = "42.2.13"
     const val postgresTestContainersVersion = "1.14.3"
     const val prometheusVersion = "0.8.1"
@@ -97,9 +95,6 @@ dependencies {
     implementation("org.flywaydb:flyway-core:${Versions.flywayVersion}")
     implementation("com.bettercloud:vault-java-driver:${Versions.vaultJavaDriveVersion}")
     testImplementation("org.testcontainers:postgresql:${Versions.postgresTestContainersVersion}")
-
-    implementation("com.github.kittinunf.fuel:fuel:${Versions.fuelVersion}")
-    implementation("org.json:json:${Versions.orgJsonVersion}")
 
     testImplementation("no.nav:kafka-embedded-env:${Versions.kafkaEmbeddedVersion}")
     testImplementation("org.amshove.kluent:kluent:${Versions.kluentVersion}")

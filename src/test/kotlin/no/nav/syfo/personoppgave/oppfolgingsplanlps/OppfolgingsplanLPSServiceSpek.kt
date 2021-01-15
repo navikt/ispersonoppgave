@@ -10,6 +10,7 @@ import io.ktor.jackson.*
 import io.ktor.server.testing.*
 import io.ktor.util.*
 import io.mockk.*
+import kotlinx.coroutines.runBlocking
 import no.nav.common.KafkaEnvironment
 import no.nav.syfo.client.enhet.BehandlendeEnhetClient
 import no.nav.syfo.client.sts.StsRestClient
@@ -141,7 +142,9 @@ object OppfolgingsplanLPSServiceSpek : Spek({
                 it("should create a new PPersonOppgave with correct type when behovForBistand=true") {
                     val kOppfolgingsplanLPSNAV = generateKOppfolgingsplanLPSNAV
 
-                    oppfolgingsplanLPSService.receiveOppfolgingsplanLPS(kOppfolgingsplanLPSNAV)
+                    runBlocking {
+                        oppfolgingsplanLPSService.receiveOppfolgingsplanLPS(kOppfolgingsplanLPSNAV)
+                    }
 
                     val personListe = database.connection.getPersonOppgaveList(ARBEIDSTAKER_FNR)
 
@@ -179,7 +182,9 @@ object OppfolgingsplanLPSServiceSpek : Spek({
 
                     val fodselsnummer = Fodselsnummer(kOppfolgingsplanLPSNAV.getFodselsnummer())
 
-                    oppfolgingsplanLPSServiceWithMockOversikthendelseRetryProcuer.receiveOppfolgingsplanLPS(kOppfolgingsplanLPSNAV)
+                    runBlocking {
+                        oppfolgingsplanLPSServiceWithMockOversikthendelseRetryProcuer.receiveOppfolgingsplanLPS(kOppfolgingsplanLPSNAV)
+                    }
 
                     val personOppgaveListe = database.connection.getPersonOppgaveList(fodselsnummer)
                     personOppgaveListe.size shouldBe 1
@@ -206,7 +211,9 @@ object OppfolgingsplanLPSServiceSpek : Spek({
                 it("should not create a new PPersonOppgave with correct type when behovForBistand=false") {
                     val kOppfolgingsplanLPSNAV = generateKOppfolgingsplanLPSNAVNoBehovforForBistand
 
-                    oppfolgingsplanLPSService.receiveOppfolgingsplanLPS(kOppfolgingsplanLPSNAV)
+                    runBlocking {
+                        oppfolgingsplanLPSService.receiveOppfolgingsplanLPS(kOppfolgingsplanLPSNAV)
+                    }
 
                     val personListe = database.connection.getPersonOppgaveList(ARBEIDSTAKER_FNR)
 

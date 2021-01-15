@@ -24,7 +24,7 @@ class OppfolgingsplanLPSService(
     private val oversikthendelseProducer: OversikthendelseProducer,
     private val oversikthendelseRetryProducer: OversikthendelseRetryProducer
 ) {
-    fun receiveOppfolgingsplanLPS(
+    suspend fun receiveOppfolgingsplanLPS(
         kOppfolgingsplanLPSNAV: KOppfolgingsplanLPSNAV,
         callId: String = ""
     ) {
@@ -64,7 +64,7 @@ class OppfolgingsplanLPSService(
         }
     }
 
-    fun sendOversikthendelse(
+    suspend fun sendOversikthendelse(
         personOppgaveUUID: UUID,
         fodselsnummer: Fodselsnummer,
         callId: String = ""
