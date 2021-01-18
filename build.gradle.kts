@@ -7,7 +7,7 @@ version = "1.0-SNAPSHOT"
 object Versions {
     const val avroVersion = "1.10.0"
     const val confluentVersion = "5.5.0"
-    const val coroutinesVersion = "1.3.9"
+    const val coroutinesVersion = "1.4.2"
     const val flywayVersion = "6.5.7"
     const val hikariVersion = "3.4.5"
     const val kafkaVersion = "2.7.0"
