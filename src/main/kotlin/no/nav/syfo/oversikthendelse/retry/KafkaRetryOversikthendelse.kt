@@ -41,7 +41,7 @@ suspend fun blockingApplicationLogicOversikthendelseRetry(
     }
 }
 
-fun pollAndProcessOversikthendelseRetryTopic(
+suspend fun pollAndProcessOversikthendelseRetryTopic(
     kafkaConsumer: KafkaConsumer<String, String>,
     oversikthendelseRetryService: OversikthendelseRetryService
 ) {

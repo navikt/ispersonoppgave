@@ -43,7 +43,7 @@ suspend fun blockingApplicationLogicOppfolgingsplanLPS(
     }
 }
 
-fun pollAndProcessKOppfolgingsplanLPSNAV(
+suspend fun pollAndProcessKOppfolgingsplanLPSNAV(
     kafkaConsumerOppfolgingsplanLPSNAV: KafkaConsumer<String, KOppfolgingsplanLPSNAV>,
     oppfolgingsplanLPSService: OppfolgingsplanLPSService
 ) {
