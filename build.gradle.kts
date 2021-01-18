@@ -6,7 +6,6 @@ group = "no.nav.syfo"
 version = "1.0-SNAPSHOT"
 
 object Versions {
-    const val arrowVersion = "0.11.0"
     const val avroVersion = "1.10.0"
     const val confluentVersion = "5.5.0"
     const val coroutinesVersion = "1.3.9"
@@ -100,7 +99,6 @@ dependencies {
     implementation("com.bettercloud:vault-java-driver:${Versions.vaultJavaDriveVersion}")
     testImplementation("org.testcontainers:postgresql:${Versions.postgresTestContainersVersion}")
 
-    implementation("io.arrow-kt:arrow-core-data:${Versions.arrowVersion}")
     implementation("com.github.kittinunf.fuel:fuel:${Versions.fuelVersion}")
     implementation("org.json:json:${Versions.orgJsonVersion}")
 
