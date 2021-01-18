@@ -16,7 +16,7 @@ object Versions {
     const val kotlinSerializationVersion = "0.20.0"
     const val ktorVersion = "1.3.2"
     const val logbackVersion = "1.2.3"
-    const val logstashEncoderVersion = "6.3"
+    const val logstashEncoderVersion = "6.6"
     const val postgresVersion = "42.2.18"
     const val postgresTestContainersVersion = "1.15.1"
     const val prometheusVersion = "0.8.1"
