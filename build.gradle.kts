@@ -27,7 +27,7 @@ object Versions {
     const val vaultJavaDriveVersion = "3.1.0"
     const val spekVersion = "2.0.15"
     const val jacksonVersion = "2.10.0"
-    const val mockkVersion = "1.10.0"
+    const val mockkVersion = "1.10.5"
     const val syfoOppfolgingsplanSchemaVersion = "1.0.2"
 }
 
