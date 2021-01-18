@@ -10,7 +10,7 @@ object Versions {
     const val coroutinesVersion = "1.3.9"
     const val flywayVersion = "6.5.7"
     const val hikariVersion = "3.4.5"
-    const val kafkaVersion = "2.5.1"
+    const val kafkaVersion = "2.7.0"
     const val kafkaEmbeddedVersion = "2.5.0"
     const val kluentVersion = "1.61"
     const val kotlinSerializationVersion = "0.20.0"
