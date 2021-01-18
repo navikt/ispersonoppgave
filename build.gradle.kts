@@ -25,7 +25,7 @@ object Versions {
     const val postgresTestContainersVersion = "1.14.3"
     const val prometheusVersion = "0.8.1"
     const val vaultJavaDriveVersion = "3.1.0"
-    const val spekVersion = "2.0.12"
+    const val spekVersion = "2.0.15"
     const val jacksonVersion = "2.10.0"
     const val mockkVersion = "1.10.0"
     const val syfoOppfolgingsplanSchemaVersion = "1.0.2"
