@@ -19,7 +19,7 @@ object Versions {
     const val logstashEncoderVersion = "6.3"
     const val postgresVersion = "42.2.18"
     const val postgresTestContainersVersion = "1.15.1"
-    const val prometheusVersion = "0.8.1"
+    const val prometheusVersion = "0.9.0"
     const val vaultJavaDriveVersion = "3.1.0"
     const val spekVersion = "2.0.15"
     const val jacksonVersion = "2.11.3"
