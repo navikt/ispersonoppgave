@@ -27,10 +27,6 @@ object Versions {
     const val syfoOppfolgingsplanSchemaVersion = "1.0.2"
 }
 
-tasks.withType<Jar> {
-    manifest.attributes["Main-Class"] = "no.nav.syfo.MainApplicationKt"
-}
-
 plugins {
     kotlin("jvm") version "1.4.21"
     id("com.github.johnrengelman.shadow") version "6.1.0"
@@ -106,6 +102,10 @@ dependencies {
 }
 
 tasks {
+    withType<Jar> {
+        manifest.attributes["Main-Class"] = "no.nav.syfo.MainApplicationKt"
+    }
+
     create("printVersion") {
         println(project.version)
     }
