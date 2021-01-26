@@ -5,6 +5,7 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.registerKotlinModule
 import io.ktor.application.*
 import io.ktor.features.*
+import io.ktor.http.*
 import io.ktor.jackson.*
 import io.ktor.response.*
 import io.ktor.routing.*
@@ -53,7 +54,7 @@ class VeilederTilgangskontrollMock {
                     if (call.parameters["fnr"] == ARBEIDSTAKER_FNR.value) {
                         call.respond(tilgangTrue)
                     } else {
-                        call.respond(tilgangFalse)
+                        call.respond(HttpStatusCode.Forbidden, tilgangFalse)
                     }
                 }
             }
