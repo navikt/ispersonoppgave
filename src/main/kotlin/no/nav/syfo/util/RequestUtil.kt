@@ -8,7 +8,7 @@ import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.util.concurrent.atomic.AtomicInteger
 
-const val NAV_PERSONIDENT_HEADER = "nav-personident"
+const val NAV_PERSONIDENT_HEADER = "Nav-Personident"
 
 const val APP_CONSUMER_ID = "ispersonoppgave"
 const val NAV_CONSUMER_ID = "Nav-Consumer-Id"
