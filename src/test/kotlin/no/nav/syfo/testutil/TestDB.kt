@@ -1,42 +1,38 @@
 package no.nav.syfo.testutil
 
-import no.nav.syfo.db.*
+import com.opentable.db.postgres.embedded.EmbeddedPostgres
+import no.nav.syfo.db.DatabaseInterface
+import no.nav.syfo.db.toList
 import no.nav.syfo.domain.Fodselsnummer
 import no.nav.syfo.oppfolgingsplan.avro.KOppfolgingsplanLPSNAV
 import no.nav.syfo.personoppgave.*
 import no.nav.syfo.personoppgave.domain.PPersonOppgave
 import no.nav.syfo.personoppgave.domain.PersonOppgaveType
-import org.testcontainers.containers.PostgreSQLContainer
+import org.flywaydb.core.Flyway
 import java.sql.*
 import java.time.Instant
 import java.util.*
 
 class TestDB : DatabaseInterface {
+    private val pg: EmbeddedPostgres
 
-    private val container = PostgreSQLContainer<Nothing>("postgres:11.1").apply {
-        withDatabaseName("db_test")
-        withUsername("username")
-        withPassword("password")
-    }
-
-    private var db: DatabaseInterface
     override val connection: Connection
-        get() = db.connection.apply { autoCommit = false }
+        get() = pg.postgresDatabase.connection.apply { autoCommit = false }
 
     init {
-        container.start()
-        db = DevDatabase(
-            DbConfig(
-                jdbcUrl = container.jdbcUrl,
-                username = "username",
-                password = "password",
-                databaseName = "db_test"
-            )
-        )
+        pg = try {
+            EmbeddedPostgres.start()
+        } catch (e: Exception) {
+            EmbeddedPostgres.builder().setLocaleConfig("locale", "en_US").start()
+        }
+
+        Flyway.configure().run {
+            dataSource(pg.postgresDatabase).load().migrate()
+        }
     }
 
     fun stop() {
-        container.stop()
+        pg.close()
     }
 }
 
