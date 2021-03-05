@@ -1,3 +1,5 @@
+![Build status](https://github.com/navikt/ispersonoppgave/workflows/main/badge.svg?branch=master)
+
 # ispersonoppgave
 Ispersonoppgave is a backend microservice for handling of Person-Oppgaver by SYFO-veiledere in Syfomodiaperson(https://github.com/navikt/syfomodiaperson) in Modia.
 Person-Oppgave are created based on events and are available to SYFO-veiledere for manual processing.
