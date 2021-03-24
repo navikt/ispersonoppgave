@@ -67,7 +67,7 @@ jobs:
         env:
           APIKEY: ${{ secrets.NAIS_DEPLOY_APIKEY }}
           CLUSTER: dev-fss
-          RESOURCE: naiserator-dev.yaml
+          RESOURCE: .nais/naiserator-dev.yaml
 
   deploy-prod:
     if: github.ref == 'refs/heads/master'
@@ -80,4 +80,4 @@ jobs:
         env:
           APIKEY: ${{ secrets.NAIS_DEPLOY_APIKEY }}
           CLUSTER: prod-fss
-          RESOURCE: naiserator-prod.yaml
+          RESOURCE: .nais/naiserator-prod.yaml
