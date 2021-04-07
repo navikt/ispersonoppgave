@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       gitCommit:
-        description: "Complete git commit to deploy"
+        description: "Git ref to deploy (the complete hash):"
         required: true
         default: ""
 
