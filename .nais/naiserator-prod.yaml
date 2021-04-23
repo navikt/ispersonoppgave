@@ -35,6 +35,7 @@ spec:
     enabled: true
     path: /prometheus
   ingresses:
+    - "https://ispersonoppgave.intern.nav.no"
     - "https://ispersonoppgave.nais.adeo.no"
   vault:
     enabled: true
