@@ -25,8 +25,8 @@ fun getEnvironment(): Environment {
             getEnvVar("ISPERSONOPPGAVE_DB_URL"),
             getEnvVar("MOUNT_PATH_VAULT"),
             getEnvVar("SECURITY_TOKEN_SERVICE_REST_URL"),
-            getEnvVar("SYFOBEHANDLENDEENHET_URL", "http://syfobehandlendeenhet"),
-            getEnvVar("SYFOTILGANGSKONTROLL_URL", "http://syfo-tilgangskontroll")
+            getEnvVar("SYFOBEHANDLENDEENHET_URL"),
+            getEnvVar("SYFOTILGANGSKONTROLL_URL")
         )
     }
 }
