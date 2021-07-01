@@ -1,20 +1,14 @@
 package no.nav.syfo.client.veiledertilgang
 
-import com.fasterxml.jackson.databind.DeserializationFeature
-import com.fasterxml.jackson.module.kotlin.registerKotlinModule
-import io.ktor.client.*
 import io.ktor.client.call.*
-import io.ktor.client.engine.cio.*
 import io.ktor.client.features.*
-import io.ktor.client.features.json.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
 import net.logstash.logback.argument.StructuredArguments
+import no.nav.syfo.client.httpClientDefault
 import no.nav.syfo.domain.Fodselsnummer
-import no.nav.syfo.metric.COUNT_CALL_TILGANGSKONTROLL_PERSON_FAIL
-import no.nav.syfo.metric.COUNT_CALL_TILGANGSKONTROLL_PERSON_FORBIDDEN
-import no.nav.syfo.metric.COUNT_CALL_TILGANGSKONTROLL_PERSON_SUCCESS
+import no.nav.syfo.metric.*
 import no.nav.syfo.util.NAV_CALL_ID
 import no.nav.syfo.util.bearerHeader
 import org.slf4j.LoggerFactory
@@ -22,14 +16,7 @@ import org.slf4j.LoggerFactory
 class VeilederTilgangskontrollClient(
     private val endpointUrl: String
 ) {
-    private val httpClient = HttpClient(CIO) {
-        install(JsonFeature) {
-            serializer = JacksonSerializer {
-                registerKotlinModule()
-                configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
-            }
-        }
-    }
+    private val httpClient = httpClientDefault()
 
     suspend fun hasAccess(
         fnr: Fodselsnummer,
