@@ -37,6 +37,21 @@ spec:
   ingresses:
     - "https://ispersonoppgave.dev.intern.nav.no"
     - "https://ispersonoppgave.nais.preprod.local"
+  accessPolicy:
+    inbound:
+      rules:
+        - application: syfomodiaperson
+          namespace: teamsykefravr
+          cluster: dev-fss
+  azure:
+    application:
+      enabled: true
+      tenant: trygdeetaten.no
+      replyURLs:
+        - "https://ispersonoppgave.dev.intern.nav.no/oauth2/callback"
+      claims:
+        extra:
+          - "NAVident"
   vault:
     enabled: true
     paths:
