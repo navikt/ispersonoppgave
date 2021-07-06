@@ -3,7 +3,7 @@ package no.nav.syfo.oversikthendelse.retry
 import no.nav.syfo.client.enhet.BehandlendeEnhet
 import no.nav.syfo.client.enhet.BehandlendeEnhetClient
 import no.nav.syfo.database.DatabaseInterface
-import no.nav.syfo.domain.Fodselsnummer
+import no.nav.syfo.domain.PersonIdentNumber
 import no.nav.syfo.metric.COUNT_OVERSIKTHENDELSE_RETRY_OPPFOLGINGSPLANLPS_BISTAND_MOTTATT_SKIPPED
 import no.nav.syfo.oversikthendelse.OversikthendelseProducer
 import no.nav.syfo.oversikthendelse.domain.OversikthendelseType
@@ -27,7 +27,7 @@ class OversikthendelseRetryService(
                 skip(kOversikthendelseRetry)
             }
             kOversikthendelseRetry.isReadyToRetry() -> {
-                val fodselsnummer = Fodselsnummer(kOversikthendelseRetry.fnr)
+                val fodselsnummer = PersonIdentNumber(kOversikthendelseRetry.fnr)
 
                 val behandlendeEnhet = behandlendeEnhetClient.getEnhet(fodselsnummer, callId)
                 if (behandlendeEnhet != null) {
@@ -54,19 +54,19 @@ class OversikthendelseRetryService(
     }
 
     private fun resendOversikthendelseAndUpdatePersonOppgave(
-        fodselsnummer: Fodselsnummer,
+        personIdentNumber: PersonIdentNumber,
         kOversikthendelseRetry: KOversikthendelseRetry,
         behandlendeEnhet: BehandlendeEnhet,
         callId: String,
     ) {
-        database.getPersonOppgaveList(fodselsnummer)
+        database.getPersonOppgaveList(personIdentNumber)
             .find { personOppgave ->
                 personOppgave.id == kOversikthendelseRetry.personOppgaveId &&
                     personOppgave.oversikthendelseTidspunkt == null
             }?.let {
                 oversikthendelseProducer.sendOversikthendelse(
                     UUID.fromString(kOversikthendelseRetry.personOppgaveUUID),
-                    fodselsnummer,
+                    personIdentNumber,
                     behandlendeEnhet,
                     OversikthendelseType.valueOf(kOversikthendelseRetry.oversikthendelseType),
                     callId,

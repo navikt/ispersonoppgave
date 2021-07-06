@@ -2,7 +2,7 @@ package no.nav.syfo.personoppgave
 
 import no.nav.syfo.database.DatabaseInterface
 import no.nav.syfo.database.toList
-import no.nav.syfo.domain.Fodselsnummer
+import no.nav.syfo.domain.PersonIdentNumber
 import no.nav.syfo.oppfolgingsplan.avro.KOppfolgingsplanLPSNAV
 import no.nav.syfo.personoppgave.domain.PPersonOppgave
 import no.nav.syfo.personoppgave.domain.PersonOppgaveType
@@ -19,10 +19,10 @@ const val queryGetPersonOppgaveListForFnr =
     WHERE fnr = ?
     """
 
-fun DatabaseInterface.getPersonOppgaveList(fnr: Fodselsnummer): List<PPersonOppgave> {
+fun DatabaseInterface.getPersonOppgaveList(personIdentNumber: PersonIdentNumber): List<PPersonOppgave> {
     return connection.use { connection ->
         connection.prepareStatement(queryGetPersonOppgaveListForFnr).use {
-            it.setString(1, fnr.value)
+            it.setString(1, personIdentNumber.value)
             it.executeQuery().toList { toPPersonOppgave() }
         }
     }

@@ -14,7 +14,7 @@ import kotlinx.coroutines.runBlocking
 import no.nav.common.KafkaEnvironment
 import no.nav.syfo.client.enhet.BehandlendeEnhetClient
 import no.nav.syfo.client.sts.StsRestClient
-import no.nav.syfo.domain.Fodselsnummer
+import no.nav.syfo.domain.PersonIdentNumber
 import no.nav.syfo.kafka.*
 import no.nav.syfo.oversikthendelse.OVERSIKTHENDELSE_TOPIC
 import no.nav.syfo.oversikthendelse.OversikthendelseProducer
@@ -180,7 +180,7 @@ object OppfolgingsplanLPSServiceSpek : Spek({
 
                     val kOppfolgingsplanLPSNAV = generateKOppfolgingsplanLPSNAV(ARBEIDSTAKER_2_FNR)
 
-                    val fodselsnummer = Fodselsnummer(kOppfolgingsplanLPSNAV.getFodselsnummer())
+                    val fodselsnummer = PersonIdentNumber(kOppfolgingsplanLPSNAV.getFodselsnummer())
 
                     runBlocking {
                         oppfolgingsplanLPSServiceWithMockOversikthendelseRetryProcuer.receiveOppfolgingsplanLPS(kOppfolgingsplanLPSNAV)
@@ -200,7 +200,7 @@ object OppfolgingsplanLPSServiceSpek : Spek({
 
                     verify(exactly = 1) {
                         mockOversikthendelseRetryProducer.sendFirstOversikthendelseRetry(
-                            fnr = fodselsnummer,
+                            personIdentNumber = fodselsnummer,
                             oversikthendelseType = OversikthendelseType.OPPFOLGINGSPLANLPS_BISTAND_MOTTATT,
                             personOppgaveId = personOppgave.id,
                             personOppgaveUUID = personOppgave.uuid

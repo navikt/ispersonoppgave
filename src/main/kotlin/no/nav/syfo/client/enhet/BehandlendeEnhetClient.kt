@@ -6,7 +6,7 @@ import io.ktor.client.statement.*
 import io.ktor.http.*
 import no.nav.syfo.client.httpClientDefault
 import no.nav.syfo.client.sts.StsRestClient
-import no.nav.syfo.domain.Fodselsnummer
+import no.nav.syfo.domain.PersonIdentNumber
 import no.nav.syfo.metric.*
 import no.nav.syfo.util.*
 import org.slf4j.LoggerFactory
@@ -17,10 +17,10 @@ class BehandlendeEnhetClient(
 ) {
     private val client = httpClientDefault()
 
-    suspend fun getEnhet(fnr: Fodselsnummer, callId: String): BehandlendeEnhet? {
+    suspend fun getEnhet(personIdentNumber: PersonIdentNumber, callId: String): BehandlendeEnhet? {
         val bearer = stsRestClient.token()
 
-        val response: HttpResponse = client.get(getBehandlendeEnhetUrl(fnr)) {
+        val response: HttpResponse = client.get(getBehandlendeEnhetUrl(personIdentNumber)) {
             header(HttpHeaders.Authorization, bearerHeader(bearer))
             header(NAV_CALL_ID, callId)
             header(NAV_CONSUMER_ID, APP_CONSUMER_ID)
@@ -52,8 +52,8 @@ class BehandlendeEnhetClient(
         }
     }
 
-    private fun getBehandlendeEnhetUrl(brukerFnr: Fodselsnummer): String {
-        return "$baseUrl/api/${brukerFnr.value}"
+    private fun getBehandlendeEnhetUrl(personIdentNumber: PersonIdentNumber): String {
+        return "$baseUrl/api/${personIdentNumber.value}"
     }
 
     private fun isValid(behandlendeEnhet: BehandlendeEnhet): Boolean {

@@ -7,7 +7,7 @@ import io.ktor.routing.*
 import no.nav.syfo.auth.getTokenFromCookie
 import no.nav.syfo.auth.getVeilederTokenPayload
 import no.nav.syfo.client.veiledertilgang.VeilederTilgangskontrollClient
-import no.nav.syfo.domain.Fodselsnummer
+import no.nav.syfo.domain.PersonIdentNumber
 import no.nav.syfo.personoppgave.PersonOppgaveService
 import no.nav.syfo.personoppgave.domain.toPersonOppgaveVeileder
 import no.nav.syfo.util.*
@@ -29,7 +29,7 @@ fun Route.registerVeilederPersonOppgaveApi(
 
                 val personIdent = call.request.headers[NAV_PERSONIDENT_HEADER.toLowerCase()]
                     ?: throw IllegalArgumentException("No PersonIdent supplied")
-                val fnr = Fodselsnummer(personIdent)
+                val fnr = PersonIdentNumber(personIdent)
 
                 when (veilederTilgangskontrollClient.hasAccess(fnr, token, callId)) {
                     true -> {
@@ -69,7 +69,7 @@ fun Route.registerVeilederPersonOppgaveApi(
                         if (personoppgave.behandletTidspunkt != null) {
                             call.respond(HttpStatusCode.Conflict)
                         } else {
-                            when (veilederTilgangskontrollClient.hasAccess(personoppgave.fnr, token, callId)) {
+                            when (veilederTilgangskontrollClient.hasAccess(personoppgave.personIdentNumber, token, callId)) {
                                 true -> {
                                     val navIdent = getVeilederTokenPayload(token).navIdent
                                     personOppgaveService.behandlePersonOppgave(personoppgave, navIdent, callId)

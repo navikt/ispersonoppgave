@@ -1,16 +1,16 @@
 package no.nav.syfo.testutil
 
-import no.nav.syfo.domain.Fodselsnummer
+import no.nav.syfo.domain.PersonIdentNumber
 import no.nav.syfo.oppfolgingsplan.avro.KOppfolgingsplanLPSNAV
 import no.nav.syfo.testutil.UserConstants.ARBEIDSTAKER_FNR
 import no.nav.syfo.testutil.UserConstants.VIRKSOMHETSNUMMER
 import java.time.LocalDate
 import java.util.*
 
-fun generateKOppfolgingsplanLPSNAV(fodselsnummer: Fodselsnummer): KOppfolgingsplanLPSNAV {
+fun generateKOppfolgingsplanLPSNAV(personIdentNumber: PersonIdentNumber): KOppfolgingsplanLPSNAV {
     return KOppfolgingsplanLPSNAV(
         UUID.randomUUID().toString(),
-        fodselsnummer.value,
+        personIdentNumber.value,
         VIRKSOMHETSNUMMER.value,
         true,
         LocalDate.now().toEpochDay().toInt()

@@ -1,7 +1,7 @@
 package no.nav.syfo.oversikthendelse.retry
 
 import net.logstash.logback.argument.StructuredArguments
-import no.nav.syfo.domain.Fodselsnummer
+import no.nav.syfo.domain.PersonIdentNumber
 import no.nav.syfo.kafka.SyfoProducerRecord
 import no.nav.syfo.metric.*
 import no.nav.syfo.oversikthendelse.domain.OversikthendelseType
@@ -18,7 +18,7 @@ class OversikthendelseRetryProducer(
     private val producer: KafkaProducer<String, KOversikthendelseRetry>,
 ) {
     fun sendFirstOversikthendelseRetry(
-        fnr: Fodselsnummer,
+        personIdentNumber: PersonIdentNumber,
         oversikthendelseType: OversikthendelseType,
         personOppgaveId: Int,
         personOppgaveUUID: UUID,
@@ -29,7 +29,7 @@ class OversikthendelseRetryProducer(
             created = now,
             retryTime = now.plusMinutes(RETRY_OVERSIKTHENDELSE_INTERVAL_MINUTES),
             retriedCount = 0,
-            fnr = fnr.value,
+            fnr = personIdentNumber.value,
             oversikthendelseType = oversikthendelseType.name,
             personOppgaveId = personOppgaveId,
             personOppgaveUUID = personOppgaveUUID.toString(),

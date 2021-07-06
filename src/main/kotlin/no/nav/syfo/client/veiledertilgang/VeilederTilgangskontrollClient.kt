@@ -7,7 +7,7 @@ import io.ktor.client.statement.*
 import io.ktor.http.*
 import net.logstash.logback.argument.StructuredArguments
 import no.nav.syfo.client.httpClientDefault
-import no.nav.syfo.domain.Fodselsnummer
+import no.nav.syfo.domain.PersonIdentNumber
 import no.nav.syfo.metric.*
 import no.nav.syfo.util.NAV_CALL_ID
 import no.nav.syfo.util.bearerHeader
@@ -19,12 +19,12 @@ class VeilederTilgangskontrollClient(
     private val httpClient = httpClientDefault()
 
     suspend fun hasAccess(
-        fnr: Fodselsnummer,
+        personIdentNumber: PersonIdentNumber,
         token: String,
         callId: String
     ): Boolean {
         try {
-            val response: HttpResponse = httpClient.get(getTilgangskontrollUrl(fnr)) {
+            val response: HttpResponse = httpClient.get(getTilgangskontrollUrl(personIdentNumber)) {
                 header(HttpHeaders.Authorization, bearerHeader(token))
                 header(NAV_CALL_ID, callId)
                 accept(ContentType.Application.Json)
@@ -43,8 +43,8 @@ class VeilederTilgangskontrollClient(
         }
     }
 
-    private fun getTilgangskontrollUrl(brukerFnr: Fodselsnummer): String {
-        return "$endpointUrl/syfo-tilgangskontroll/api/tilgang/bruker?fnr=${brukerFnr.value}"
+    private fun getTilgangskontrollUrl(personIdentNumber: PersonIdentNumber): String {
+        return "$endpointUrl/syfo-tilgangskontroll/api/tilgang/bruker?fnr=${personIdentNumber.value}"
     }
 
     private fun handleUnexpectedReponseException(response: HttpResponse): Boolean {

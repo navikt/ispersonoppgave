@@ -1,6 +1,6 @@
 package no.nav.syfo.personoppgave.domain
 
-import no.nav.syfo.domain.Fodselsnummer
+import no.nav.syfo.domain.PersonIdentNumber
 import no.nav.syfo.domain.Virksomhetsnummer
 import java.time.LocalDateTime
 import java.util.*
@@ -24,7 +24,7 @@ fun PPersonOppgave.toPersonOppgave(): PersonOppgave {
         id = this.id,
         uuid = this.uuid,
         referanseUuid = this.referanseUuid,
-        fnr = Fodselsnummer(this.fnr),
+        personIdentNumber = PersonIdentNumber(this.fnr),
         virksomhetsnummer = Virksomhetsnummer(this.virksomhetsnummer),
         type = PersonOppgaveType.valueOf(this.type),
         oversikthendelseTidspunkt = this.oversikthendelseTidspunkt,

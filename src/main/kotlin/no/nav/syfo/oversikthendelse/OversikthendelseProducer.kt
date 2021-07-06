@@ -1,7 +1,7 @@
 package no.nav.syfo.oversikthendelse
 
 import no.nav.syfo.client.enhet.BehandlendeEnhet
-import no.nav.syfo.domain.Fodselsnummer
+import no.nav.syfo.domain.PersonIdentNumber
 import no.nav.syfo.kafka.SyfoProducerRecord
 import no.nav.syfo.oversikthendelse.domain.KOversikthendelse
 import no.nav.syfo.oversikthendelse.domain.OversikthendelseType
@@ -19,13 +19,13 @@ class OversikthendelseProducer(
 ) {
     fun sendOversikthendelse(
         key: UUID,
-        fnr: Fodselsnummer,
+        personIdentNumber: PersonIdentNumber,
         behandlendeEnhet: BehandlendeEnhet,
         oversikthendelseType: OversikthendelseType,
         callId: String = ""
     ) {
         val kOversikthendelse = KOversikthendelse(
-            fnr = fnr.value,
+            fnr = personIdentNumber.value,
             hendelseId = oversikthendelseType.name,
             enhetId = behandlendeEnhet.enhetId,
             tidspunkt = LocalDateTime.now()

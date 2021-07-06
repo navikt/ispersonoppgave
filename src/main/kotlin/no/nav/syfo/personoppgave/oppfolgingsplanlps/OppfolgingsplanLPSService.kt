@@ -2,7 +2,7 @@ package no.nav.syfo.personoppgave.oppfolgingsplanlps
 
 import no.nav.syfo.client.enhet.BehandlendeEnhetClient
 import no.nav.syfo.database.DatabaseInterface
-import no.nav.syfo.domain.Fodselsnummer
+import no.nav.syfo.domain.PersonIdentNumber
 import no.nav.syfo.metric.*
 import no.nav.syfo.oppfolgingsplan.avro.KOppfolgingsplanLPSNAV
 import no.nav.syfo.oversikthendelse.OversikthendelseProducer
@@ -29,7 +29,7 @@ class OppfolgingsplanLPSService(
         callId: String = ""
     ) {
         if (kOppfolgingsplanLPSNAV.getBehovForBistandFraNav() == true) {
-            val person: PPersonOppgave? = database.getPersonOppgaveList(Fodselsnummer(kOppfolgingsplanLPSNAV.getFodselsnummer()))
+            val person: PPersonOppgave? = database.getPersonOppgaveList(PersonIdentNumber(kOppfolgingsplanLPSNAV.getFodselsnummer()))
                 .find { it.referanseUuid == UUID.fromString(kOppfolgingsplanLPSNAV.getUuid()) }
             if (person == null) {
                 val idPair = database.createPersonOppgave(
@@ -38,7 +38,7 @@ class OppfolgingsplanLPSService(
                 )
                 COUNT_PERSON_OPPGAVE_OPPFOLGINGSPLANLPS_CREATED.inc()
 
-                val fodselsnummer = Fodselsnummer(kOppfolgingsplanLPSNAV.getFodselsnummer())
+                val fodselsnummer = PersonIdentNumber(kOppfolgingsplanLPSNAV.getFodselsnummer())
                 val sent = sendOversikthendelse(idPair.second, fodselsnummer, callId)
                 if (sent) {
                     database.updatePersonOppgaveOversikthendelse(idPair.first)
@@ -46,7 +46,7 @@ class OppfolgingsplanLPSService(
                 } else {
                     log.warn("Failed to send Oversikthendelse for OppfolgingsplanLPS due to missing BehandlendeEnhet. Sending Retry message {}", callIdArgument(callId))
                     oversikthendelseRetryProducer.sendFirstOversikthendelseRetry(
-                        fnr = fodselsnummer,
+                        personIdentNumber = fodselsnummer,
                         oversikthendelseType = OversikthendelseType.OPPFOLGINGSPLANLPS_BISTAND_MOTTATT,
                         personOppgaveId = idPair.first,
                         personOppgaveUUID = idPair.second,
@@ -66,14 +66,14 @@ class OppfolgingsplanLPSService(
 
     suspend fun sendOversikthendelse(
         personOppgaveUUID: UUID,
-        fodselsnummer: Fodselsnummer,
+        personIdentNumber: PersonIdentNumber,
         callId: String = ""
     ): Boolean {
-        val behandlendeEnhet = behandlendeEnhetClient.getEnhet(fodselsnummer, callId) ?: return false
+        val behandlendeEnhet = behandlendeEnhetClient.getEnhet(personIdentNumber, callId) ?: return false
 
         oversikthendelseProducer.sendOversikthendelse(
             personOppgaveUUID,
-            fodselsnummer,
+            personIdentNumber,
             behandlendeEnhet,
             OversikthendelseType.OPPFOLGINGSPLANLPS_BISTAND_MOTTATT,
             callId
