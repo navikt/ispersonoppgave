@@ -1,12 +1,11 @@
 package no.nav.syfo.testutil.mock
 
 import io.ktor.application.*
-import io.ktor.features.*
-import io.ktor.jackson.*
 import io.ktor.response.*
 import io.ktor.routing.*
 import io.ktor.server.engine.*
 import io.ktor.server.netty.*
+import no.nav.syfo.api.installContentNegotiation
 import no.nav.syfo.testutil.getRandomPort
 
 class StsRestMock {
@@ -21,9 +20,7 @@ class StsRestMock {
             factory = Netty,
             port = port
         ) {
-            install(ContentNegotiation) {
-                jackson {}
-            }
+            installContentNegotiation()
             routing {
                 get("/rest/v1/sts/token") {
                     val params = call.request.queryParameters
