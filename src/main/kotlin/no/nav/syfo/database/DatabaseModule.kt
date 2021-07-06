@@ -1,8 +1,8 @@
-package no.nav.syfo
+package no.nav.syfo.database
 
 import io.ktor.application.*
 import kotlinx.coroutines.launch
-import no.nav.syfo.db.*
+import no.nav.syfo.*
 import no.nav.syfo.vault.Vault
 
 lateinit var database: DatabaseInterface

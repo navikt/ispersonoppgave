@@ -1,7 +1,7 @@
 package no.nav.syfo.personoppgave.oppfolgingsplanlps
 
 import no.nav.syfo.client.enhet.BehandlendeEnhetClient
-import no.nav.syfo.db.DatabaseInterface
+import no.nav.syfo.database.DatabaseInterface
 import no.nav.syfo.domain.Fodselsnummer
 import no.nav.syfo.metric.*
 import no.nav.syfo.oppfolgingsplan.avro.KOppfolgingsplanLPSNAV

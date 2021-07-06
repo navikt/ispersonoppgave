@@ -12,6 +12,7 @@ import no.nav.syfo.*
 import no.nav.syfo.auth.isInvalidToken
 import no.nav.syfo.client.enhet.BehandlendeEnhetClient
 import no.nav.syfo.client.veiledertilgang.VeilederTilgangskontrollClient
+import no.nav.syfo.database.database
 import no.nav.syfo.oversikthendelse.OversikthendelseProducer
 import no.nav.syfo.personoppgave.PersonOppgaveService
 import no.nav.syfo.personoppgave.api.registerVeilederPersonOppgaveApi

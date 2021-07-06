@@ -2,7 +2,7 @@ package no.nav.syfo.personoppgave
 
 import net.logstash.logback.argument.StructuredArguments
 import no.nav.syfo.client.enhet.BehandlendeEnhetClient
-import no.nav.syfo.db.DatabaseInterface
+import no.nav.syfo.database.DatabaseInterface
 import no.nav.syfo.domain.Fodselsnummer
 import no.nav.syfo.oversikthendelse.OversikthendelseProducer
 import no.nav.syfo.oversikthendelse.domain.OversikthendelseType

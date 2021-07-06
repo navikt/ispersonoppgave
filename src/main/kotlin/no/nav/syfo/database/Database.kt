@@ -1,4 +1,4 @@
-package no.nav.syfo.db
+package no.nav.syfo.database
 
 import com.zaxxer.hikari.HikariConfig
 

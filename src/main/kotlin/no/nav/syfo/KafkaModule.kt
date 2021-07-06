@@ -3,6 +3,7 @@ package no.nav.syfo
 import io.ktor.application.Application
 import kotlinx.coroutines.launch
 import no.nav.syfo.client.enhet.BehandlendeEnhetClient
+import no.nav.syfo.database.database
 import no.nav.syfo.kafka.setupKafka
 import no.nav.syfo.oversikthendelse.OversikthendelseProducer
 import no.nav.syfo.oversikthendelse.retry.OversikthendelseRetryProducer

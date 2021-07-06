@@ -2,7 +2,7 @@ package no.nav.syfo.oversikthendelse.retry
 
 import no.nav.syfo.client.enhet.BehandlendeEnhet
 import no.nav.syfo.client.enhet.BehandlendeEnhetClient
-import no.nav.syfo.db.DatabaseInterface
+import no.nav.syfo.database.DatabaseInterface
 import no.nav.syfo.domain.Fodselsnummer
 import no.nav.syfo.metric.COUNT_OVERSIKTHENDELSE_RETRY_OPPFOLGINGSPLANLPS_BISTAND_MOTTATT_SKIPPED
 import no.nav.syfo.oversikthendelse.OversikthendelseProducer

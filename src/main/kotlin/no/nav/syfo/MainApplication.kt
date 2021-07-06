@@ -11,6 +11,7 @@ import kotlinx.coroutines.slf4j.MDCContext
 import no.nav.syfo.api.apiModule
 import no.nav.syfo.client.enhet.BehandlendeEnhetClient
 import no.nav.syfo.client.sts.StsRestClient
+import no.nav.syfo.database.databaseModule
 import no.nav.syfo.kafka.kafkaProducerConfig
 import no.nav.syfo.oversikthendelse.OversikthendelseProducer
 import no.nav.syfo.oversikthendelse.domain.KOversikthendelse

@@ -1,8 +1,8 @@
 package no.nav.syfo.testutil
 
 import com.opentable.db.postgres.embedded.EmbeddedPostgres
-import no.nav.syfo.db.DatabaseInterface
-import no.nav.syfo.db.toList
+import no.nav.syfo.database.DatabaseInterface
+import no.nav.syfo.database.toList
 import no.nav.syfo.domain.Fodselsnummer
 import no.nav.syfo.oppfolgingsplan.avro.KOppfolgingsplanLPSNAV
 import no.nav.syfo.personoppgave.*
