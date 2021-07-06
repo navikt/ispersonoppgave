@@ -1,51 +1,19 @@
 package no.nav.syfo
 
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.module.kotlin.registerKotlinModule
-import java.io.File
-
-const val defaultlocalEnvironmentPropertiesPath = "./src/main/resources/localEnvForTests.json"
-private val objectMapper: ObjectMapper = ObjectMapper()
-
-fun getEnvironment(): Environment {
-    objectMapper.registerKotlinModule()
-    return if (appIsRunningLocally) {
-        objectMapper.readValue(firstExistingFile(defaultlocalEnvironmentPropertiesPath), Environment::class.java)
-    } else {
-        Environment(
-            getEnvVar("APPLICATION_THREADS", "1").toInt(),
-            getEnvVar("APPLICATION_NAME", "ispersonoppgave"),
-            getEnvVar("AADDISCOVERY_URL"),
-            getEnvVar("LOGINSERVICE_CLIENT_ID"),
-            getEnvVar("JWKKEYS_URL", "https://login.microsoftonline.com/common/discovery/keys"),
-            getEnvVar("JWT_ISSUER"),
-            getEnvVar("KAFKA_BOOTSTRAP_SERVERS_URL"),
-            getEnvVar("DATABASE_NAME", "ispersonoppgave"),
-            getEnvVar("ISPERSONOPPGAVE_DB_URL"),
-            getEnvVar("MOUNT_PATH_VAULT"),
-            getEnvVar("SECURITY_TOKEN_SERVICE_REST_URL"),
-            getEnvVar("SYFOBEHANDLENDEENHET_URL"),
-            getEnvVar("SYFOTILGANGSKONTROLL_URL"),
-        )
-    }
-}
-
-val appIsRunningLocally: Boolean = System.getenv("NAIS_CLUSTER_NAME").isNullOrEmpty()
-
 data class Environment(
-    val applicationThreads: Int,
-    val applicationName: String,
-    val aadDiscoveryUrl: String,
-    val loginserviceClientId: String,
-    val jwkKeysUrl: String,
-    val jwtIssuer: String,
-    val kafkaBootstrapServers: String,
-    val databaseName: String,
-    val ispersonoppgaveDBURL: String,
-    val mountPathVault: String,
-    val stsRestUrl: String,
-    val behandlendeenhetUrl: String,
-    val syfotilgangskontrollUrl: String,
+    val applicationThreads: Int = getEnvVar("APPLICATION_THREADS", "1").toInt(),
+    val applicationName: String = getEnvVar("APPLICATION_NAME", "ispersonoppgave"),
+    val aadDiscoveryUrl: String = getEnvVar("AADDISCOVERY_URL"),
+    val loginserviceClientId: String = getEnvVar("LOGINSERVICE_CLIENT_ID"),
+    val jwkKeysUrl: String = getEnvVar("JWKKEYS_URL", "https://login.microsoftonline.com/common/discovery/keys"),
+    val jwtIssuer: String = getEnvVar("JWT_ISSUER"),
+    val kafkaBootstrapServers: String = getEnvVar("KAFKA_BOOTSTRAP_SERVERS_URL"),
+    val databaseName: String = getEnvVar("DATABASE_NAME", "ispersonoppgave"),
+    val ispersonoppgaveDBURL: String = getEnvVar("ISPERSONOPPGAVE_DB_URL"),
+    val mountPathVault: String = getEnvVar("MOUNT_PATH_VAULT"),
+    val stsRestUrl: String = getEnvVar("SECURITY_TOKEN_SERVICE_REST_URL"),
+    val behandlendeenhetUrl: String = getEnvVar("SYFOBEHANDLENDEENHET_URL"),
+    val syfotilgangskontrollUrl: String = getEnvVar("SYFOTILGANGSKONTROLL_URL"),
 )
 
 data class VaultSecrets(
@@ -55,7 +23,3 @@ data class VaultSecrets(
 
 fun getEnvVar(varName: String, defaultValue: String? = null) =
     System.getenv(varName) ?: defaultValue ?: throw RuntimeException("Missing required variable \"$varName\"")
-
-private fun firstExistingFile(vararg paths: String) = paths
-    .map(::File)
-    .first(File::exists)

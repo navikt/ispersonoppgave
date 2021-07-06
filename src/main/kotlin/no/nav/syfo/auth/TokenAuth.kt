@@ -5,11 +5,10 @@ import com.auth0.jwt.JWT
 import com.auth0.jwt.algorithms.Algorithm
 import com.auth0.jwt.exceptions.JWTVerificationException
 import com.auth0.jwt.interfaces.DecodedJWT
-import io.ktor.request.RequestCookies
+import io.ktor.request.*
 import net.logstash.logback.argument.StructuredArguments
 import no.nav.syfo.Environment
 import no.nav.syfo.api.authentication.getWellKnown
-import no.nav.syfo.getEnvironment
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.net.URL
@@ -29,7 +28,7 @@ fun getDecodedTokenFromCookie(cookies: RequestCookies): DecodedJWT? {
     val token = cookies[expectedCookieName]
 
     return if (token != null) {
-        verifyToken(token, getEnvironment())
+        verifyToken(token, Environment())
     } else {
         log.info("Token not verified: Found no token in cookie")
         null
@@ -53,7 +52,7 @@ fun getVeilederTokenPayload(token: String): VeilederTokenPayload {
 
 fun isInvalidToken(cookies: RequestCookies): Boolean {
     val decodedToken = getDecodedTokenFromCookie(cookies)
-    val env = getEnvironment()
+    val env = Environment()
 
     return if (decodedToken != null) {
         if (!decodedToken.audience.contains(env.loginserviceClientId)) {

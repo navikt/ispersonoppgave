@@ -51,7 +51,7 @@ fun main() {
                 running = false,
                 initialized = false,
             )
-            val environment: Environment = getEnvironment()
+            val environment = Environment()
 
             val vaultSecrets = VaultSecrets(
                 serviceuserUsername = getFileAsString("/secrets/serviceuser/username"),
