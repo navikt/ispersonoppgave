@@ -49,7 +49,6 @@ object KafkaOversikthendelseRetrySpek : Spek({
             )
         )
         val env = testEnvironment(
-            getRandomPort(),
             embeddedEnvironment.brokersURL
         )
 

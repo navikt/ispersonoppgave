@@ -6,7 +6,10 @@ import no.nav.syfo.*
 import no.nav.syfo.vault.Vault
 
 lateinit var database: DatabaseInterface
-fun Application.databaseModule() {
+fun Application.databaseModule(
+    applicationState: ApplicationState,
+    environment: Environment,
+) {
     isDev {
         database = DevDatabase(
             DbConfig(
@@ -16,49 +19,68 @@ fun Application.databaseModule() {
                 username = "username"
             )
         )
-        state.running = true
+        applicationState.running = true
     }
 
     isProd {
         val vaultCredentialService = VaultCredentialService()
 
-        val newCredentials = vaultCredentialService.getNewCredentials(env.mountPathVault, env.databaseName, Role.USER)
+        val newCredentials = vaultCredentialService.getNewCredentials(
+            environment.mountPathVault,
+            environment.databaseName,
+            Role.USER,
+        )
 
         database = ProdDatabase(
             DbConfig(
-                jdbcUrl = env.ispersonoppgaveDBURL,
+                jdbcUrl = environment.ispersonoppgaveDBURL,
                 username = newCredentials.username,
                 password = newCredentials.password,
-                databaseName = env.databaseName,
+                databaseName = environment.databaseName,
                 runMigrationsOninit = false
             )
         ) { prodDatabase ->
 
             // i prod må vi kjøre flyway migrations med et eget sett brukernavn/passord
-            vaultCredentialService.getNewCredentials(env.mountPathVault, env.databaseName, Role.ADMIN).let {
-                prodDatabase.runFlywayMigrations(env.ispersonoppgaveDBURL, it.username, it.password)
+            vaultCredentialService.getNewCredentials(
+                environment.mountPathVault,
+                environment.databaseName,
+                Role.ADMIN,
+            ).let {
+                prodDatabase.runFlywayMigrations(
+                    environment.ispersonoppgaveDBURL,
+                    it.username,
+                    it.password,
+                )
             }
 
-            vaultCredentialService.renewCredentialsTaskData = RenewCredentialsTaskData(env.mountPathVault, env.databaseName, Role.USER) {
-                prodDatabase.updateCredentials(username = it.username, password = it.password)
+            vaultCredentialService.renewCredentialsTaskData = RenewCredentialsTaskData(
+                environment.mountPathVault,
+                environment.databaseName,
+                Role.USER,
+            ) {
+                prodDatabase.updateCredentials(
+                    username = it.username,
+                    password = it.password,
+                )
             }
 
-            state.running = true
+            applicationState.running = true
         }
 
         launch(backgroundTasksContext) {
             try {
-                Vault.renewVaultTokenTask(state)
+                Vault.renewVaultTokenTask(applicationState)
             } finally {
-                state.running = false
+                applicationState.running = false
             }
         }
 
         launch(backgroundTasksContext) {
             try {
-                vaultCredentialService.runRenewCredentialsTask { state.running }
+                vaultCredentialService.runRenewCredentialsTask { applicationState.running }
             } finally {
-                state.running = false
+                applicationState.running = false
             }
         }
     }

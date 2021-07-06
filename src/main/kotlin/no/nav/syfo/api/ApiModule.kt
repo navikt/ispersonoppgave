@@ -6,19 +6,22 @@ import io.ktor.request.*
 import io.ktor.response.*
 import io.ktor.routing.*
 import io.ktor.util.*
+import no.nav.syfo.*
 import no.nav.syfo.auth.isInvalidToken
 import no.nav.syfo.client.enhet.BehandlendeEnhetClient
 import no.nav.syfo.client.veiledertilgang.VeilederTilgangskontrollClient
+import no.nav.syfo.database.DatabaseInterface
 import no.nav.syfo.database.database
-import no.nav.syfo.env
 import no.nav.syfo.oversikthendelse.OversikthendelseProducer
 import no.nav.syfo.personoppgave.PersonOppgaveService
 import no.nav.syfo.personoppgave.api.registerVeilederPersonOppgaveApi
-import no.nav.syfo.state
 
 @KtorExperimentalAPI
 fun Application.apiModule(
+    applicationState: ApplicationState,
     behandlendeEnhetClient: BehandlendeEnhetClient,
+    database: DatabaseInterface,
+    environment: Environment,
     oversikthendelseProducer: OversikthendelseProducer,
 ) {
     installCallId()
@@ -40,14 +43,16 @@ fun Application.apiModule(
     }
 
     val personOppgaveService = PersonOppgaveService(
-        database,
-        behandlendeEnhetClient,
-        oversikthendelseProducer
+        database = database,
+        behandlendeEnhetClient = behandlendeEnhetClient,
+        oversikthendelseProducer = oversikthendelseProducer,
     )
-    val veilederTilgangskontrollClient = VeilederTilgangskontrollClient(env.syfotilgangskontrollUrl)
+    val veilederTilgangskontrollClient = VeilederTilgangskontrollClient(
+        endpointUrl = environment.syfotilgangskontrollUrl,
+    )
 
     routing {
-        registerPodApi(state)
+        registerPodApi(applicationState)
         registerPrometheusApi()
         registerVeilederPersonOppgaveApi(
             personOppgaveService,
@@ -55,5 +60,5 @@ fun Application.apiModule(
         )
     }
 
-    state.initialized = true
+    applicationState.initialized = true
 }

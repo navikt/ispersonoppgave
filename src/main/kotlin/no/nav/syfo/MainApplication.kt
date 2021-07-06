@@ -11,6 +11,7 @@ import kotlinx.coroutines.slf4j.MDCContext
 import no.nav.syfo.api.apiModule
 import no.nav.syfo.client.enhet.BehandlendeEnhetClient
 import no.nav.syfo.client.sts.StsRestClient
+import no.nav.syfo.database.database
 import no.nav.syfo.database.databaseModule
 import no.nav.syfo.kafka.kafkaProducerConfig
 import no.nav.syfo.oversikthendelse.OversikthendelseProducer
@@ -32,6 +33,8 @@ val log: org.slf4j.Logger = LoggerFactory.getLogger("no.nav.syfo.MainApplication
 
 val backgroundTasksContext = Executors.newFixedThreadPool(6).asCoroutineDispatcher() + MDCContext()
 
+const val applicationPort = 8080
+
 @KtorExperimentalAPI
 fun main() {
     val server = embeddedServer(
@@ -41,8 +44,14 @@ fun main() {
             config = HoconApplicationConfig(ConfigFactory.load())
 
             connector {
-                port = env.applicationPort
+                port = applicationPort
             }
+
+            val applicationState = ApplicationState(
+                running = false,
+                initialized = false,
+            )
+            val environment: Environment = getEnvironment()
 
             val vaultSecrets = VaultSecrets(
                 serviceuserUsername = getFileAsString("/secrets/serviceuser/username"),
@@ -50,33 +59,42 @@ fun main() {
             )
 
             val stsClientRest = StsRestClient(
-                env.stsRestUrl,
+                environment.stsRestUrl,
                 vaultSecrets.serviceuserUsername,
                 vaultSecrets.serviceuserPassword,
             )
             val behandlendeEnhetClient = BehandlendeEnhetClient(
-                env.behandlendeenhetUrl,
+                environment.behandlendeenhetUrl,
                 stsClientRest,
             )
-            val producerProperties = kafkaProducerConfig(env, vaultSecrets)
+            val producerProperties = kafkaProducerConfig(environment, vaultSecrets)
             val oversikthendelseRecordProducer = KafkaProducer<String, KOversikthendelse>(producerProperties)
             val oversikthendelseProducer = OversikthendelseProducer(oversikthendelseRecordProducer)
 
-            val oversikthendelseRetryProducerProperties = kafkaProducerConfig(env, vaultSecrets)
+            val oversikthendelseRetryProducerProperties = kafkaProducerConfig(environment, vaultSecrets)
             val oversikthendelseRetryRecordProducer = KafkaProducer<String, KOversikthendelseRetry>(oversikthendelseRetryProducerProperties)
             val oversikthendelseRetryProducer = OversikthendelseRetryProducer(oversikthendelseRetryRecordProducer)
 
             module {
-                databaseModule()
+                databaseModule(
+                    applicationState = applicationState,
+                    environment = environment,
+                )
                 apiModule(
-                    behandlendeEnhetClient,
-                    oversikthendelseProducer,
+                    applicationState = applicationState,
+                    behandlendeEnhetClient = behandlendeEnhetClient,
+                    database = database,
+                    environment = environment,
+                    oversikthendelseProducer = oversikthendelseProducer,
                 )
                 kafkaModule(
-                    vaultSecrets,
-                    behandlendeEnhetClient,
-                    oversikthendelseProducer,
-                    oversikthendelseRetryProducer,
+                    applicationState = applicationState,
+                    database = database,
+                    environment = environment,
+                    vaultSecrets = vaultSecrets,
+                    behandlendeEnhetClient = behandlendeEnhetClient,
+                    oversikthendelseProducer = oversikthendelseProducer,
+                    oversikthendelseRetryProducer = oversikthendelseRetryProducer,
                 )
             }
         }
@@ -90,9 +108,6 @@ fun main() {
     server.start(wait = false)
 }
 
-val state: ApplicationState = ApplicationState(running = false, initialized = false)
-val env: Environment = getEnvironment()
-
 val Application.envKind get() = environment.config.property("ktor.environment").getString()
 
 fun Application.isDev(block: () -> Unit) {
@@ -102,5 +117,3 @@ fun Application.isDev(block: () -> Unit) {
 fun Application.isProd(block: () -> Unit) {
     if (envKind == "production") block()
 }
-
-fun isPreProd(): Boolean = getEnvVar("NAIS_CLUSTER_NAME", "dev-fss") == "dev-fss"

@@ -8,26 +8,28 @@ import no.nav.syfo.personoppgave.oppfolgingsplanlps.kafka.blockingApplicationLog
 import no.nav.syfo.personoppgave.oppfolgingsplanlps.kafka.createListenerOppfolgingsplanLPS
 
 suspend fun CoroutineScope.setupKafka(
+    applicationState: ApplicationState,
+    environment: Environment,
     vaultSecrets: VaultSecrets,
     oppfolgingsplanLPSService: OppfolgingsplanLPSService,
     oversikthendelseRetryService: OversikthendelseRetryService,
 ) {
-    createListenerOppfolgingsplanLPS(state) {
+    createListenerOppfolgingsplanLPS(applicationState) {
         blockingApplicationLogicOppfolgingsplanLPS(
-            state,
-            env,
-            vaultSecrets,
-            oppfolgingsplanLPSService,
+            applicationState = applicationState,
+            environment = environment,
+            vaultSecrets = vaultSecrets,
+            oppfolgingsplanLPSService = oppfolgingsplanLPSService,
         )
     }
 
-    createListenerOversikthendelseRetry(state) {
+    createListenerOversikthendelseRetry(applicationState) {
         blockingApplicationLogicOversikthendelseRetry(
-            state,
-            env,
-            vaultSecrets,
-            oversikthendelseRetryService,
+            applicationState = applicationState,
+            environment = environment,
+            vaultSecrets = vaultSecrets,
+            oversikthendelseRetryService = oversikthendelseRetryService,
         )
     }
-    state.initialized = true
+    applicationState.initialized = true
 }

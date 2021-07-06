@@ -5,8 +5,7 @@ import no.nav.syfo.VaultSecrets
 import java.net.ServerSocket
 import java.util.*
 
-fun testEnvironment(port: Int, kafkaBootstrapServers: String) = Environment(
-    applicationPort = port,
+fun testEnvironment(kafkaBootstrapServers: String) = Environment(
     applicationThreads = 1,
     applicationName = "ispersonoppgave",
     aadDiscoveryUrl = "",

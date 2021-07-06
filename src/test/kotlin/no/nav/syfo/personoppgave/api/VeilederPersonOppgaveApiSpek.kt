@@ -57,7 +57,7 @@ object VeilederPersonOppgaveApiSpek : Spek({
             OVERSIKTHENDELSE_TOPIC
         )
     )
-    val env = testEnvironment(getRandomPort(), embeddedEnvironment.brokersURL)
+    val env = testEnvironment(embeddedEnvironment.brokersURL)
     val credentials = vaultSecrets
 
     beforeGroup {

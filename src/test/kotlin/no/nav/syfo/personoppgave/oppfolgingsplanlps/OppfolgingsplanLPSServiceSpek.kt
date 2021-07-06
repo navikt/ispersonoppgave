@@ -53,7 +53,7 @@ object OppfolgingsplanLPSServiceSpek : Spek({
         )
     )
 
-    val env = testEnvironment(getRandomPort(), embeddedEnvironment.brokersURL)
+    val env = testEnvironment(embeddedEnvironment.brokersURL)
     val credentials = vaultSecrets
 
     val consumerPropertiesOversikthendelse = kafkaConsumerConfig(env, credentials)

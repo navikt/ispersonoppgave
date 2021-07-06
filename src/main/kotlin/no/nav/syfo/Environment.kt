@@ -13,7 +13,6 @@ fun getEnvironment(): Environment {
         objectMapper.readValue(firstExistingFile(defaultlocalEnvironmentPropertiesPath), Environment::class.java)
     } else {
         Environment(
-            getEnvVar("APPLICATION_PORT", "8080").toInt(),
             getEnvVar("APPLICATION_THREADS", "1").toInt(),
             getEnvVar("APPLICATION_NAME", "ispersonoppgave"),
             getEnvVar("AADDISCOVERY_URL"),
@@ -34,7 +33,6 @@ fun getEnvironment(): Environment {
 val appIsRunningLocally: Boolean = System.getenv("NAIS_CLUSTER_NAME").isNullOrEmpty()
 
 data class Environment(
-    val applicationPort: Int,
     val applicationThreads: Int,
     val applicationName: String,
     val aadDiscoveryUrl: String,
