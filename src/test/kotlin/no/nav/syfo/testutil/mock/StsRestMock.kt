@@ -11,6 +11,7 @@ import no.nav.syfo.testutil.getRandomPort
 class StsRestMock {
     private val port = getRandomPort()
     val url = "http://localhost:$port"
+    val name = "stsrest"
     val server = mockStsRestServer(port)
 
     private fun mockStsRestServer(

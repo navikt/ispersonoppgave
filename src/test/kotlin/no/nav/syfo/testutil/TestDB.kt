@@ -14,18 +14,16 @@ import java.time.Instant
 import java.util.*
 
 class TestDB : DatabaseInterface {
-    private val pg: EmbeddedPostgres
+    private val pg: EmbeddedPostgres = try {
+        EmbeddedPostgres.start()
+    } catch (e: Exception) {
+        EmbeddedPostgres.builder().setLocaleConfig("locale", "en_US").start()
+    }
 
     override val connection: Connection
         get() = pg.postgresDatabase.connection.apply { autoCommit = false }
 
     init {
-        pg = try {
-            EmbeddedPostgres.start()
-        } catch (e: Exception) {
-            EmbeddedPostgres.builder().setLocaleConfig("locale", "en_US").start()
-        }
-
         Flyway.configure().run {
             dataSource(pg.postgresDatabase).load().migrate()
         }

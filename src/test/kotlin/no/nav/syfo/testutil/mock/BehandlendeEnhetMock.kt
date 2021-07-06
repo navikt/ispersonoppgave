@@ -18,6 +18,7 @@ class BehandlendeEnhetMock {
     val url = "http://localhost:$port"
 
     val behandlendeEnhet = generateBehandlendeEnhet()
+    val name = "behandlendeenhet"
     val server = mockBehandlendeEnhetServer(port, behandlendeEnhet)
 
     private fun mockBehandlendeEnhetServer(

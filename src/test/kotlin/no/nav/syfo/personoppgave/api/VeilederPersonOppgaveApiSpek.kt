@@ -1,37 +1,26 @@
 package no.nav.syfo.personoppgave.api
 
-import com.fasterxml.jackson.databind.*
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
-import com.fasterxml.jackson.module.kotlin.registerKotlinModule
-import io.ktor.application.*
-import io.ktor.features.*
 import io.ktor.http.*
-import io.ktor.jackson.*
-import io.ktor.routing.*
 import io.ktor.server.testing.*
 import io.ktor.util.*
 import io.mockk.every
 import io.mockk.mockkStatic
-import no.nav.common.KafkaEnvironment
 import no.nav.syfo.auth.getTokenFromCookie
 import no.nav.syfo.auth.isInvalidToken
-import no.nav.syfo.client.enhet.BehandlendeEnhetClient
-import no.nav.syfo.client.sts.StsRestClient
-import no.nav.syfo.client.veiledertilgang.VeilederTilgangskontrollClient
 import no.nav.syfo.kafka.kafkaConsumerConfig
 import no.nav.syfo.kafka.kafkaProducerConfig
 import no.nav.syfo.oversikthendelse.OVERSIKTHENDELSE_TOPIC
 import no.nav.syfo.oversikthendelse.OversikthendelseProducer
 import no.nav.syfo.oversikthendelse.domain.KOversikthendelse
 import no.nav.syfo.oversikthendelse.domain.OversikthendelseType
-import no.nav.syfo.personoppgave.PersonOppgaveService
 import no.nav.syfo.personoppgave.domain.PersonOppgaveType
 import no.nav.syfo.testutil.*
 import no.nav.syfo.testutil.UserConstants.ARBEIDSTAKER_FNR
 import no.nav.syfo.testutil.generator.veilederTokenGenerator
-import no.nav.syfo.testutil.mock.*
 import no.nav.syfo.util.NAV_PERSONIDENT_HEADER
+import no.nav.syfo.util.configuredJacksonMapper
 import org.amshove.kluent.*
 import org.apache.kafka.clients.consumer.KafkaConsumer
 import org.apache.kafka.clients.producer.KafkaProducer
@@ -40,58 +29,20 @@ import org.spekframework.spek2.style.specification.describe
 import java.time.Duration
 import java.util.*
 
-private val objectMapper: ObjectMapper = ObjectMapper().apply {
-    registerKotlinModule()
-    registerModule(JavaTimeModule())
-    configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
-    configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false)
-}
-
 @InternalAPI
 object VeilederPersonOppgaveApiSpek : Spek({
-
-    val embeddedEnvironment = KafkaEnvironment(
-        autoStart = false,
-        withSchemaRegistry = false,
-        topicNames = listOf(
-            OVERSIKTHENDELSE_TOPIC
-        )
-    )
-    val env = testEnvironment(embeddedEnvironment.brokersURL)
-    val credentials = vaultSecrets
-
-    beforeGroup {
-        embeddedEnvironment.start()
-    }
-
-    afterGroup {
-        embeddedEnvironment.tearDown()
-    }
+    val objectMapper: ObjectMapper = configuredJacksonMapper()
 
     describe("VeilederPersonOppgaveApi") {
 
         with(TestApplicationEngine()) {
             start()
 
-            val stsRestMock = StsRestMock()
-            val stsRestClient = StsRestClient(
-                baseUrl = stsRestMock.url,
-                username = vaultSecrets.serviceuserUsername,
-                password = vaultSecrets.serviceuserPassword
-            )
+            val externalMockEnvironment = ExternalMockEnvironment()
+            val database = externalMockEnvironment.database
+            val env = externalMockEnvironment.environment
+            val vaultSecrets = externalMockEnvironment.vaultSecrets
 
-            val behandlendeEnhetMock = BehandlendeEnhetMock()
-            val behandlendeEnhetClient = BehandlendeEnhetClient(
-                baseUrl = behandlendeEnhetMock.url,
-                stsRestClient = stsRestClient
-            )
-
-            val tilgangskontrollMock = VeilederTilgangskontrollMock()
-            val veilederTilgangskontrollClient = VeilederTilgangskontrollClient(
-                tilgangskontrollMock.url
-            )
-
-            val database = TestDB()
             val cookies = ""
             val baseUrl = "/api/v1/personoppgave"
 
@@ -100,7 +51,7 @@ object VeilederPersonOppgaveApiSpek : Spek({
                 remove("sasl.mechanism")
             }
 
-            val consumerPropertiesOversikthendelse = kafkaConsumerConfig(env, credentials)
+            val consumerPropertiesOversikthendelse = kafkaConsumerConfig(env, vaultSecrets)
                 .overrideForTest()
                 .apply {
                     put("specific.avro.reader", false)
@@ -115,26 +66,10 @@ object VeilederPersonOppgaveApiSpek : Spek({
             val oversikthendelseRecordProducer = KafkaProducer<String, KOversikthendelse>(producerProperties)
             val oversikthendelseProducer = OversikthendelseProducer(oversikthendelseRecordProducer)
 
-            val personOppgaveService = PersonOppgaveService(
-                database,
-                behandlendeEnhetClient,
-                oversikthendelseProducer
+            application.testApiModule(
+                externalMockEnvironment = externalMockEnvironment,
+                oversikthendelseProducer = oversikthendelseProducer,
             )
-
-            application.install(ContentNegotiation) {
-                jackson {
-                    registerKotlinModule()
-                    registerModule(JavaTimeModule())
-                    configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false)
-                }
-            }
-
-            application.routing {
-                registerVeilederPersonOppgaveApi(
-                    personOppgaveService,
-                    veilederTilgangskontrollClient
-                )
-            }
 
             beforeEachTest {
                 mockkStatic("no.nav.syfo.auth.TokenAuthKt")
@@ -145,17 +80,11 @@ object VeilederPersonOppgaveApiSpek : Spek({
             }
 
             beforeGroup {
-                behandlendeEnhetMock.server.start()
-                stsRestMock.server.start()
-                tilgangskontrollMock.server.start()
+                externalMockEnvironment.startExternalMocks()
             }
 
             afterGroup {
-                database.stop()
-
-                behandlendeEnhetMock.server.stop(1L, 10L)
-                stsRestMock.server.stop(1L, 10L)
-                tilgangskontrollMock.server.stop(1L, 10L)
+                externalMockEnvironment.stopExternalMocks()
             }
 
             describe("Get PersonOppgave for PersonIdent") {
@@ -401,7 +330,7 @@ object VeilederPersonOppgaveApiSpek : Spek({
                     }
                     messages.size shouldBeEqualTo 1
                     messages.first().fnr shouldBeEqualTo kOppfolgingsplanLPSNAV.getFodselsnummer()
-                    messages.first().enhetId shouldBeEqualTo behandlendeEnhetMock.behandlendeEnhet.enhetId
+                    messages.first().enhetId shouldBeEqualTo externalMockEnvironment.behandlendeEnhetMock.behandlendeEnhet.enhetId
                     messages.first().hendelseId shouldBeEqualTo OversikthendelseType.OPPFOLGINGSPLANLPS_BISTAND_BEHANDLET.name
                 }
             }
