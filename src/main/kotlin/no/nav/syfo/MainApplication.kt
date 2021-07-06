@@ -8,6 +8,7 @@ import io.ktor.server.netty.*
 import io.ktor.util.*
 import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.slf4j.MDCContext
+import no.nav.syfo.api.apiModule
 import no.nav.syfo.client.enhet.BehandlendeEnhetClient
 import no.nav.syfo.client.sts.StsRestClient
 import no.nav.syfo.kafka.kafkaProducerConfig
@@ -66,7 +67,7 @@ fun main() {
 
             module {
                 databaseModule()
-                serverModule(
+                apiModule(
                     behandlendeEnhetClient,
                     oversikthendelseProducer
                 )

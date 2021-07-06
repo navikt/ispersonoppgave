@@ -1,4 +1,4 @@
-package no.nav.syfo
+package no.nav.syfo.api
 
 import io.ktor.application.*
 import io.ktor.features.*
@@ -8,8 +8,7 @@ import io.ktor.request.*
 import io.ktor.response.*
 import io.ktor.routing.*
 import io.ktor.util.*
-import no.nav.syfo.api.registerPodApi
-import no.nav.syfo.api.registerPrometheusApi
+import no.nav.syfo.*
 import no.nav.syfo.auth.isInvalidToken
 import no.nav.syfo.client.enhet.BehandlendeEnhetClient
 import no.nav.syfo.client.veiledertilgang.VeilederTilgangskontrollClient
@@ -20,7 +19,7 @@ import no.nav.syfo.util.*
 import java.util.*
 
 @KtorExperimentalAPI
-fun Application.serverModule(
+fun Application.apiModule(
     behandlendeEnhetClient: BehandlendeEnhetClient,
     oversikthendelseProducer: OversikthendelseProducer
 ) {
