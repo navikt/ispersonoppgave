@@ -62,8 +62,15 @@ Alternatively, the variables can be configured as environment variables or used 
 ### Build
 Run `./gradlew clean shadowJar`
 
-### Lint
-Run `./gradlew --continue ktlintCheck`
+### Lint (Ktlint)
+##### Command line
+Run checking: `./gradlew --continue ktlintCheck`
+
+Run formatting: `./gradlew ktlintFormat`
+##### Git Hooks
+Apply checking: `./gradlew addKtlintCheckGitPreCommitHook`
+
+Apply formatting: `./gradlew addKtlintFormatGitPreCommitHook`
 
 ### Test
 Run `./gradlew test -i`
