@@ -8,7 +8,7 @@ import com.auth0.jwt.interfaces.DecodedJWT
 import io.ktor.request.RequestCookies
 import net.logstash.logback.argument.StructuredArguments
 import no.nav.syfo.Environment
-import no.nav.syfo.api.getWellKnown
+import no.nav.syfo.api.authentication.getWellKnown
 import no.nav.syfo.getEnvironment
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory

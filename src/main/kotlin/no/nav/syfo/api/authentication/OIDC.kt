@@ -1,4 +1,4 @@
-package no.nav.syfo.api
+package no.nav.syfo.api.authentication
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.databind.SerializationFeature
