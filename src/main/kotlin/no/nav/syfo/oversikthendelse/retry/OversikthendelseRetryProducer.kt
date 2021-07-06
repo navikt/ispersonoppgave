@@ -15,14 +15,14 @@ import java.util.*
 const val OVERSIKTHENDELSE_RETRY_TOPIC = "privat-ispersonoppgave-oversikthendelse-retry-v1"
 
 class OversikthendelseRetryProducer(
-    private val producer: KafkaProducer<String, KOversikthendelseRetry>
+    private val producer: KafkaProducer<String, KOversikthendelseRetry>,
 ) {
     fun sendFirstOversikthendelseRetry(
         fnr: Fodselsnummer,
         oversikthendelseType: OversikthendelseType,
         personOppgaveId: Int,
         personOppgaveUUID: UUID,
-        callId: String = ""
+        callId: String = "",
     ) {
         val now = LocalDateTime.now()
         val firstKOversikthendelseRetry = KOversikthendelseRetry(
@@ -32,7 +32,7 @@ class OversikthendelseRetryProducer(
             fnr = fnr.value,
             oversikthendelseType = oversikthendelseType.name,
             personOppgaveId = personOppgaveId,
-            personOppgaveUUID = personOppgaveUUID.toString()
+            personOppgaveUUID = personOppgaveUUID.toString(),
         )
         producer.send(producerRecord(firstKOversikthendelseRetry))
         log.warn(
@@ -47,7 +47,7 @@ class OversikthendelseRetryProducer(
 
     fun sendRetriedOversikthendelseRetry(
         kOversikthendelseRetry: KOversikthendelseRetry,
-        callId: String = ""
+        callId: String = "",
     ) {
         val now = LocalDateTime.now()
         val newRetryCounter = kOversikthendelseRetry.retriedCount.plus(1)
@@ -69,7 +69,7 @@ class OversikthendelseRetryProducer(
 
     fun sendAgainOversikthendelseRetry(
         kOversikthendelseRetry: KOversikthendelseRetry,
-        callId: String = ""
+        callId: String = "",
     ) {
         producer.send(producerRecord(kOversikthendelseRetry))
         log.info(
@@ -86,7 +86,7 @@ class OversikthendelseRetryProducer(
         SyfoProducerRecord(
             topic = OVERSIKTHENDELSE_RETRY_TOPIC,
             key = oversikthendelseRetry.personOppgaveUUID,
-            value = oversikthendelseRetry
+            value = oversikthendelseRetry,
         )
 
     companion object {

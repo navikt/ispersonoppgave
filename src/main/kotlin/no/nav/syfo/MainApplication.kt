@@ -52,11 +52,11 @@ fun main() {
             val stsClientRest = StsRestClient(
                 env.stsRestUrl,
                 vaultSecrets.serviceuserUsername,
-                vaultSecrets.serviceuserPassword
+                vaultSecrets.serviceuserPassword,
             )
             val behandlendeEnhetClient = BehandlendeEnhetClient(
                 env.behandlendeenhetUrl,
-                stsClientRest
+                stsClientRest,
             )
             val producerProperties = kafkaProducerConfig(env, vaultSecrets)
             val oversikthendelseRecordProducer = KafkaProducer<String, KOversikthendelse>(producerProperties)
@@ -70,13 +70,13 @@ fun main() {
                 databaseModule()
                 apiModule(
                     behandlendeEnhetClient,
-                    oversikthendelseProducer
+                    oversikthendelseProducer,
                 )
                 kafkaModule(
                     vaultSecrets,
                     behandlendeEnhetClient,
                     oversikthendelseProducer,
-                    oversikthendelseRetryProducer
+                    oversikthendelseRetryProducer,
                 )
             }
         }

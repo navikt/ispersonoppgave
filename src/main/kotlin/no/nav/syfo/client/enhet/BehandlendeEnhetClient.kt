@@ -13,7 +13,7 @@ import org.slf4j.LoggerFactory
 
 class BehandlendeEnhetClient(
     private val baseUrl: String,
-    private val stsRestClient: StsRestClient
+    private val stsRestClient: StsRestClient,
 ) {
     private val client = httpClientDefault()
 

@@ -11,7 +11,7 @@ import java.time.LocalDateTime
 class StsRestClient(
     val baseUrl: String,
     val username: String,
-    val password: String
+    val password: String,
 ) {
     private val client = httpClientDefault()
 
@@ -34,7 +34,7 @@ class StsRestClient(
     data class Token(
         val access_token: String,
         val token_type: String,
-        val expires_in: Int
+        val expires_in: Int,
     ) {
         val expirationTime: LocalDateTime = LocalDateTime.now().plusSeconds(expires_in - 10L)
 

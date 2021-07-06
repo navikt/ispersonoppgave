@@ -19,7 +19,7 @@ private val log: Logger = LoggerFactory.getLogger("no.nav.syfo")
 
 fun Route.registerVeilederPersonOppgaveApi(
     personOppgaveService: PersonOppgaveService,
-    veilederTilgangskontrollClient: VeilederTilgangskontrollClient
+    veilederTilgangskontrollClient: VeilederTilgangskontrollClient,
 ) {
     route("/api/v1/personoppgave") {
         get("/personident") {

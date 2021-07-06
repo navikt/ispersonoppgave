@@ -26,7 +26,7 @@ class VeilederTilgangskontrollMock {
     val server = mockTilgangServer(
         port,
         tilgangFalse,
-        tilgangTrue
+        tilgangTrue,
     )
 
     private fun mockTilgangServer(
@@ -36,7 +36,7 @@ class VeilederTilgangskontrollMock {
     ): NettyApplicationEngine {
         return embeddedServer(
             factory = Netty,
-            port = port
+            port = port,
         ) {
             installContentNegotiation()
             routing {

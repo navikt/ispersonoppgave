@@ -17,7 +17,7 @@ data class PersonOppgave(
     val behandletTidspunkt: LocalDateTime?,
     val behandletVeilederIdent: String?,
     val opprettet: LocalDateTime,
-    val sistEndret: LocalDateTime
+    val sistEndret: LocalDateTime,
 )
 
 fun PersonOppgave.toPersonOppgaveVeileder(): PersonOppgaveVeileder {
@@ -29,6 +29,6 @@ fun PersonOppgave.toPersonOppgaveVeileder(): PersonOppgaveVeileder {
         type = this.type.name,
         behandletTidspunkt = this.behandletTidspunkt,
         behandletVeilederIdent = this.behandletVeilederIdent,
-        opprettet = this.opprettet
+        opprettet = this.opprettet,
     )
 }

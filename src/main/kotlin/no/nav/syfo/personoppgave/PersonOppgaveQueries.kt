@@ -141,5 +141,5 @@ fun ResultSet.toPPersonOppgave(): PPersonOppgave =
         behandletTidspunkt = convertNullable(getTimestamp("behandlet_tidspunkt")),
         behandletVeilederIdent = getString("behandlet_veileder_ident"),
         opprettet = convert(getTimestamp("opprettet")),
-        sistEndret = convert(getTimestamp("sist_endret"))
+        sistEndret = convert(getTimestamp("sist_endret")),
     )

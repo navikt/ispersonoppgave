@@ -19,12 +19,12 @@ fun testEnvironment(port: Int, kafkaBootstrapServers: String) = Environment(
     mountPathVault = "vault.adeo.no",
     behandlendeenhetUrl = "behandlendeenhet",
     stsRestUrl = "stsurl",
-    syfotilgangskontrollUrl = "tilgangskontroll"
+    syfotilgangskontrollUrl = "tilgangskontroll",
 )
 
 val vaultSecrets = VaultSecrets(
     "",
-    ""
+    "",
 )
 
 fun Properties.overrideForTest(): Properties = apply {

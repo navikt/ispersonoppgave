@@ -22,11 +22,11 @@ class BehandlendeEnhetMock {
 
     private fun mockBehandlendeEnhetServer(
         port: Int,
-        behandlendeEnhet: BehandlendeEnhet
+        behandlendeEnhet: BehandlendeEnhet,
     ): NettyApplicationEngine {
         return embeddedServer(
             factory = Netty,
-            port = port
+            port = port,
         ) {
             installContentNegotiation()
             routing {

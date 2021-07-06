@@ -18,7 +18,7 @@ class VaultCredentialService {
                 val credentials = getNewCredentials(
                     mountPath,
                     databaseName,
-                    role
+                    role,
                 )
 
                 cb(credentials)

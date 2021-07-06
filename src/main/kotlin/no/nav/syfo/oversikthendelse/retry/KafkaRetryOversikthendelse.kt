@@ -21,7 +21,7 @@ suspend fun blockingApplicationLogicOversikthendelseRetry(
     applicationState: ApplicationState,
     environment: Environment,
     vaultSecrets: VaultSecrets,
-    oversikthendelseRetryService: OversikthendelseRetryService
+    oversikthendelseRetryService: OversikthendelseRetryService,
 ) {
     LOG.info("Setting up kafka consumer OversikthendelseRetry")
 
@@ -35,7 +35,7 @@ suspend fun blockingApplicationLogicOversikthendelseRetry(
     while (applicationState.running) {
         pollAndProcessOversikthendelseRetryTopic(
             kafkaConsumer = kafkaConsumerOversikthendelseRetry,
-            oversikthendelseRetryService = oversikthendelseRetryService
+            oversikthendelseRetryService = oversikthendelseRetryService,
         )
         delay(5000L)
     }
@@ -43,7 +43,7 @@ suspend fun blockingApplicationLogicOversikthendelseRetry(
 
 suspend fun pollAndProcessOversikthendelseRetryTopic(
     kafkaConsumer: KafkaConsumer<String, String>,
-    oversikthendelseRetryService: OversikthendelseRetryService
+    oversikthendelseRetryService: OversikthendelseRetryService,
 ) {
     var logValues = arrayOf(
         StructuredArguments.keyValue("id", "missing"),

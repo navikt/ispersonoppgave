@@ -26,7 +26,7 @@ fun getEnvironment(): Environment {
             getEnvVar("MOUNT_PATH_VAULT"),
             getEnvVar("SECURITY_TOKEN_SERVICE_REST_URL"),
             getEnvVar("SYFOBEHANDLENDEENHET_URL"),
-            getEnvVar("SYFOTILGANGSKONTROLL_URL")
+            getEnvVar("SYFOTILGANGSKONTROLL_URL"),
         )
     }
 }
@@ -47,12 +47,12 @@ data class Environment(
     val mountPathVault: String,
     val stsRestUrl: String,
     val behandlendeenhetUrl: String,
-    val syfotilgangskontrollUrl: String
+    val syfotilgangskontrollUrl: String,
 )
 
 data class VaultSecrets(
     val serviceuserUsername: String,
-    val serviceuserPassword: String
+    val serviceuserPassword: String,
 )
 
 fun getEnvVar(varName: String, defaultValue: String? = null) =

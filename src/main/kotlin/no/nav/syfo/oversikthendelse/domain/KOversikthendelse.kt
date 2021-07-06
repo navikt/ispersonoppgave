@@ -6,5 +6,5 @@ data class KOversikthendelse(
     val fnr: String,
     val hendelseId: String,
     val enhetId: String,
-    val tidspunkt: LocalDateTime
+    val tidspunkt: LocalDateTime,
 )

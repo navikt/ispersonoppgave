@@ -11,7 +11,7 @@ import java.util.*
 
 fun kafkaConsumerConfig(
     env: Environment,
-    vaultSecrets: VaultSecrets
+    vaultSecrets: VaultSecrets,
 ): Properties {
     return Properties().apply {
         this["group.id"] = "${env.applicationName}-consumer"
@@ -31,7 +31,7 @@ fun kafkaConsumerConfig(
 
 fun kafkaConsumerOversikthendelseRetryProperties(
     env: Environment,
-    vaultSecrets: VaultSecrets
+    vaultSecrets: VaultSecrets,
 ) = Properties().apply {
     this[ConsumerConfig.GROUP_ID_CONFIG] = "${env.applicationName}-consumer-retry"
     this[ConsumerConfig.AUTO_OFFSET_RESET_CONFIG] = "earliest"

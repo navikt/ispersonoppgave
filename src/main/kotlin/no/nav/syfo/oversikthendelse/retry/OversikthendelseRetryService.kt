@@ -16,11 +16,11 @@ class OversikthendelseRetryService(
     private val behandlendeEnhetClient: BehandlendeEnhetClient,
     private val database: DatabaseInterface,
     private val oversikthendelseProducer: OversikthendelseProducer,
-    private val oversikthendelseRetryProducer: OversikthendelseRetryProducer
+    private val oversikthendelseRetryProducer: OversikthendelseRetryProducer,
 ) {
     suspend fun receiveOversikthendelseRetry(
         kOversikthendelseRetry: KOversikthendelseRetry,
-        callId: String = ""
+        callId: String = "",
     ) {
         when {
             kOversikthendelseRetry.hasExceededRetryLimit() -> {
@@ -35,19 +35,19 @@ class OversikthendelseRetryService(
                         fodselsnummer,
                         kOversikthendelseRetry,
                         behandlendeEnhet,
-                        callId
+                        callId,
                     )
                 } else {
                     oversikthendelseRetryProducer.sendRetriedOversikthendelseRetry(
                         kOversikthendelseRetry,
-                        callId
+                        callId,
                     )
                 }
             }
             else -> {
                 oversikthendelseRetryProducer.sendAgainOversikthendelseRetry(
                     kOversikthendelseRetry,
-                    callId
+                    callId,
                 )
             }
         }
@@ -57,7 +57,7 @@ class OversikthendelseRetryService(
         fodselsnummer: Fodselsnummer,
         kOversikthendelseRetry: KOversikthendelseRetry,
         behandlendeEnhet: BehandlendeEnhet,
-        callId: String
+        callId: String,
     ) {
         database.getPersonOppgaveList(fodselsnummer)
             .find { personOppgave ->
@@ -69,7 +69,7 @@ class OversikthendelseRetryService(
                     fodselsnummer,
                     behandlendeEnhet,
                     OversikthendelseType.valueOf(kOversikthendelseRetry.oversikthendelseType),
-                    callId
+                    callId,
                 )
                 database.updatePersonOppgaveOversikthendelse(kOversikthendelseRetry.personOppgaveId)
             } ?: return

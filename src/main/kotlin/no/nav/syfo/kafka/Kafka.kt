@@ -17,7 +17,7 @@ suspend fun CoroutineScope.setupKafka(
             state,
             env,
             vaultSecrets,
-            oppfolgingsplanLPSService
+            oppfolgingsplanLPSService,
         )
     }
 
@@ -26,7 +26,7 @@ suspend fun CoroutineScope.setupKafka(
             state,
             env,
             vaultSecrets,
-            oversikthendelseRetryService
+            oversikthendelseRetryService,
         )
     }
     state.initialized = true

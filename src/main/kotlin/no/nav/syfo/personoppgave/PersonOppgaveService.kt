@@ -13,7 +13,7 @@ import java.util.*
 class PersonOppgaveService(
     private val database: DatabaseInterface,
     private val behandlendeEnhetClient: BehandlendeEnhetClient,
-    private val oversikthendelseProducer: OversikthendelseProducer
+    private val oversikthendelseProducer: OversikthendelseProducer,
 ) {
     fun getPersonOppgaveList(
         fnr: Fodselsnummer
@@ -24,7 +24,7 @@ class PersonOppgaveService(
     }
 
     fun getPersonOppgave(
-        uuid: UUID
+        uuid: UUID,
     ): PersonOppgave? {
         val oppgaveList = database.getPersonOppgaveList(uuid)
         return if (oppgaveList.isEmpty()) {
@@ -37,7 +37,7 @@ class PersonOppgaveService(
     suspend fun behandlePersonOppgave(
         personoppgave: PersonOppgave,
         veilederIdent: String,
-        callId: String
+        callId: String,
     ) {
         val personFnr = personoppgave.fnr
         val behandlendeEnhet = behandlendeEnhetClient.getEnhet(personFnr, callId)

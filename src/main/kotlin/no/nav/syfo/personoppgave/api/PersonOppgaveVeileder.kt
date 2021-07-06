@@ -11,5 +11,5 @@ data class PersonOppgaveVeileder(
     val type: String,
     val behandletTidspunkt: LocalDateTime?,
     val behandletVeilederIdent: String?,
-    val opprettet: LocalDateTime
+    val opprettet: LocalDateTime,
 )

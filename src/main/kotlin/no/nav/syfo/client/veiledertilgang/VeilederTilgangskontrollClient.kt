@@ -14,7 +14,7 @@ import no.nav.syfo.util.bearerHeader
 import org.slf4j.LoggerFactory
 
 class VeilederTilgangskontrollClient(
-    private val endpointUrl: String
+    private val endpointUrl: String,
 ) {
     private val httpClient = httpClientDefault()
 

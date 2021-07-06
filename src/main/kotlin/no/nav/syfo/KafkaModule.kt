@@ -14,25 +14,25 @@ fun Application.kafkaModule(
     vaultSecrets: VaultSecrets,
     behandlendeEnhetClient: BehandlendeEnhetClient,
     oversikthendelseProducer: OversikthendelseProducer,
-    oversikthendelseRetryProducer: OversikthendelseRetryProducer
+    oversikthendelseRetryProducer: OversikthendelseRetryProducer,
 ) {
     val oppfolgingsplanLPSService = OppfolgingsplanLPSService(
         database,
         behandlendeEnhetClient,
         oversikthendelseProducer,
-        oversikthendelseRetryProducer
+        oversikthendelseRetryProducer,
     )
     val oversikthendelseRetryService = OversikthendelseRetryService(
         behandlendeEnhetClient,
         database,
         oversikthendelseProducer,
-        oversikthendelseRetryProducer
+        oversikthendelseRetryProducer,
     )
     launch(backgroundTasksContext) {
         setupKafka(
             vaultSecrets,
             oppfolgingsplanLPSService,
-            oversikthendelseRetryService
+            oversikthendelseRetryService,
         )
     }
 }

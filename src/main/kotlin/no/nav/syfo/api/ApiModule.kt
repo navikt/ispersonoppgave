@@ -19,7 +19,7 @@ import no.nav.syfo.state
 @KtorExperimentalAPI
 fun Application.apiModule(
     behandlendeEnhetClient: BehandlendeEnhetClient,
-    oversikthendelseProducer: OversikthendelseProducer
+    oversikthendelseProducer: OversikthendelseProducer,
 ) {
     installCallId()
     installContentNegotiation()
