@@ -11,7 +11,7 @@ import no.nav.syfo.client.veiledertilgang.VeilederTilgangskontrollClient
 import no.nav.syfo.database.DatabaseInterface
 import no.nav.syfo.oversikthendelse.OversikthendelseProducer
 import no.nav.syfo.personoppgave.PersonOppgaveService
-import no.nav.syfo.personoppgave.api.registerVeilederPersonOppgaveApi
+import no.nav.syfo.personoppgave.api.v1.registerVeilederPersonOppgaveApi
 
 fun Application.apiModule(
     applicationState: ApplicationState,
