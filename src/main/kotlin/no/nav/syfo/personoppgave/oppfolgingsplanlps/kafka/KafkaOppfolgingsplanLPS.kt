@@ -34,7 +34,7 @@ suspend fun blockingApplicationLogicOppfolgingsplanLPS(
         listOf(OPPFOLGINGSPLAN_LPS_NAV_TOPIC)
     )
 
-    while (applicationState.running) {
+    while (applicationState.alive) {
         pollAndProcessKOppfolgingsplanLPSNAV(
             kafkaConsumerOppfolgingsplanLPSNAV = kafkaConsumerOppfolgingsplanLPSNAV,
             oppfolgingsplanLPSService = oppfolgingsplanLPSService
@@ -80,6 +80,6 @@ fun CoroutineScope.createListenerOppfolgingsplanLPS(
         try {
             action()
         } finally {
-            applicationState.running = false
+            applicationState.alive = false
         }
     }

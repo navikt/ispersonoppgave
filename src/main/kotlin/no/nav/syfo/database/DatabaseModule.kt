@@ -19,7 +19,7 @@ fun Application.databaseModule(
                 username = "username"
             )
         )
-        applicationState.running = true
+        applicationState.alive = true
     }
 
     isProd {
@@ -65,22 +65,22 @@ fun Application.databaseModule(
                 )
             }
 
-            applicationState.running = true
+            applicationState.alive = true
         }
 
         launch(backgroundTasksContext) {
             try {
                 Vault.renewVaultTokenTask(applicationState)
             } finally {
-                applicationState.running = false
+                applicationState.alive = false
             }
         }
 
         launch(backgroundTasksContext) {
             try {
-                vaultCredentialService.runRenewCredentialsTask { applicationState.running }
+                vaultCredentialService.runRenewCredentialsTask { applicationState.alive }
             } finally {
-                applicationState.running = false
+                applicationState.alive = false
             }
         }
     }

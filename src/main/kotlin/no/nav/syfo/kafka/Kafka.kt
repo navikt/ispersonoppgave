@@ -31,5 +31,5 @@ suspend fun CoroutineScope.setupKafka(
             oversikthendelseRetryService = oversikthendelseRetryService,
         )
     }
-    applicationState.initialized = true
+    applicationState.ready = true
 }

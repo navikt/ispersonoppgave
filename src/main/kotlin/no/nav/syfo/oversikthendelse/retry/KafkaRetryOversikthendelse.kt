@@ -32,7 +32,7 @@ suspend fun blockingApplicationLogicOversikthendelseRetry(
         listOf(OVERSIKTHENDELSE_RETRY_TOPIC)
     )
 
-    while (applicationState.running) {
+    while (applicationState.alive) {
         pollAndProcessOversikthendelseRetryTopic(
             kafkaConsumer = kafkaConsumerOversikthendelseRetry,
             oversikthendelseRetryService = oversikthendelseRetryService,
@@ -76,7 +76,7 @@ fun CoroutineScope.createListenerOversikthendelseRetry(
         try {
             action()
         } finally {
-            applicationState.running = false
+            applicationState.alive = false
         }
     }
 

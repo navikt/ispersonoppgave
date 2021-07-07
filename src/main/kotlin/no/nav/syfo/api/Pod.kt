@@ -11,14 +11,14 @@ fun Routing.registerPodApi(
     applicationState: ApplicationState
 ) {
     get("/is_alive") {
-        if (applicationState.running) {
+        if (applicationState.alive) {
             call.respondText("I'm alive! :)")
         } else {
             call.respondText("I'm dead x_x", status = HttpStatusCode.InternalServerError)
         }
     }
     get("/is_ready") {
-        if (applicationState.initialized) {
+        if (applicationState.ready) {
             call.respondText("I'm ready! :)")
         } else {
             call.respondText("Please wait! I'm not ready :(", status = HttpStatusCode.InternalServerError)

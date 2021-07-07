@@ -36,8 +36,8 @@ fun Properties.overrideForTest(): Properties = apply {
 }
 
 fun testAppState() = ApplicationState(
-    running = true,
-    initialized = true
+    alive = true,
+    ready = true
 )
 
 fun getRandomPort() = ServerSocket(0).use {

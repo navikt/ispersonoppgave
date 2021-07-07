@@ -24,7 +24,7 @@ object SelftestSpek : Spek({
             }
 
             it("Returns ok on is_alive") {
-                applicationState.running = true
+                applicationState.alive = true
 
                 with(handleRequest(HttpMethod.Get, "/is_alive")) {
                     response.status()?.isSuccess() shouldBeEqualTo true
@@ -32,7 +32,7 @@ object SelftestSpek : Spek({
                 }
             }
             it("Returns ok on is_alive") {
-                applicationState.initialized = true
+                applicationState.ready = true
 
                 with(handleRequest(HttpMethod.Get, "/is_ready")) {
                     println(response.status())
@@ -41,7 +41,7 @@ object SelftestSpek : Spek({
                 }
             }
             it("Returns error on failed is_alive") {
-                applicationState.running = false
+                applicationState.alive = false
 
                 with(handleRequest(HttpMethod.Get, "/is_alive")) {
                     response.status()?.isSuccess() shouldNotBeEqualTo true
@@ -49,7 +49,7 @@ object SelftestSpek : Spek({
                 }
             }
             it("Returns error on failed is_ready") {
-                applicationState.initialized = false
+                applicationState.ready = false
 
                 with(handleRequest(HttpMethod.Get, "/is_ready")) {
                     response.status()?.isSuccess() shouldNotBeEqualTo true
@@ -63,7 +63,7 @@ object SelftestSpek : Spek({
         with(TestApplicationEngine()) {
             start()
             application.routing {
-                registerPodApi(ApplicationState(running = false))
+                registerPodApi(ApplicationState(alive = false))
             }
 
             it("Returns internal server error when liveness check fails") {
@@ -79,7 +79,7 @@ object SelftestSpek : Spek({
         with(TestApplicationEngine()) {
             start()
             application.routing {
-                registerPodApi(ApplicationState(initialized = false))
+                registerPodApi(ApplicationState(ready = false))
             }
 
             it("Returns internal server error when readyness check fails") {

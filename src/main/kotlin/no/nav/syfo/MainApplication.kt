@@ -25,8 +25,8 @@ import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 
 data class ApplicationState(
-    var running: Boolean = true,
-    var initialized: Boolean = false
+    var alive: Boolean = true,
+    var ready: Boolean = false
 )
 
 val log: org.slf4j.Logger = LoggerFactory.getLogger("no.nav.syfo.MainApplicationKt")
@@ -48,8 +48,8 @@ fun main() {
             }
 
             val applicationState = ApplicationState(
-                running = false,
-                initialized = false,
+                alive = false,
+                ready = false,
             )
             val environment = Environment()
 

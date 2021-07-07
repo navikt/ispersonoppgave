@@ -58,5 +58,5 @@ fun Application.apiModule(
         )
     }
 
-    applicationState.initialized = true
+    applicationState.ready = true
 }
