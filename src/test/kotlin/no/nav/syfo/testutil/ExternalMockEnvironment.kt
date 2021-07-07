@@ -31,6 +31,8 @@ class ExternalMockEnvironment {
         "",
         "",
     )
+
+    val wellKnownInternADV1Mock = wellKnownInternADV1Mock()
 }
 
 fun ExternalMockEnvironment.startExternalMocks() {

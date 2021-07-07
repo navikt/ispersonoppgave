@@ -8,4 +8,5 @@ object UserConstants {
     val ARBEIDSTAKER_2_FNR = PersonIdentNumber(ARBEIDSTAKER_FNR.value.replace("2", "1"))
     val VIRKSOMHETSNUMMER = Virksomhetsnummer("123456789")
     const val NAV_ENHET = "0330"
+    const val VEILEDER_IDENT = "Z999999"
 }

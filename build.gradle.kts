@@ -24,6 +24,7 @@ object Versions {
     const val spekVersion = "2.0.15"
     const val jacksonVersion = "2.11.3"
     const val mockkVersion = "1.10.5"
+    const val nimbusjosejwtVersion = "7.5.1"
     const val syfoOppfolgingsplanSchemaVersion = "1.0.2"
 }
 
@@ -97,6 +98,7 @@ dependencies {
     testImplementation("org.spekframework.spek2:spek-dsl-jvm:${Versions.spekVersion}")
     testImplementation("io.ktor:ktor-server-test-host:${Versions.ktorVersion}")
     testImplementation("io.mockk:mockk:${Versions.mockkVersion}")
+    testImplementation("com.nimbusds:nimbus-jose-jwt:${Versions.nimbusjosejwtVersion}")
     testRuntimeOnly("org.spekframework.spek2:spek-runtime-jvm:${Versions.spekVersion}")
     testRuntimeOnly("org.spekframework.spek2:spek-runner-junit5:${Versions.spekVersion}")
 }

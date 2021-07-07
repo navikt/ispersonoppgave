@@ -2,6 +2,7 @@ package no.nav.syfo.util
 
 import io.ktor.application.ApplicationCall
 import io.ktor.application.call
+import io.ktor.http.*
 import io.ktor.util.pipeline.PipelineContext
 import net.logstash.logback.argument.StructuredArguments
 import java.time.LocalDateTime
@@ -25,6 +26,10 @@ fun PipelineContext<out Unit, ApplicationCall>.getConsumerId(): String {
     return this.call.request.headers[NAV_CONSUMER_ID_HEADER].toString()
 }
 fun consumerIdArgument(consumerId: String) = StructuredArguments.keyValue("consumerId", consumerId)!!
+
+fun PipelineContext<out Unit, ApplicationCall>.getBearerHeader(): String? {
+    return this.call.request.headers[HttpHeaders.Authorization]?.removePrefix("Bearer ")
+}
 
 private val kafkaCounter = AtomicInteger(0)
 

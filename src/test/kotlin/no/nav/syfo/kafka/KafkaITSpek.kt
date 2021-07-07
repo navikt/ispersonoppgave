@@ -32,8 +32,6 @@ object KafkaITSpek : Spek({
         applicationName = "ispersonoppgave",
         aadDiscoveryUrl = "",
         loginserviceClientId = "",
-        jwkKeysUrl = "",
-        jwtIssuer = "",
         kafkaBootstrapServers = embeddedEnvironment.brokersURL,
         databaseName = "ispersonoppgave",
         ispersonoppgaveDBURL = "12314.adeo.no",

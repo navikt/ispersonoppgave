@@ -1,13 +1,11 @@
 package no.nav.syfo.api
 
 import io.ktor.application.*
-import io.ktor.http.*
-import io.ktor.request.*
-import io.ktor.response.*
+import io.ktor.auth.*
 import io.ktor.routing.*
 import no.nav.syfo.ApplicationState
 import no.nav.syfo.Environment
-import no.nav.syfo.auth.isInvalidToken
+import no.nav.syfo.api.authentication.*
 import no.nav.syfo.client.enhet.BehandlendeEnhetClient
 import no.nav.syfo.client.veiledertilgang.VeilederTilgangskontrollClient
 import no.nav.syfo.database.DatabaseInterface
@@ -21,24 +19,20 @@ fun Application.apiModule(
     database: DatabaseInterface,
     environment: Environment,
     oversikthendelseProducer: OversikthendelseProducer,
+    wellKnownInternADV1: WellKnown,
 ) {
     installCallId()
     installContentNegotiation()
+    installJwtAuthentication(
+        jwtIssuerList = listOf(
+            JwtIssuer(
+                accectedAudienceList = listOf(environment.loginserviceClientId),
+                jwtIssuerType = JwtIssuerType.INTERN_AZUREAD_V1,
+                wellKnown = wellKnownInternADV1,
+            ),
+        ),
+    )
     installStatusPages()
-
-    intercept(ApplicationCallPipeline.Call) {
-        if (call.request.uri.contains(Regex("is_alive|is_ready|prometheus"))) {
-            proceed()
-            return@intercept
-        }
-        val cookies = call.request.cookies
-        if (isInvalidToken(cookies)) {
-            call.respond(HttpStatusCode.Unauthorized, "Ugyldig token")
-            finish()
-        } else {
-            proceed()
-        }
-    }
 
     val personOppgaveService = PersonOppgaveService(
         database = database,
@@ -52,10 +46,12 @@ fun Application.apiModule(
     routing {
         registerPodApi(applicationState)
         registerPrometheusApi()
-        registerVeilederPersonOppgaveApi(
-            personOppgaveService,
-            veilederTilgangskontrollClient
-        )
+        authenticate(JwtIssuerType.INTERN_AZUREAD_V1.name) {
+            registerVeilederPersonOppgaveApi(
+                personOppgaveService,
+                veilederTilgangskontrollClient
+            )
+        }
     }
 
     applicationState.ready = true

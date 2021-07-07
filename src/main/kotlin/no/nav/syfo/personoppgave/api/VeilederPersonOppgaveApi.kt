@@ -1,11 +1,10 @@
 package no.nav.syfo.personoppgave.api
 
-import io.ktor.application.call
-import io.ktor.http.HttpStatusCode
-import io.ktor.response.respond
+import io.ktor.application.*
+import io.ktor.http.*
+import io.ktor.response.*
 import io.ktor.routing.*
-import no.nav.syfo.auth.getTokenFromCookie
-import no.nav.syfo.auth.getVeilederTokenPayload
+import no.nav.syfo.auth.getNAVIdentFromToken
 import no.nav.syfo.client.veiledertilgang.VeilederTilgangskontrollClient
 import no.nav.syfo.domain.PersonIdentNumber
 import no.nav.syfo.personoppgave.PersonOppgaveService
@@ -25,7 +24,8 @@ fun Route.registerVeilederPersonOppgaveApi(
         get("/personident") {
             try {
                 val callId = getCallId()
-                val token = getTokenFromCookie(call.request.cookies)
+                val token = getBearerHeader()
+                    ?: throw IllegalArgumentException("No Authorization header supplied")
 
                 val personIdent = call.request.headers[NAV_PERSONIDENT_HEADER.toLowerCase()]
                     ?: throw IllegalArgumentException("No PersonIdent supplied")
@@ -57,7 +57,8 @@ fun Route.registerVeilederPersonOppgaveApi(
         post("/{uuid}/behandle") {
             try {
                 val callId = getCallId()
-                val token = getTokenFromCookie(call.request.cookies)
+                val token = getBearerHeader()
+                    ?: throw IllegalArgumentException("No Authorization header supplied")
 
                 val uuid: UUID = UUID.fromString(call.parameters["uuid"])
 
@@ -71,7 +72,7 @@ fun Route.registerVeilederPersonOppgaveApi(
                         } else {
                             when (veilederTilgangskontrollClient.hasAccess(personoppgave.personIdentNumber, token, callId)) {
                                 true -> {
-                                    val navIdent = getVeilederTokenPayload(token).navIdent
+                                    val navIdent = getNAVIdentFromToken(token)
                                     personOppgaveService.behandlePersonOppgave(personoppgave, navIdent, callId)
                                     call.respond(HttpStatusCode.OK)
                                 }
@@ -85,8 +86,7 @@ fun Route.registerVeilederPersonOppgaveApi(
                     }
                 }
             } catch (e: IllegalArgumentException) {
-                val navIdent = getVeilederTokenPayload(getTokenFromCookie(call.request.cookies)).navIdent
-                val illegalArgumentMessage = "Error while processing of PersonOppgave for PersonIdent for navIdent=$navIdent"
+                val illegalArgumentMessage = "Error while processing of PersonOppgave for PersonIdent for navIdent"
                 log.error("$illegalArgumentMessage: {}, {}", e.message, callIdArgument(getCallId()))
                 call.respond(HttpStatusCode.BadRequest, e.message ?: illegalArgumentMessage)
             }

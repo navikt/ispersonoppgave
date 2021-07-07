@@ -5,8 +5,6 @@ data class Environment(
     val applicationName: String = getEnvVar("APPLICATION_NAME", "ispersonoppgave"),
     val aadDiscoveryUrl: String = getEnvVar("AADDISCOVERY_URL"),
     val loginserviceClientId: String = getEnvVar("LOGINSERVICE_CLIENT_ID"),
-    val jwkKeysUrl: String = getEnvVar("JWKKEYS_URL", "https://login.microsoftonline.com/common/discovery/keys"),
-    val jwtIssuer: String = getEnvVar("JWT_ISSUER"),
     val kafkaBootstrapServers: String = getEnvVar("KAFKA_BOOTSTRAP_SERVERS_URL"),
     val databaseName: String = getEnvVar("DATABASE_NAME", "ispersonoppgave"),
     val ispersonoppgaveDBURL: String = getEnvVar("ISPERSONOPPGAVE_DB_URL"),

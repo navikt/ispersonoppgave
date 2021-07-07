@@ -65,8 +65,6 @@ spec:
       value: 9b4e07a3-4f4c-4bab-b866-87f62dff480d
     - name: AADDISCOVERY_URL
       value: https://login.microsoftonline.com/navno.onmicrosoft.com/.well-known/openid-configuration
-    - name: JWT_ISSUER
-      value: https://sts.windows.net/62366534-1ec3-4962-8869-9b5535279d0b/
     - name: KAFKA_BOOTSTRAP_SERVERS_URL
       value: SASL_SSL://a01apvl00145.adeo.no:8443,SASL_SSL://a01apvl00146.adeo.no:8443,SASL_SSL://a01apvl00147.adeo.no:8443,SASL_SSL://a01apvl00149.adeo.no:8443
     - name: ISPERSONOPPGAVE_DB_URL

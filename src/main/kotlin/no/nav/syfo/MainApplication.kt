@@ -9,6 +9,7 @@ import io.ktor.util.*
 import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.slf4j.MDCContext
 import no.nav.syfo.api.apiModule
+import no.nav.syfo.api.authentication.getWellKnown
 import no.nav.syfo.client.enhet.BehandlendeEnhetClient
 import no.nav.syfo.client.sts.StsRestClient
 import no.nav.syfo.database.database
@@ -75,6 +76,8 @@ fun main() {
             val oversikthendelseRetryRecordProducer = KafkaProducer<String, KOversikthendelseRetry>(oversikthendelseRetryProducerProperties)
             val oversikthendelseRetryProducer = OversikthendelseRetryProducer(oversikthendelseRetryRecordProducer)
 
+            val wellKnownInternADV1 = getWellKnown(environment.aadDiscoveryUrl)
+
             module {
                 databaseModule(
                     applicationState = applicationState,
@@ -86,6 +89,7 @@ fun main() {
                     database = database,
                     environment = environment,
                     oversikthendelseProducer = oversikthendelseProducer,
+                    wellKnownInternADV1 = wellKnownInternADV1,
                 )
                 kafkaModule(
                     applicationState = applicationState,

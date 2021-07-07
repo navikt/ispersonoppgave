@@ -5,10 +5,6 @@ import com.fasterxml.jackson.module.kotlin.readValue
 import io.ktor.http.*
 import io.ktor.server.testing.*
 import io.ktor.util.*
-import io.mockk.every
-import io.mockk.mockkStatic
-import no.nav.syfo.auth.getTokenFromCookie
-import no.nav.syfo.auth.isInvalidToken
 import no.nav.syfo.kafka.kafkaConsumerConfig
 import no.nav.syfo.kafka.kafkaProducerConfig
 import no.nav.syfo.oversikthendelse.OVERSIKTHENDELSE_TOPIC
@@ -18,9 +14,8 @@ import no.nav.syfo.oversikthendelse.domain.OversikthendelseType
 import no.nav.syfo.personoppgave.domain.PersonOppgaveType
 import no.nav.syfo.testutil.*
 import no.nav.syfo.testutil.UserConstants.ARBEIDSTAKER_FNR
-import no.nav.syfo.testutil.generator.veilederTokenGenerator
-import no.nav.syfo.util.NAV_PERSONIDENT_HEADER
-import no.nav.syfo.util.configuredJacksonMapper
+import no.nav.syfo.testutil.UserConstants.VEILEDER_IDENT
+import no.nav.syfo.util.*
 import org.amshove.kluent.*
 import org.apache.kafka.clients.consumer.KafkaConsumer
 import org.apache.kafka.clients.producer.KafkaProducer
@@ -43,7 +38,6 @@ object VeilederPersonOppgaveApiSpek : Spek({
             val env = externalMockEnvironment.environment
             val vaultSecrets = externalMockEnvironment.vaultSecrets
 
-            val cookies = ""
             val baseUrl = "/api/v1/personoppgave"
 
             fun Properties.overrideForTest(): Properties = apply {
@@ -71,10 +65,6 @@ object VeilederPersonOppgaveApiSpek : Spek({
                 oversikthendelseProducer = oversikthendelseProducer,
             )
 
-            beforeEachTest {
-                mockkStatic("no.nav.syfo.auth.TokenAuthKt")
-            }
-
             afterEachTest {
                 database.connection.dropData()
             }
@@ -87,17 +77,20 @@ object VeilederPersonOppgaveApiSpek : Spek({
                 externalMockEnvironment.stopExternalMocks()
             }
 
+            val validToken = generateJWT(
+                audience = externalMockEnvironment.environment.loginserviceClientId,
+                issuer = externalMockEnvironment.wellKnownInternADV1Mock.issuer,
+                navIdent = VEILEDER_IDENT,
+            )
+
             describe("Get PersonOppgave for PersonIdent") {
                 val url = "$baseUrl/personident"
 
                 it("should return status BadRequest if not NAV_PERSONIDENT_HEADER is supplied") {
-                    every {
-                        isInvalidToken(any())
-                    } returns false
 
                     with(
                         handleRequest(HttpMethod.Get, url) {
-                            call.request.cookies[cookies]
+                            addHeader(HttpHeaders.Authorization, bearerHeader(validToken))
                         }
                     ) {
                         response.status() shouldBeEqualTo HttpStatusCode.BadRequest
@@ -105,14 +98,10 @@ object VeilederPersonOppgaveApiSpek : Spek({
                 }
 
                 it("should return status BadRequest if NAV_PERSONIDENT_HEADER with invalid Fodselsnummer is supplied") {
-                    every {
-                        isInvalidToken(any())
-                    } returns false
-
                     with(
                         handleRequest(HttpMethod.Get, url) {
                             addHeader(NAV_PERSONIDENT_HEADER, ARBEIDSTAKER_FNR.value.drop(1))
-                            call.request.cookies[cookies]
+                            addHeader(HttpHeaders.Authorization, bearerHeader(validToken))
                         }
                     ) {
                         response.status() shouldBeEqualTo HttpStatusCode.BadRequest
@@ -120,14 +109,10 @@ object VeilederPersonOppgaveApiSpek : Spek({
                 }
 
                 it("should return status Forbidden Veileder does not have access to request PersonIdent") {
-                    every {
-                        isInvalidToken(any())
-                    } returns false
-
                     with(
                         handleRequest(HttpMethod.Get, url) {
                             addHeader(NAV_PERSONIDENT_HEADER, ARBEIDSTAKER_FNR.value.drop(1).plus("0"))
-                            call.request.cookies[cookies]
+                            addHeader(HttpHeaders.Authorization, bearerHeader(validToken))
                         }
                     ) {
                         response.status() shouldBeEqualTo HttpStatusCode.Forbidden
@@ -135,14 +120,10 @@ object VeilederPersonOppgaveApiSpek : Spek({
                 }
 
                 it("should return status NoContent if there is no PersonOppgaver for PersonIdent") {
-                    every {
-                        isInvalidToken(any())
-                    } returns false
-
                     with(
                         handleRequest(HttpMethod.Get, url) {
                             addHeader(NAV_PERSONIDENT_HEADER, ARBEIDSTAKER_FNR.value)
-                            call.request.cookies[cookies]
+                            addHeader(HttpHeaders.Authorization, bearerHeader(validToken))
                         }
                     ) {
                         response.status() shouldBeEqualTo HttpStatusCode.NoContent
@@ -150,10 +131,6 @@ object VeilederPersonOppgaveApiSpek : Spek({
                 }
 
                 it("should return PersonOppgaveList if there is a PersonOppgave for PersonIdent with type OppfolgingsplanLPS") {
-                    every {
-                        isInvalidToken(any())
-                    } returns false
-
                     val kOppfolgingsplanLPSNAV = generateKOppfolgingsplanLPSNAV
                     val personOppgaveType = PersonOppgaveType.OPPFOLGINGSPLANLPS
                     database.connection.createPersonOppgave(
@@ -164,7 +141,7 @@ object VeilederPersonOppgaveApiSpek : Spek({
                     with(
                         handleRequest(HttpMethod.Get, url) {
                             addHeader(NAV_PERSONIDENT_HEADER, ARBEIDSTAKER_FNR.value)
-                            call.request.cookies[cookies]
+                            addHeader(HttpHeaders.Authorization, bearerHeader(validToken))
                         }
                     ) {
                         response.status() shouldBeEqualTo HttpStatusCode.OK
@@ -188,15 +165,6 @@ object VeilederPersonOppgaveApiSpek : Spek({
 
             describe("Process PersonOppgave for PersonIdent") {
                 it("should return OK and not send Oversikthendelse if processed 1 of 2 existing PersonOppgave") {
-                    every {
-                        isInvalidToken(any())
-                    } returns false
-
-                    val token = veilederTokenGenerator
-                    every {
-                        getTokenFromCookie(any())
-                    } returns token
-
                     val kOppfolgingsplanLPSNAV = generateKOppfolgingsplanLPSNAV
                     val kOppfolgingsplanLPSNAV2 = generateKOppfolgingsplanLPSNAV2
                     val personOppgaveType = PersonOppgaveType.OPPFOLGINGSPLANLPS
@@ -216,7 +184,7 @@ object VeilederPersonOppgaveApiSpek : Spek({
 
                     with(
                         handleRequest(HttpMethod.Post, urlProcess) {
-                            call.request.cookies[cookies]
+                            addHeader(HttpHeaders.Authorization, bearerHeader(validToken))
                         }
                     ) {
                         response.status() shouldBeEqualTo HttpStatusCode.OK
@@ -225,7 +193,7 @@ object VeilederPersonOppgaveApiSpek : Spek({
                     with(
                         handleRequest(HttpMethod.Get, urlGet) {
                             addHeader(NAV_PERSONIDENT_HEADER, ARBEIDSTAKER_FNR.value)
-                            call.request.cookies[cookies]
+                            addHeader(HttpHeaders.Authorization, bearerHeader(validToken))
                         }
                     ) {
                         response.status() shouldBeEqualTo HttpStatusCode.OK
@@ -272,15 +240,6 @@ object VeilederPersonOppgaveApiSpek : Spek({
                 }
 
                 it("should return OK and send Oversikthendelse if processed 1 of  existing PersonOppgave") {
-                    every {
-                        isInvalidToken(any())
-                    } returns false
-
-                    val token = veilederTokenGenerator
-                    every {
-                        getTokenFromCookie(any())
-                    } returns token
-
                     val kOppfolgingsplanLPSNAV = generateKOppfolgingsplanLPSNAV
                     val personOppgaveType = PersonOppgaveType.OPPFOLGINGSPLANLPS
 
@@ -294,7 +253,7 @@ object VeilederPersonOppgaveApiSpek : Spek({
 
                     with(
                         handleRequest(HttpMethod.Post, urlProcess) {
-                            call.request.cookies[cookies]
+                            addHeader(HttpHeaders.Authorization, bearerHeader(validToken))
                         }
                     ) {
                         response.status() shouldBeEqualTo HttpStatusCode.OK
@@ -303,7 +262,7 @@ object VeilederPersonOppgaveApiSpek : Spek({
                     with(
                         handleRequest(HttpMethod.Get, urlGet) {
                             addHeader(NAV_PERSONIDENT_HEADER, ARBEIDSTAKER_FNR.value)
-                            call.request.cookies[cookies]
+                            addHeader(HttpHeaders.Authorization, bearerHeader(validToken))
                         }
                     ) {
                         response.status() shouldBeEqualTo HttpStatusCode.OK
