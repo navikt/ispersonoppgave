@@ -8,6 +8,7 @@ import io.ktor.server.engine.*
 import io.ktor.server.netty.*
 import no.nav.syfo.api.installContentNegotiation
 import no.nav.syfo.client.veiledertilgang.Tilgang
+import no.nav.syfo.client.veiledertilgang.VeilederTilgangskontrollClient.Companion.TILGANGSKONTROLL_V2_PERSON_PATH
 import no.nav.syfo.testutil.UserConstants.ARBEIDSTAKER_FNR
 import no.nav.syfo.testutil.getRandomPort
 
@@ -47,6 +48,12 @@ class VeilederTilgangskontrollMock {
                     } else {
                         call.respond(HttpStatusCode.Forbidden, tilgangFalse)
                     }
+                }
+                get("$TILGANGSKONTROLL_V2_PERSON_PATH/${ARBEIDSTAKER_FNR.value}") {
+                    call.respond(tilgangTrue)
+                }
+                get(TILGANGSKONTROLL_V2_PERSON_PATH) {
+                    call.respond(HttpStatusCode.Forbidden, tilgangFalse)
                 }
             }
         }
