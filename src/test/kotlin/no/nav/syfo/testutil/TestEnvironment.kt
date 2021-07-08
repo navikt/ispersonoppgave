@@ -6,12 +6,17 @@ import java.util.*
 
 fun testEnvironment(
     kafkaBootstrapServers: String,
+    azureTokenEndpoint: String = "azureTokenEndpoint",
     behandlendeEnhetUrl: String = "behandlendeenhet",
     stsRestUrl: String = "stsurl",
     syfotilgangskontrollUrl: String = "tilgangskontroll",
 ) = Environment(
     applicationThreads = 1,
     applicationName = "ispersonoppgave",
+    azureAppClientId = "app-client-id",
+    azureAppClientSecret = "app-secret",
+    azureAppWellKnownUrl = "wellknownurl",
+    azureTokenEndpoint = azureTokenEndpoint,
     aadDiscoveryUrl = "",
     loginserviceClientId = "123456789",
     kafkaBootstrapServers = kafkaBootstrapServers,
@@ -20,6 +25,7 @@ fun testEnvironment(
     mountPathVault = "vault.adeo.no",
     behandlendeenhetUrl = behandlendeEnhetUrl,
     stsRestUrl = stsRestUrl,
+    syfotilgangskontrollClientId = syfotilgangskontrollUrl,
     syfotilgangskontrollUrl = syfotilgangskontrollUrl,
 )
 

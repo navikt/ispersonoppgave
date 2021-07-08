@@ -6,6 +6,7 @@ import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
 import net.logstash.logback.argument.StructuredArguments
+import no.nav.syfo.client.azuread.v2.AzureAdV2Client
 import no.nav.syfo.client.httpClientDefault
 import no.nav.syfo.domain.PersonIdentNumber
 import no.nav.syfo.metric.*
@@ -14,9 +15,46 @@ import no.nav.syfo.util.bearerHeader
 import org.slf4j.LoggerFactory
 
 class VeilederTilgangskontrollClient(
+    private val azureAdV2Client: AzureAdV2Client,
+    private val syfotilgangskontrollClientId: String,
     private val endpointUrl: String,
 ) {
     private val httpClient = httpClientDefault()
+
+    suspend fun hasAccessWithOBO(
+        personIdentNumber: PersonIdentNumber,
+        token: String,
+        callId: String,
+    ): Boolean {
+        val oboToken = azureAdV2Client.getOnBehalfOfToken(
+            scopeClientId = syfotilgangskontrollClientId,
+            token = token,
+        )?.accessToken ?: throw RuntimeException("Failed to request access to Person: Failed to get OBO token")
+
+        try {
+            val url = getTilgangskontrollV2Url(personIdentNumber)
+            val response: HttpResponse = httpClient.get(url) {
+                header(HttpHeaders.Authorization, bearerHeader(oboToken))
+                header(NAV_CALL_ID, callId)
+                accept(ContentType.Application.Json)
+            }
+            COUNT_CALL_TILGANGSKONTROLL_PERSON_SUCCESS.inc()
+            return response.receive<Tilgang>().harTilgang
+        } catch (e: ClientRequestException) {
+            return if (e.response.status == HttpStatusCode.Forbidden) {
+                COUNT_CALL_TILGANGSKONTROLL_PERSON_FORBIDDEN.inc()
+                false
+            } else {
+                return handleUnexpectedReponseException(e.response)
+            }
+        } catch (e: ServerResponseException) {
+            return handleUnexpectedReponseException(e.response)
+        }
+    }
+
+    private fun getTilgangskontrollV2Url(personIdentNumber: PersonIdentNumber): String {
+        return "$endpointUrl$TILGANGSKONTROLL_V2_PERSON_PATH/${personIdentNumber.value}"
+    }
 
     suspend fun hasAccess(
         personIdentNumber: PersonIdentNumber,
@@ -58,5 +96,6 @@ class VeilederTilgangskontrollClient(
 
     companion object {
         private val log = LoggerFactory.getLogger(VeilederTilgangskontrollClient::class.java)
+        const val TILGANGSKONTROLL_V2_PERSON_PATH = "/syfo-tilgangskontroll/api/tilgang/navident/bruker"
     }
 }

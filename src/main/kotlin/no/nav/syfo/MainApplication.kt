@@ -77,6 +77,7 @@ fun main() {
             val oversikthendelseRetryProducer = OversikthendelseRetryProducer(oversikthendelseRetryRecordProducer)
 
             val wellKnownInternADV1 = getWellKnown(environment.aadDiscoveryUrl)
+            val wellKnownInternADV2 = getWellKnown(environment.azureAppWellKnownUrl)
 
             module {
                 databaseModule(
@@ -90,6 +91,7 @@ fun main() {
                     environment = environment,
                     oversikthendelseProducer = oversikthendelseProducer,
                     wellKnownInternADV1 = wellKnownInternADV1,
+                    wellKnownInternADV2 = wellKnownInternADV2,
                 )
                 kafkaModule(
                     applicationState = applicationState,
