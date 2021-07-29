@@ -12,7 +12,7 @@ object Versions {
     const val hikariVersion = "4.0.3"
     const val kafkaVersion = "2.7.0"
     const val kafkaEmbeddedVersion = "2.5.0"
-    const val kluentVersion = "1.61"
+    const val kluentVersion = "1.68"
     const val kotlinSerializationVersion = "0.20.0"
     const val ktorVersion = "1.3.2"
     const val logbackVersion = "1.2.3"
@@ -38,7 +38,6 @@ val githubUser: String by project
 val githubPassword: String by project
 repositories {
     mavenCentral()
-    jcenter()
     maven(url = "https://packages.confluent.io/maven/")
     maven(url = "https://repository.mulesoft.org/nexus/content/repositories/public/")
     maven {
