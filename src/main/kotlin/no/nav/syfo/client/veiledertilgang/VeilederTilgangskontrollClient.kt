@@ -56,35 +56,6 @@ class VeilederTilgangskontrollClient(
         return "$endpointUrl$TILGANGSKONTROLL_V2_PERSON_PATH/${personIdentNumber.value}"
     }
 
-    suspend fun hasAccess(
-        personIdentNumber: PersonIdentNumber,
-        token: String,
-        callId: String
-    ): Boolean {
-        try {
-            val response: HttpResponse = httpClient.get(getTilgangskontrollUrl(personIdentNumber)) {
-                header(HttpHeaders.Authorization, bearerHeader(token))
-                header(NAV_CALL_ID, callId)
-                accept(ContentType.Application.Json)
-            }
-            COUNT_CALL_TILGANGSKONTROLL_PERSON_SUCCESS.inc()
-            return response.receive<Tilgang>().harTilgang
-        } catch (e: ClientRequestException) {
-            return if (e.response.status == HttpStatusCode.Forbidden) {
-                COUNT_CALL_TILGANGSKONTROLL_PERSON_FORBIDDEN.inc()
-                false
-            } else {
-                return handleUnexpectedReponseException(e.response)
-            }
-        } catch (e: ServerResponseException) {
-            return handleUnexpectedReponseException(e.response)
-        }
-    }
-
-    private fun getTilgangskontrollUrl(personIdentNumber: PersonIdentNumber): String {
-        return "$endpointUrl/syfo-tilgangskontroll/api/tilgang/bruker?fnr=${personIdentNumber.value}"
-    }
-
     private fun handleUnexpectedReponseException(response: HttpResponse): Boolean {
         log.error(
             "Error while requesting access to person from syfo-tilgangskontroll with {}",

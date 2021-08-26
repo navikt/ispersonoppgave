@@ -42,13 +42,6 @@ class VeilederTilgangskontrollMock {
         ) {
             installContentNegotiation()
             routing {
-                get("/syfo-tilgangskontroll/api/tilgang/bruker") {
-                    if (call.parameters["fnr"] == ARBEIDSTAKER_FNR.value) {
-                        call.respond(tilgangTrue)
-                    } else {
-                        call.respond(HttpStatusCode.Forbidden, tilgangFalse)
-                    }
-                }
                 get("$TILGANGSKONTROLL_V2_PERSON_PATH/${ARBEIDSTAKER_FNR.value}") {
                     call.respond(tilgangTrue)
                 }

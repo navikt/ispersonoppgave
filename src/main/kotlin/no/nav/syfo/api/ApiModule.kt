@@ -12,7 +12,6 @@ import no.nav.syfo.client.veiledertilgang.VeilederTilgangskontrollClient
 import no.nav.syfo.database.DatabaseInterface
 import no.nav.syfo.oversikthendelse.OversikthendelseProducer
 import no.nav.syfo.personoppgave.PersonOppgaveService
-import no.nav.syfo.personoppgave.api.v1.registerVeilederPersonOppgaveApi
 import no.nav.syfo.personoppgave.api.v2.registerVeilederPersonOppgaveApiV2
 
 fun Application.apiModule(
@@ -21,18 +20,12 @@ fun Application.apiModule(
     database: DatabaseInterface,
     environment: Environment,
     oversikthendelseProducer: OversikthendelseProducer,
-    wellKnownInternADV1: WellKnown,
     wellKnownInternADV2: WellKnown,
 ) {
     installCallId()
     installContentNegotiation()
     installJwtAuthentication(
         jwtIssuerList = listOf(
-            JwtIssuer(
-                acceptedAudienceList = listOf(environment.loginserviceClientId),
-                jwtIssuerType = JwtIssuerType.INTERN_AZUREAD_V1,
-                wellKnown = wellKnownInternADV1,
-            ),
             JwtIssuer(
                 acceptedAudienceList = listOf(environment.azureAppClientId),
                 jwtIssuerType = JwtIssuerType.INTERN_AZUREAD_V2,
@@ -61,12 +54,6 @@ fun Application.apiModule(
     routing {
         registerPodApi(applicationState)
         registerPrometheusApi()
-        authenticate(JwtIssuerType.INTERN_AZUREAD_V1.name) {
-            registerVeilederPersonOppgaveApi(
-                personOppgaveService,
-                veilederTilgangskontrollClient
-            )
-        }
         authenticate(JwtIssuerType.INTERN_AZUREAD_V2.name) {
             registerVeilederPersonOppgaveApiV2(
                 personOppgaveService,

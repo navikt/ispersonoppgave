@@ -9,8 +9,6 @@ data class Environment(
     val azureAppWellKnownUrl: String = getEnvVar("AZURE_APP_WELL_KNOWN_URL"),
     val azureTokenEndpoint: String = getEnvVar("AZURE_OPENID_CONFIG_TOKEN_ENDPOINT"),
 
-    val aadDiscoveryUrl: String = getEnvVar("AADDISCOVERY_URL"),
-    val loginserviceClientId: String = getEnvVar("LOGINSERVICE_CLIENT_ID"),
     val kafkaBootstrapServers: String = getEnvVar("KAFKA_BOOTSTRAP_SERVERS_URL"),
     val databaseName: String = getEnvVar("DATABASE_NAME", "ispersonoppgave"),
     val ispersonoppgaveDBURL: String = getEnvVar("ISPERSONOPPGAVE_DB_URL"),

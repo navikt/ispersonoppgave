@@ -26,7 +26,6 @@ fun Application.testApiModule(
         environment = externalMockEnvironment.environment,
         behandlendeEnhetClient = behandlendeEnhetClient,
         oversikthendelseProducer = oversikthendelseProducer,
-        wellKnownInternADV1 = externalMockEnvironment.wellKnownInternADV1Mock,
         wellKnownInternADV2 = externalMockEnvironment.wellKnownInternADV2Mock,
     )
 }
