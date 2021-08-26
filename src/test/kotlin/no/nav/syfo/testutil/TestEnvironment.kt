@@ -17,8 +17,6 @@ fun testEnvironment(
     azureAppClientSecret = "app-secret",
     azureAppWellKnownUrl = "wellknownurl",
     azureTokenEndpoint = azureTokenEndpoint,
-    aadDiscoveryUrl = "",
-    loginserviceClientId = "123456789",
     kafkaBootstrapServers = kafkaBootstrapServers,
     databaseName = "ispersonoppgave",
     ispersonoppgaveDBURL = "12314.adeo.no",

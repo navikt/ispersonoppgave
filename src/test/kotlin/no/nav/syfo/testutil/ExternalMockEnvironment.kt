@@ -35,7 +35,6 @@ class ExternalMockEnvironment {
         "",
     )
 
-    val wellKnownInternADV1Mock = wellKnownInternADV1Mock()
     val wellKnownInternADV2Mock = wellKnownInternADV2Mock()
 }
 
