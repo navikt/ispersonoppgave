@@ -10,8 +10,7 @@ import no.nav.syfo.client.azuread.v2.AzureAdV2Client
 import no.nav.syfo.client.httpClientDefault
 import no.nav.syfo.domain.PersonIdentNumber
 import no.nav.syfo.metric.*
-import no.nav.syfo.util.NAV_CALL_ID
-import no.nav.syfo.util.bearerHeader
+import no.nav.syfo.util.*
 import org.slf4j.LoggerFactory
 
 class VeilederTilgangskontrollClient(
@@ -20,6 +19,12 @@ class VeilederTilgangskontrollClient(
     private val endpointUrl: String,
 ) {
     private val httpClient = httpClientDefault()
+
+    private val tilgangskontrollPersonUrl: String
+
+    init {
+        tilgangskontrollPersonUrl = "$endpointUrl$TILGANGSKONTROLL_PERSON_PATH"
+    }
 
     suspend fun hasAccessWithOBO(
         personIdentNumber: PersonIdentNumber,
@@ -32,8 +37,8 @@ class VeilederTilgangskontrollClient(
         )?.accessToken ?: throw RuntimeException("Failed to request access to Person: Failed to get OBO token")
 
         try {
-            val url = getTilgangskontrollV2Url(personIdentNumber)
-            val response: HttpResponse = httpClient.get(url) {
+            val response: HttpResponse = httpClient.get(tilgangskontrollPersonUrl) {
+                header(NAV_PERSONIDENT_HEADER, personIdentNumber.value)
                 header(HttpHeaders.Authorization, bearerHeader(oboToken))
                 header(NAV_CALL_ID, callId)
                 accept(ContentType.Application.Json)
@@ -52,10 +57,6 @@ class VeilederTilgangskontrollClient(
         }
     }
 
-    private fun getTilgangskontrollV2Url(personIdentNumber: PersonIdentNumber): String {
-        return "$endpointUrl$TILGANGSKONTROLL_V2_PERSON_PATH/${personIdentNumber.value}"
-    }
-
     private fun handleUnexpectedReponseException(response: HttpResponse): Boolean {
         log.error(
             "Error while requesting access to person from syfo-tilgangskontroll with {}",
@@ -67,6 +68,6 @@ class VeilederTilgangskontrollClient(
 
     companion object {
         private val log = LoggerFactory.getLogger(VeilederTilgangskontrollClient::class.java)
-        const val TILGANGSKONTROLL_V2_PERSON_PATH = "/syfo-tilgangskontroll/api/tilgang/navident/bruker"
+        const val TILGANGSKONTROLL_PERSON_PATH = "/syfo-tilgangskontroll/api/tilgang/navident/person"
     }
 }
