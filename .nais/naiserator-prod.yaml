@@ -71,6 +71,6 @@ spec:
     - name: SYFOBEHANDLENDEENHET_URL
       value: "https://syfobehandlendeenhet.nais.adeo.no"
     - name: SYFOTILGANGSKONTROLL_CLIENT_ID
-      value: "dfaa2699-7390-4459-9cfc-2e8de64dfaf9"
+      value: "prod-fss.teamsykefravr.syfo-tilgangskontroll"
     - name: SYFOTILGANGSKONTROLL_URL
       value: "https://syfo-tilgangskontroll.nais.adeo.no"
