@@ -14,7 +14,7 @@ object Versions {
     const val kafkaEmbeddedVersion = "2.5.0"
     const val kluentVersion = "1.68"
     const val kotlinSerializationVersion = "0.20.0"
-    const val ktorVersion = "1.3.2"
+    const val ktorVersion = "1.5.0"
     const val logbackVersion = "1.2.3"
     const val logstashEncoderVersion = "6.3"
     const val postgresVersion = "42.2.18"
@@ -40,6 +40,7 @@ repositories {
     mavenCentral()
     maven(url = "https://packages.confluent.io/maven/")
     maven(url = "https://repository.mulesoft.org/nexus/content/repositories/public/")
+    maven(url = "https://jitpack.io")
     maven {
         url = uri("https://maven.pkg.github.com/navikt/syfoopservice-schema")
         credentials {
@@ -64,7 +65,6 @@ dependencies {
     implementation("io.ktor:ktor-server-netty:${Versions.ktorVersion}")
     implementation("io.ktor:ktor-client-cio:${Versions.ktorVersion}")
     implementation("io.ktor:ktor-client-apache:${Versions.ktorVersion}")
-    implementation("io.ktor:ktor-client-auth-basic-jvm:${Versions.ktorVersion}")
     implementation("io.ktor:ktor-client-logging:${Versions.ktorVersion}")
     implementation("io.ktor:ktor-client-logging-jvm:${Versions.ktorVersion}")
 
