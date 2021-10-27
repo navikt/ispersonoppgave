@@ -9,8 +9,8 @@ import io.ktor.util.*
 import io.mockk.*
 import kotlinx.coroutines.runBlocking
 import no.nav.common.KafkaEnvironment
+import no.nav.syfo.client.azuread.v2.AzureAdV2Client
 import no.nav.syfo.client.enhet.BehandlendeEnhetClient
-import no.nav.syfo.client.sts.StsRestClient
 import no.nav.syfo.kafka.*
 import no.nav.syfo.oversikthendelse.OVERSIKTHENDELSE_TOPIC
 import no.nav.syfo.oversikthendelse.OversikthendelseProducer
@@ -21,8 +21,7 @@ import no.nav.syfo.testutil.*
 import no.nav.syfo.testutil.UserConstants.ARBEIDSTAKER_FNR
 import no.nav.syfo.testutil.UserConstants.ARBEIDSTAKER_2_FNR
 import no.nav.syfo.testutil.generator.generateKOversikthendelseRetry
-import no.nav.syfo.testutil.mock.BehandlendeEnhetMock
-import no.nav.syfo.testutil.mock.StsRestMock
+import no.nav.syfo.testutil.mock.*
 import org.amshove.kluent.*
 import org.apache.kafka.clients.consumer.*
 import org.apache.kafka.clients.producer.KafkaProducer
@@ -56,17 +55,18 @@ object KafkaOversikthendelseRetrySpek : Spek({
 
         val database = TestDB()
 
-        val stsRestMock = StsRestMock()
-        val stsRestClient = StsRestClient(
-            baseUrl = stsRestMock.url,
-            username = vaultSecrets.serviceuserUsername,
-            password = vaultSecrets.serviceuserPassword
+        val azureAdMock = AzureAdV2Mock()
+        val azureAdClient = AzureAdV2Client(
+            azureAppClientId = env.azureAppClientId,
+            azureAppClientSecret = env.azureAppClientSecret,
+            azureTokenEndpoint = azureAdMock.url,
         )
 
         val behandlendeEnhetMock = BehandlendeEnhetMock()
         val behandlendeEnhetClient = BehandlendeEnhetClient(
+            azureAdClient = azureAdClient,
             baseUrl = behandlendeEnhetMock.url,
-            stsRestClient = stsRestClient
+            syfobehandlendeenhetClientId = env.syfobehandlendeenhetClientId,
         )
 
         val oversikthendelseProducerProperties = kafkaProducerConfig(env, vaultSecrets)
@@ -87,16 +87,16 @@ object KafkaOversikthendelseRetrySpek : Spek({
         beforeGroup {
             embeddedEnvironment.start()
 
+            azureAdMock.server.start()
             behandlendeEnhetMock.server.start()
-            stsRestMock.server.start()
         }
 
         afterGroup {
             embeddedEnvironment.tearDown()
 
             database.stop()
+            azureAdMock.server.stop(1L, 10L)
             behandlendeEnhetMock.server.stop(1L, 10L)
-            stsRestMock.server.stop(1L, 10L)
         }
 
         afterEachTest {

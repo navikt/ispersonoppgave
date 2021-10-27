@@ -6,6 +6,8 @@ import io.ktor.client.request.*
 import io.ktor.client.request.forms.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import no.nav.syfo.client.httpClientProxy
 import org.slf4j.LoggerFactory
 
@@ -15,6 +17,11 @@ class AzureAdV2Client(
     private val azureTokenEndpoint: String,
 ) {
     private val httpClient = httpClientProxy()
+
+    private val mutex = Mutex()
+
+    @Volatile
+    private var tokenMap = HashMap<String, AzureAdV2Token>()
 
     suspend fun getOnBehalfOfToken(
         scopeClientId: String,
@@ -31,6 +38,31 @@ class AzureAdV2Client(
                 append("requested_token_use", "on_behalf_of")
             }
         )?.toAzureAdV2Token()
+    }
+
+    suspend fun getSystemToken(scopeClientId: String): AzureAdV2Token? {
+        return mutex.withLock {
+            (
+                tokenMap[scopeClientId]
+                    ?.takeUnless { cachedToken ->
+                        cachedToken.isExpired()
+                    }
+                    ?: run {
+                        getAccessToken(
+                            Parameters.build {
+                                append("client_id", azureAppClientId)
+                                append("client_secret", azureAppClientSecret)
+                                append("grant_type", "client_credentials")
+                                append("scope", "api://$scopeClientId/.default")
+                            }
+                        )?.let {
+                            val azureadToken = it.toAzureAdV2Token()
+                            tokenMap[scopeClientId] = azureadToken
+                            azureadToken
+                        }
+                    }
+                )
+        }
     }
 
     private suspend fun getAccessToken(

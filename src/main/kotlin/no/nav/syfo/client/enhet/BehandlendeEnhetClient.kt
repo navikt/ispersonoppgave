@@ -5,28 +5,37 @@ import io.ktor.client.features.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
+import no.nav.syfo.client.azuread.v2.AzureAdV2Client
 import no.nav.syfo.client.httpClientDefault
-import no.nav.syfo.client.sts.StsRestClient
 import no.nav.syfo.domain.PersonIdentNumber
 import no.nav.syfo.metric.*
 import no.nav.syfo.util.*
 import org.slf4j.LoggerFactory
 
 class BehandlendeEnhetClient(
-    private val baseUrl: String,
-    private val stsRestClient: StsRestClient,
+    private val azureAdClient: AzureAdV2Client,
+    baseUrl: String,
+    private val syfobehandlendeenhetClientId: String,
 ) {
     private val client = httpClientDefault()
 
-    suspend fun getEnhet(personIdentNumber: PersonIdentNumber, callId: String): BehandlendeEnhet? {
-        val bearer = stsRestClient.token()
+    private val behandlendeEnhetUrl = "$baseUrl$BEHANDLENDEENHET_PATH"
+
+    suspend fun getEnhet(
+        personIdentNumber: PersonIdentNumber,
+        callId: String
+    ): BehandlendeEnhet? {
+        val bearer = azureAdClient.getSystemToken(
+            scopeClientId = syfobehandlendeenhetClientId,
+        )?.accessToken
+            ?: throw RuntimeException("Failed to request access to BehandlendeEnhet: Failed to get AzureAD token")
 
         try {
-
-            val response: HttpResponse = client.get(getBehandlendeEnhetUrl(personIdentNumber)) {
+            val response: HttpResponse = client.get(behandlendeEnhetUrl) {
                 header(HttpHeaders.Authorization, bearerHeader(bearer))
                 header(NAV_CALL_ID, callId)
                 header(NAV_CONSUMER_ID, APP_CONSUMER_ID)
+                header(NAV_PERSONIDENT_HEADER, personIdentNumber.value)
                 accept(ContentType.Application.Json)
             }
 
@@ -63,15 +72,13 @@ class BehandlendeEnhetClient(
         }
     }
 
-    private fun getBehandlendeEnhetUrl(personIdentNumber: PersonIdentNumber): String {
-        return "$baseUrl/api/${personIdentNumber.value}"
-    }
-
     private fun isValid(behandlendeEnhet: BehandlendeEnhet): Boolean {
         return behandlendeEnhet.enhetId.length <= 4
     }
 
     companion object {
+        const val BEHANDLENDEENHET_PATH = "/api/system/v2/personident"
+
         private val LOG = LoggerFactory.getLogger(BehandlendeEnhetClient::class.java)
     }
 }

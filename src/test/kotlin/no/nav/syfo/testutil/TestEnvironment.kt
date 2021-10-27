@@ -8,7 +8,6 @@ fun testEnvironment(
     kafkaBootstrapServers: String,
     azureTokenEndpoint: String = "azureTokenEndpoint",
     behandlendeEnhetUrl: String = "behandlendeenhet",
-    stsRestUrl: String = "stsurl",
     syfotilgangskontrollUrl: String = "tilgangskontroll",
 ) = Environment(
     applicationThreads = 1,
@@ -21,8 +20,8 @@ fun testEnvironment(
     databaseName = "ispersonoppgave",
     ispersonoppgaveDBURL = "12314.adeo.no",
     mountPathVault = "vault.adeo.no",
+    syfobehandlendeenhetClientId = "dev-fss:teamsykefravr:syfobehandlendeenhet",
     behandlendeenhetUrl = behandlendeEnhetUrl,
-    stsRestUrl = stsRestUrl,
     syfotilgangskontrollClientId = syfotilgangskontrollUrl,
     syfotilgangskontrollUrl = syfotilgangskontrollUrl,
 )

@@ -13,13 +13,11 @@ class ExternalMockEnvironment {
 
     val azureAdV2Mock = AzureAdV2Mock()
     val behandlendeEnhetMock = BehandlendeEnhetMock()
-    val stsRestMock = StsRestMock()
     val tilgangskontrollMock = VeilederTilgangskontrollMock()
 
     val externalApplicationMockMap = hashMapOf(
         azureAdV2Mock.name to azureAdV2Mock.server,
         behandlendeEnhetMock.name to behandlendeEnhetMock.server,
-        stsRestMock.name to stsRestMock.server,
         tilgangskontrollMock.name to tilgangskontrollMock.server
     )
 
@@ -27,7 +25,6 @@ class ExternalMockEnvironment {
         kafkaBootstrapServers = embeddedEnvironment.brokersURL,
         azureTokenEndpoint = azureAdV2Mock.url,
         behandlendeEnhetUrl = behandlendeEnhetMock.url,
-        stsRestUrl = stsRestMock.url,
         syfotilgangskontrollUrl = tilgangskontrollMock.url
     )
     val vaultSecrets = VaultSecrets(

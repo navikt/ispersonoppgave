@@ -13,7 +13,7 @@ data class Environment(
     val databaseName: String = getEnvVar("DATABASE_NAME", "ispersonoppgave"),
     val ispersonoppgaveDBURL: String = getEnvVar("ISPERSONOPPGAVE_DB_URL"),
     val mountPathVault: String = getEnvVar("MOUNT_PATH_VAULT"),
-    val stsRestUrl: String = getEnvVar("SECURITY_TOKEN_SERVICE_REST_URL"),
+    val syfobehandlendeenhetClientId: String = getEnvVar("SYFOBEHANDLENDEENHET_CLIENT_ID"),
     val behandlendeenhetUrl: String = getEnvVar("SYFOBEHANDLENDEENHET_URL"),
     val syfotilgangskontrollClientId: String = getEnvVar("SYFOTILGANGSKONTROLL_CLIENT_ID"),
     val syfotilgangskontrollUrl: String = getEnvVar("SYFOTILGANGSKONTROLL_URL"),

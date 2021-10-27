@@ -65,8 +65,8 @@ spec:
       value: jdbc:postgresql://A01DBVL020.adeo.no:5432/ispersonoppgave
     - name: MOUNT_PATH_VAULT
       value: /postgresql/prod-fss
-    - name: SECURITY_TOKEN_SERVICE_REST_URL
-      value: "https://security-token-service.nais.adeo.no"
+    - name: SYFOBEHANDLENDEENHET_CLIENT_ID
+      value: "prod-fss.teamsykefravr.syfobehandlendeenhet"
     - name: SYFOBEHANDLENDEENHET_URL
       value: "https://syfobehandlendeenhet.nais.adeo.no"
     - name: SYFOTILGANGSKONTROLL_CLIENT_ID

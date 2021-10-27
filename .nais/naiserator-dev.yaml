@@ -65,8 +65,8 @@ spec:
       value: jdbc:postgresql://b27dbvl022.preprod.local:5432/ispersonoppgave
     - name: MOUNT_PATH_VAULT
       value: /postgresql/preprod-fss
-    - name: SECURITY_TOKEN_SERVICE_REST_URL
-      value: "https://security-token-service.nais.preprod.local"
+    - name: SYFOBEHANDLENDEENHET_CLIENT_ID
+      value: "dev-fss.teamsykefravr.syfobehandlendeenhet"
     - name: SYFOBEHANDLENDEENHET_URL
       value: https://syfobehandlendeenhet.nais.preprod.local
     - name: SYFOTILGANGSKONTROLL_CLIENT_ID

@@ -12,8 +12,8 @@ import io.ktor.util.*
 import io.mockk.*
 import kotlinx.coroutines.runBlocking
 import no.nav.common.KafkaEnvironment
+import no.nav.syfo.client.azuread.v2.AzureAdV2Client
 import no.nav.syfo.client.enhet.BehandlendeEnhetClient
-import no.nav.syfo.client.sts.StsRestClient
 import no.nav.syfo.domain.PersonIdentNumber
 import no.nav.syfo.kafka.*
 import no.nav.syfo.oversikthendelse.OVERSIKTHENDELSE_TOPIC
@@ -25,8 +25,7 @@ import no.nav.syfo.personoppgave.domain.PersonOppgaveType
 import no.nav.syfo.testutil.*
 import no.nav.syfo.testutil.UserConstants.ARBEIDSTAKER_2_FNR
 import no.nav.syfo.testutil.UserConstants.ARBEIDSTAKER_FNR
-import no.nav.syfo.testutil.mock.BehandlendeEnhetMock
-import no.nav.syfo.testutil.mock.StsRestMock
+import no.nav.syfo.testutil.mock.*
 import org.amshove.kluent.*
 import org.apache.kafka.clients.consumer.KafkaConsumer
 import org.apache.kafka.clients.producer.KafkaProducer
@@ -74,17 +73,18 @@ object OppfolgingsplanLPSServiceSpek : Spek({
     describe("OppfolgingsplanLPSService") {
         val database by lazy { TestDB() }
 
-        val stsRestMock = StsRestMock()
-        val stsRestClient = StsRestClient(
-            baseUrl = stsRestMock.url,
-            username = vaultSecrets.serviceuserUsername,
-            password = vaultSecrets.serviceuserPassword
+        val azureAdMock = AzureAdV2Mock()
+        val azureAdClient = AzureAdV2Client(
+            azureAppClientId = env.azureAppClientId,
+            azureAppClientSecret = env.azureAppClientSecret,
+            azureTokenEndpoint = azureAdMock.url,
         )
 
         val behandlendeEnhetMock = BehandlendeEnhetMock()
         val behandlendeEnhetClient = BehandlendeEnhetClient(
+            azureAdClient = azureAdClient,
             baseUrl = behandlendeEnhetMock.url,
-            stsRestClient = stsRestClient
+            syfobehandlendeenhetClientId = env.syfobehandlendeenhetClientId,
         )
 
         val producerProperties = kafkaProducerConfig(env, vaultSecrets)
@@ -107,7 +107,7 @@ object OppfolgingsplanLPSServiceSpek : Spek({
         beforeGroup {
             embeddedEnvironment.start()
 
-            stsRestMock.server.start()
+            azureAdMock.server.start()
             behandlendeEnhetMock.server.start()
         }
 
@@ -115,7 +115,7 @@ object OppfolgingsplanLPSServiceSpek : Spek({
             embeddedEnvironment.tearDown()
             database.stop()
 
-            stsRestMock.server.stop(1L, 10L)
+            azureAdMock.server.stop(1L, 10L)
             behandlendeEnhetMock.server.stop(1L, 10L)
         }
 

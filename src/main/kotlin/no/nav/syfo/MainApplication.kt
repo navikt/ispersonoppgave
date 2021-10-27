@@ -10,8 +10,8 @@ import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.slf4j.MDCContext
 import no.nav.syfo.api.apiModule
 import no.nav.syfo.api.authentication.getWellKnown
+import no.nav.syfo.client.azuread.v2.AzureAdV2Client
 import no.nav.syfo.client.enhet.BehandlendeEnhetClient
-import no.nav.syfo.client.sts.StsRestClient
 import no.nav.syfo.database.database
 import no.nav.syfo.database.databaseModule
 import no.nav.syfo.kafka.kafkaProducerConfig
@@ -59,14 +59,16 @@ fun main() {
                 serviceuserPassword = getFileAsString("/secrets/serviceuser/password")
             )
 
-            val stsClientRest = StsRestClient(
-                environment.stsRestUrl,
-                vaultSecrets.serviceuserUsername,
-                vaultSecrets.serviceuserPassword,
+            val azureAdClient = AzureAdV2Client(
+                azureAppClientId = environment.azureAppClientId,
+                azureAppClientSecret = environment.azureAppClientSecret,
+                azureTokenEndpoint = environment.azureTokenEndpoint,
             )
+
             val behandlendeEnhetClient = BehandlendeEnhetClient(
-                environment.behandlendeenhetUrl,
-                stsClientRest,
+                azureAdClient = azureAdClient,
+                baseUrl = environment.behandlendeenhetUrl,
+                syfobehandlendeenhetClientId = environment.syfobehandlendeenhetClientId,
             )
             val producerProperties = kafkaProducerConfig(environment, vaultSecrets)
             val oversikthendelseRecordProducer = KafkaProducer<String, KOversikthendelse>(producerProperties)

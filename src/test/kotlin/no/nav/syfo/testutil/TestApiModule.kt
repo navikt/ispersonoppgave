@@ -2,22 +2,24 @@ package no.nav.syfo.testutil
 
 import io.ktor.application.*
 import no.nav.syfo.api.apiModule
+import no.nav.syfo.client.azuread.v2.AzureAdV2Client
 import no.nav.syfo.client.enhet.BehandlendeEnhetClient
-import no.nav.syfo.client.sts.StsRestClient
 import no.nav.syfo.oversikthendelse.OversikthendelseProducer
 
 fun Application.testApiModule(
     externalMockEnvironment: ExternalMockEnvironment,
     oversikthendelseProducer: OversikthendelseProducer,
 ) {
-    val stsClientRest = StsRestClient(
-        externalMockEnvironment.environment.stsRestUrl,
-        externalMockEnvironment.vaultSecrets.serviceuserUsername,
-        externalMockEnvironment.vaultSecrets.serviceuserPassword,
+    val azureAdClient = AzureAdV2Client(
+        azureAppClientId = externalMockEnvironment.environment.azureAppClientId,
+        azureAppClientSecret = externalMockEnvironment.environment.azureAppClientSecret,
+        azureTokenEndpoint = externalMockEnvironment.environment.azureTokenEndpoint,
     )
+
     val behandlendeEnhetClient = BehandlendeEnhetClient(
-        externalMockEnvironment.environment.behandlendeenhetUrl,
-        stsClientRest,
+        azureAdClient = azureAdClient,
+        baseUrl = externalMockEnvironment.environment.behandlendeenhetUrl,
+        syfobehandlendeenhetClientId = externalMockEnvironment.environment.syfobehandlendeenhetClientId,
     )
 
     apiModule(
