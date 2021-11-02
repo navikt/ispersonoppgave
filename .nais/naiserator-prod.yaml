@@ -66,9 +66,9 @@ spec:
     - name: MOUNT_PATH_VAULT
       value: /postgresql/prod-fss
     - name: SYFOBEHANDLENDEENHET_CLIENT_ID
-      value: "prod-fss.teamsykefravr.syfobehandlendeenhet"
+      value: "prod-gcp.teamsykefravr.syfobehandlendeenhet"
     - name: SYFOBEHANDLENDEENHET_URL
-      value: "https://syfobehandlendeenhet.nais.adeo.no"
+      value: "https://syfobehandlendeenhet.intern.nav.no"
     - name: SYFOTILGANGSKONTROLL_CLIENT_ID
       value: "prod-fss.teamsykefravr.syfo-tilgangskontroll"
     - name: SYFOTILGANGSKONTROLL_URL
