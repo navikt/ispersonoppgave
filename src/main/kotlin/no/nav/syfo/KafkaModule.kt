@@ -47,7 +47,6 @@ fun launchKafkaTasks(
             oversikthendelseRetryService = oversikthendelseRetryService,
         )
     }
-    applicationState.ready = true
 }
 
 fun launchBackgroundTask(

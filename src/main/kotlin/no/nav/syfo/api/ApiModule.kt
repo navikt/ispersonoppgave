@@ -64,6 +64,4 @@ fun Application.apiModule(
             )
         }
     }
-
-    applicationState.ready = true
 }

@@ -5,7 +5,6 @@ import io.ktor.application.*
 import io.ktor.config.*
 import io.ktor.server.engine.*
 import io.ktor.server.netty.*
-import io.ktor.util.*
 import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.slf4j.MDCContext
 import no.nav.syfo.api.apiModule
@@ -36,78 +35,90 @@ val backgroundTasksContext = Executors.newFixedThreadPool(6).asCoroutineDispatch
 
 const val applicationPort = 8080
 
-@KtorExperimentalAPI
 fun main() {
-    val server = embeddedServer(
-        Netty,
-        applicationEngineEnvironment {
-            log = LoggerFactory.getLogger("ktor.application")
-            config = HoconApplicationConfig(ConfigFactory.load())
+    val applicationState = ApplicationState()
+    val logger = LoggerFactory.getLogger("ktor.application")
+    val environment = Environment()
 
-            connector {
-                port = applicationPort
-            }
+    val vaultSecrets = VaultSecrets(
+        serviceuserUsername = getFileAsString("/secrets/serviceuser/username"),
+        serviceuserPassword = getFileAsString("/secrets/serviceuser/password")
+    )
 
-            val applicationState = ApplicationState(
-                alive = false,
-                ready = false,
-            )
-            val environment = Environment()
+    val azureAdClient = AzureAdV2Client(
+        azureAppClientId = environment.azureAppClientId,
+        azureAppClientSecret = environment.azureAppClientSecret,
+        azureTokenEndpoint = environment.azureTokenEndpoint,
+    )
 
-            val vaultSecrets = VaultSecrets(
-                serviceuserUsername = getFileAsString("/secrets/serviceuser/username"),
-                serviceuserPassword = getFileAsString("/secrets/serviceuser/password")
-            )
+    val behandlendeEnhetClient = BehandlendeEnhetClient(
+        azureAdClient = azureAdClient,
+        baseUrl = environment.behandlendeenhetUrl,
+        syfobehandlendeenhetClientId = environment.syfobehandlendeenhetClientId,
+    )
+    val producerProperties = kafkaProducerConfig(environment, vaultSecrets)
+    val oversikthendelseRecordProducer = KafkaProducer<String, KOversikthendelse>(producerProperties)
+    val oversikthendelseProducer = OversikthendelseProducer(oversikthendelseRecordProducer)
 
-            val azureAdClient = AzureAdV2Client(
-                azureAppClientId = environment.azureAppClientId,
-                azureAppClientSecret = environment.azureAppClientSecret,
-                azureTokenEndpoint = environment.azureTokenEndpoint,
-            )
+    val oversikthendelseRetryProducerProperties = kafkaProducerConfig(environment, vaultSecrets)
+    val oversikthendelseRetryRecordProducer =
+        KafkaProducer<String, KOversikthendelseRetry>(oversikthendelseRetryProducerProperties)
+    val oversikthendelseRetryProducer = OversikthendelseRetryProducer(oversikthendelseRetryRecordProducer)
 
-            val behandlendeEnhetClient = BehandlendeEnhetClient(
-                azureAdClient = azureAdClient,
-                baseUrl = environment.behandlendeenhetUrl,
-                syfobehandlendeenhetClientId = environment.syfobehandlendeenhetClientId,
-            )
-            val producerProperties = kafkaProducerConfig(environment, vaultSecrets)
-            val oversikthendelseRecordProducer = KafkaProducer<String, KOversikthendelse>(producerProperties)
-            val oversikthendelseProducer = OversikthendelseProducer(oversikthendelseRecordProducer)
+    val wellKnownInternADV2 = getWellKnown(
+        wellKnownUrl = environment.azureAppWellKnownUrl,
+    )
 
-            val oversikthendelseRetryProducerProperties = kafkaProducerConfig(environment, vaultSecrets)
-            val oversikthendelseRetryRecordProducer = KafkaProducer<String, KOversikthendelseRetry>(oversikthendelseRetryProducerProperties)
-            val oversikthendelseRetryProducer = OversikthendelseRetryProducer(oversikthendelseRetryRecordProducer)
+    val applicationEngineEnvironment = applicationEngineEnvironment {
+        log = logger
+        config = HoconApplicationConfig(ConfigFactory.load())
 
-            val wellKnownInternADV2 = getWellKnown(environment.azureAppWellKnownUrl)
-
-            module {
-                databaseModule(
-                    applicationState = applicationState,
-                    environment = environment,
-                )
-                apiModule(
-                    applicationState = applicationState,
-                    behandlendeEnhetClient = behandlendeEnhetClient,
-                    database = database,
-                    environment = environment,
-                    oversikthendelseProducer = oversikthendelseProducer,
-                    wellKnownInternADV2 = wellKnownInternADV2,
-                )
-                launchKafkaTasks(
-                    applicationState = applicationState,
-                    database = database,
-                    environment = environment,
-                    vaultSecrets = vaultSecrets,
-                    behandlendeEnhetClient = behandlendeEnhetClient,
-                    oversikthendelseProducer = oversikthendelseProducer,
-                    oversikthendelseRetryProducer = oversikthendelseRetryProducer,
-                )
-            }
+        connector {
+            port = applicationPort
         }
+
+        module {
+            databaseModule(
+                applicationState = applicationState,
+                environment = environment,
+            )
+            apiModule(
+                applicationState = applicationState,
+                behandlendeEnhetClient = behandlendeEnhetClient,
+                database = database,
+                environment = environment,
+                oversikthendelseProducer = oversikthendelseProducer,
+                wellKnownInternADV2 = wellKnownInternADV2,
+            )
+        }
+    }
+
+    applicationEngineEnvironment.monitor.subscribe(ApplicationStarted) {
+        applicationState.ready = true
+        logger.info("Application is ready")
+
+        launchKafkaTasks(
+            applicationState = applicationState,
+            database = database,
+            environment = environment,
+            vaultSecrets = vaultSecrets,
+            behandlendeEnhetClient = behandlendeEnhetClient,
+            oversikthendelseProducer = oversikthendelseProducer,
+            oversikthendelseRetryProducer = oversikthendelseRetryProducer,
+        )
+    }
+
+    val server = embeddedServer(
+        factory = Netty,
+        environment = applicationEngineEnvironment,
     )
     Runtime.getRuntime().addShutdownHook(
         Thread {
-            server.stop(10, 10, TimeUnit.SECONDS)
+            server.stop(
+                gracePeriod = 10,
+                timeout = 10,
+                timeUnit = TimeUnit.SECONDS,
+            )
         }
     )
 
