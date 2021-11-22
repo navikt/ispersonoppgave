@@ -6,7 +6,8 @@ import com.fasterxml.jackson.module.kotlin.readValue
 import com.fasterxml.jackson.module.kotlin.registerKotlinModule
 import kotlinx.coroutines.delay
 import net.logstash.logback.argument.StructuredArguments
-import no.nav.syfo.*
+import no.nav.syfo.ApplicationState
+import no.nav.syfo.Environment
 import no.nav.syfo.kafka.kafkaConsumerOversikthendelseRetryProperties
 import no.nav.syfo.util.callIdArgument
 import no.nav.syfo.util.kafkaCallId
@@ -20,20 +21,18 @@ private val LOG: Logger = LoggerFactory.getLogger("no.nav.syfo.oversikthendelse.
 suspend fun blockingApplicationLogicOversikthendelseRetry(
     applicationState: ApplicationState,
     environment: Environment,
-    vaultSecrets: VaultSecrets,
     oversikthendelseRetryService: OversikthendelseRetryService,
 ) {
     LOG.info("Setting up kafka consumer OversikthendelseRetry")
 
-    val consumerOversikthendelseRetryProperties =
-        kafkaConsumerOversikthendelseRetryProperties(environment, vaultSecrets)
+    val consumerOversikthendelseRetryProperties = kafkaConsumerOversikthendelseRetryProperties(env = environment)
     val kafkaConsumerOversikthendelseRetry = KafkaConsumer<String, String>(consumerOversikthendelseRetryProperties)
 
     kafkaConsumerOversikthendelseRetry.subscribe(
         listOf(OVERSIKTHENDELSE_RETRY_TOPIC)
     )
 
-    while (applicationState.alive) {
+    while (applicationState.ready) {
         pollAndProcessOversikthendelseRetryTopic(
             kafkaConsumer = kafkaConsumerOversikthendelseRetry,
             oversikthendelseRetryService = oversikthendelseRetryService,

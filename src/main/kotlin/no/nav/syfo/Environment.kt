@@ -9,20 +9,29 @@ data class Environment(
     val azureAppWellKnownUrl: String = getEnvVar("AZURE_APP_WELL_KNOWN_URL"),
     val azureTokenEndpoint: String = getEnvVar("AZURE_OPENID_CONFIG_TOKEN_ENDPOINT"),
 
+    val ispersonoppgaveDbHost: String = getEnvVar("NAIS_DATABASE_ISPERSONOPPGAVE_ISPERSONOPPGAVE_DB_HOST"),
+    val ispersonoppgaveDbPort: String = getEnvVar("NAIS_DATABASE_ISPERSONOPPGAVE_ISPERSONOPPGAVE_DB_PORT"),
+    val ispersonoppgaveDbName: String = getEnvVar("NAIS_DATABASE_ISPERSONOPPGAVE_ISPERSONOPPGAVE_DB_DATABASE"),
+    val ispersonoppgaveDbUsername: String = getEnvVar("NAIS_DATABASE_ISPERSONOPPGAVE_ISPERSONOPPGAVE_DB_USERNAME"),
+    val ispersonoppgaveDbPassword: String = getEnvVar("NAIS_DATABASE_ISPERSONOPPGAVE_ISPERSONOPPGAVE_DB_PASSWORD"),
+
     val kafkaBootstrapServers: String = getEnvVar("KAFKA_BOOTSTRAP_SERVERS_URL"),
-    val databaseName: String = getEnvVar("DATABASE_NAME", "ispersonoppgave"),
-    val ispersonoppgaveDBURL: String = getEnvVar("ISPERSONOPPGAVE_DB_URL"),
-    val mountPathVault: String = getEnvVar("MOUNT_PATH_VAULT"),
+    val kafkaSchemaRegistryUrl: String = getEnvVar("KAFKA_SCHEMA_REGISTRY_URL"),
+
+    val serviceuserUsername: String = getEnvVar("SERVICEUSER_USERNAME"),
+    val serviceuserPassword: String = getEnvVar("SERVICEUSER_PASSWORD"),
+
     val syfobehandlendeenhetClientId: String = getEnvVar("SYFOBEHANDLENDEENHET_CLIENT_ID"),
     val behandlendeenhetUrl: String = getEnvVar("SYFOBEHANDLENDEENHET_URL"),
     val syfotilgangskontrollClientId: String = getEnvVar("SYFOTILGANGSKONTROLL_CLIENT_ID"),
     val syfotilgangskontrollUrl: String = getEnvVar("SYFOTILGANGSKONTROLL_URL"),
-)
 
-data class VaultSecrets(
-    val serviceuserUsername: String,
-    val serviceuserPassword: String,
-)
+    val toggleKafkaConsumerEnabled: Boolean = getEnvVar("TOGGLE_KAFKA_CONSUMER_ENABLED").toBoolean()
+) {
+    fun jdbcUrl(): String {
+        return "jdbc:postgresql://$ispersonoppgaveDbHost:$ispersonoppgaveDbPort/$ispersonoppgaveDbName"
+    }
+}
 
 fun getEnvVar(varName: String, defaultValue: String? = null) =
     System.getenv(varName) ?: defaultValue ?: throw RuntimeException("Missing required variable \"$varName\"")

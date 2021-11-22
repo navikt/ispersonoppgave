@@ -53,9 +53,8 @@ object OppfolgingsplanLPSServiceSpek : Spek({
     )
 
     val env = testEnvironment(embeddedEnvironment.brokersURL)
-    val credentials = vaultSecrets
 
-    val consumerPropertiesOversikthendelse = kafkaConsumerConfig(env, credentials)
+    val consumerPropertiesOversikthendelse = kafkaConsumerConfig(env = env)
         .overrideForTest()
         .apply {
             put("specific.avro.reader", false)
@@ -65,7 +64,7 @@ object OppfolgingsplanLPSServiceSpek : Spek({
     val consumerOversikthendelse = KafkaConsumer<String, String>(consumerPropertiesOversikthendelse)
     consumerOversikthendelse.subscribe(listOf(OVERSIKTHENDELSE_TOPIC))
 
-    val consumerPropertiesOversikthendelseRetry = kafkaConsumerOversikthendelseRetryProperties(env, credentials)
+    val consumerPropertiesOversikthendelseRetry = kafkaConsumerOversikthendelseRetryProperties(env = env)
         .overrideForTest()
     val consumerOversikthendelseRetry = KafkaConsumer<String, String>(consumerPropertiesOversikthendelseRetry)
     consumerOversikthendelseRetry.subscribe(listOf(OVERSIKTHENDELSE_RETRY_TOPIC))
@@ -87,12 +86,12 @@ object OppfolgingsplanLPSServiceSpek : Spek({
             syfobehandlendeenhetClientId = env.syfobehandlendeenhetClientId,
         )
 
-        val producerProperties = kafkaProducerConfig(env, vaultSecrets)
+        val producerProperties = kafkaProducerConfig(env = env)
             .overrideForTest()
         val oversikthendelseRecordProducer = KafkaProducer<String, KOversikthendelse>(producerProperties)
         val oversikthendelseProducer = OversikthendelseProducer(oversikthendelseRecordProducer)
 
-        val oversikthendelseRetryProducerProperties = kafkaProducerConfig(env, vaultSecrets)
+        val oversikthendelseRetryProducerProperties = kafkaProducerConfig(env = env)
             .overrideForTest()
         val oversikthendelseRetryRecordProducer = KafkaProducer<String, KOversikthendelseRetry>(oversikthendelseRetryProducerProperties)
         val oversikthendelseRetryProducer = OversikthendelseRetryProducer(oversikthendelseRetryRecordProducer)

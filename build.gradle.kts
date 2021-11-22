@@ -20,7 +20,6 @@ object Versions {
     const val postgresVersion = "42.2.18"
     const val postgresEmbeddedVersion = "0.13.3"
     const val prometheusVersion = "0.9.0"
-    const val vaultJavaDriveVersion = "3.1.0"
     const val spekVersion = "2.0.15"
     const val jacksonVersion = "2.11.3"
     const val mockkVersion = "1.10.5"
@@ -89,7 +88,6 @@ dependencies {
     implementation("org.postgresql:postgresql:${Versions.postgresVersion}")
     implementation("com.zaxxer:HikariCP:${Versions.hikariVersion}")
     implementation("org.flywaydb:flyway-core:${Versions.flywayVersion}")
-    implementation("com.bettercloud:vault-java-driver:${Versions.vaultJavaDriveVersion}")
     testImplementation("com.opentable.components:otj-pg-embedded:${Versions.postgresEmbeddedVersion}")
 
     testImplementation("no.nav:kafka-embedded-env:${Versions.kafkaEmbeddedVersion}")

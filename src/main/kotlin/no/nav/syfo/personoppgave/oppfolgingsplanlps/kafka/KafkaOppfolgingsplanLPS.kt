@@ -20,19 +20,18 @@ const val OPPFOLGINGSPLAN_LPS_NAV_TOPIC = "aapen-syfo-oppfolgingsplan-lps-nav-v1
 suspend fun blockingApplicationLogicOppfolgingsplanLPS(
     applicationState: ApplicationState,
     environment: Environment,
-    vaultSecrets: VaultSecrets,
     oppfolgingsplanLPSService: OppfolgingsplanLPSService
 ) {
     LOG.info("Setting up kafka consumer OppfolgingsplanLPS")
 
-    val consumerProperties = kafkaConsumerConfig(environment, vaultSecrets)
+    val consumerProperties = kafkaConsumerConfig(env = environment)
     val kafkaConsumerOppfolgingsplanLPSNAV = KafkaConsumer<String, KOppfolgingsplanLPSNAV>(consumerProperties)
 
     kafkaConsumerOppfolgingsplanLPSNAV.subscribe(
         listOf(OPPFOLGINGSPLAN_LPS_NAV_TOPIC)
     )
 
-    while (applicationState.alive) {
+    while (applicationState.ready) {
         pollAndProcessKOppfolgingsplanLPSNAV(
             kafkaConsumerOppfolgingsplanLPSNAV = kafkaConsumerOppfolgingsplanLPSNAV,
             oppfolgingsplanLPSService = oppfolgingsplanLPSService

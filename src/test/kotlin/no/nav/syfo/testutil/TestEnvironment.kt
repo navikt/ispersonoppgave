@@ -16,19 +16,20 @@ fun testEnvironment(
     azureAppClientSecret = "app-secret",
     azureAppWellKnownUrl = "wellknownurl",
     azureTokenEndpoint = azureTokenEndpoint,
+    ispersonoppgaveDbHost = "localhost",
+    ispersonoppgaveDbPort = "5432",
+    ispersonoppgaveDbName = "ispersonoppgave_dev",
+    ispersonoppgaveDbUsername = "username",
+    ispersonoppgaveDbPassword = "password",
     kafkaBootstrapServers = kafkaBootstrapServers,
-    databaseName = "ispersonoppgave",
-    ispersonoppgaveDBURL = "12314.adeo.no",
-    mountPathVault = "vault.adeo.no",
+    kafkaSchemaRegistryUrl = "http://kafka-schema-registry.tpa.svc.nais.local:8081",
+    serviceuserUsername = "",
+    serviceuserPassword = "",
     syfobehandlendeenhetClientId = "dev-fss:teamsykefravr:syfobehandlendeenhet",
     behandlendeenhetUrl = behandlendeEnhetUrl,
     syfotilgangskontrollClientId = syfotilgangskontrollUrl,
     syfotilgangskontrollUrl = syfotilgangskontrollUrl,
-)
-
-val vaultSecrets = VaultSecrets(
-    "",
-    "",
+    toggleKafkaConsumerEnabled = true,
 )
 
 fun Properties.overrideForTest(): Properties = apply {

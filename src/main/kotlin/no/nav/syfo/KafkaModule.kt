@@ -12,7 +12,6 @@ fun launchKafkaTasks(
     applicationState: ApplicationState,
     database: DatabaseInterface,
     environment: Environment,
-    vaultSecrets: VaultSecrets,
     behandlendeEnhetClient: BehandlendeEnhetClient,
     oversikthendelseProducer: OversikthendelseProducer,
     oversikthendelseRetryProducer: OversikthendelseRetryProducer,
@@ -34,7 +33,6 @@ fun launchKafkaTasks(
         blockingApplicationLogicOppfolgingsplanLPS(
             applicationState = applicationState,
             environment = environment,
-            vaultSecrets = vaultSecrets,
             oppfolgingsplanLPSService = oppfolgingsplanLPSService,
         )
     }
@@ -43,7 +41,6 @@ fun launchKafkaTasks(
         blockingApplicationLogicOversikthendelseRetry(
             applicationState = applicationState,
             environment = environment,
-            vaultSecrets = vaultSecrets,
             oversikthendelseRetryService = oversikthendelseRetryService,
         )
     }

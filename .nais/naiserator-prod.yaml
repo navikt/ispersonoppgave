@@ -8,6 +8,12 @@ metadata:
 spec:
   image: {{ image }}
   port: 8080
+  startup:
+    path: /is_ready
+    initialDelay: 10
+    timeout: 5
+    periodSeconds: 5
+    failureThreshold: 30
   liveness:
     path: /is_alive
     initialDelay: 10
@@ -41,6 +47,11 @@ spec:
         - application: syfomodiaperson
           namespace: teamsykefravr
           cluster: prod-fss
+    outbound:
+      external:
+        - host: "kafka-schema-registry.nais.adeo.no"
+        - host: "syfobehandlendeenhet.intern.nav.no"
+        - host: "syfo-tilgangskontroll.prod-fss-pub.nais.io"
   azure:
     application:
       enabled: true
@@ -48,21 +59,21 @@ spec:
       claims:
         extra:
           - "NAVident"
-  vault:
-    enabled: true
-    paths:
-      - kvPath: /serviceuser/data/prod/srvispersonoppgave
-        mountPath: /secrets/serviceuser
-  webproxy: true
+  gcp:
+    sqlInstances:
+      - type: POSTGRES_12
+        databases:
+          - name: ispersonoppgave-db
+        diskAutoresize: true
+  envFrom:
+    - secret: ispersonoppgave-serviceuser
   env:
     - name: KTOR_ENV
       value: production
     - name: KAFKA_BOOTSTRAP_SERVERS_URL
       value: SASL_SSL://a01apvl00145.adeo.no:8443,SASL_SSL://a01apvl00146.adeo.no:8443,SASL_SSL://a01apvl00147.adeo.no:8443,SASL_SSL://a01apvl00149.adeo.no:8443
-    - name: ISPERSONOPPGAVE_DB_URL
-      value: jdbc:postgresql://A01DBVL020.adeo.no:5432/ispersonoppgave
-    - name: MOUNT_PATH_VAULT
-      value: /postgresql/prod-fss
+    - name: KAFKA_SCHEMA_REGISTRY_URL
+      value: "https://kafka-schema-registry.nais.adeo.no"
     - name: SYFOBEHANDLENDEENHET_CLIENT_ID
       value: "prod-gcp.teamsykefravr.syfobehandlendeenhet"
     - name: SYFOBEHANDLENDEENHET_URL
@@ -70,4 +81,6 @@ spec:
     - name: SYFOTILGANGSKONTROLL_CLIENT_ID
       value: "prod-fss.teamsykefravr.syfo-tilgangskontroll"
     - name: SYFOTILGANGSKONTROLL_URL
-      value: "https://syfo-tilgangskontroll.nais.adeo.no"
+      value: "https://syfo-tilgangskontroll.prod-fss-pub.nais.io"
+    - name: TOGGLE_KAFKA_CONSUMER_ENABLED
+      value: "false"

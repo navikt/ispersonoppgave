@@ -51,8 +51,6 @@ object KafkaOversikthendelseRetrySpek : Spek({
             embeddedEnvironment.brokersURL
         )
 
-        val vaultSecrets = vaultSecrets
-
         val database = TestDB()
 
         val azureAdMock = AzureAdV2Mock()
@@ -69,12 +67,12 @@ object KafkaOversikthendelseRetrySpek : Spek({
             syfobehandlendeenhetClientId = env.syfobehandlendeenhetClientId,
         )
 
-        val oversikthendelseProducerProperties = kafkaProducerConfig(env, vaultSecrets)
+        val oversikthendelseProducerProperties = kafkaProducerConfig(env = env)
             .overrideForTest()
         val oversikthendelseRecordProducer = KafkaProducer<String, KOversikthendelse>(oversikthendelseProducerProperties)
         val oversikthendelseProducer = OversikthendelseProducer(oversikthendelseRecordProducer)
 
-        val consumerPropertiesOversikthendelse = kafkaConsumerConfig(env, vaultSecrets)
+        val consumerPropertiesOversikthendelse = kafkaConsumerConfig(env = env)
             .overrideForTest()
             .apply {
                 put("specific.avro.reader", false)
@@ -104,7 +102,7 @@ object KafkaOversikthendelseRetrySpek : Spek({
         }
 
         describe("Read and process KOversikthendelseRetry") {
-            val oversikthendelseRetryProducerProperties = kafkaProducerConfig(env, vaultSecrets)
+            val oversikthendelseRetryProducerProperties = kafkaProducerConfig(env = env)
                 .overrideForTest()
             val oversikthendelseRetryRecordProducer = KafkaProducer<String, KOversikthendelseRetry>(oversikthendelseRetryProducerProperties)
             val oversikthendelseRetryProducer = OversikthendelseRetryProducer(oversikthendelseRetryRecordProducer)
@@ -116,7 +114,7 @@ object KafkaOversikthendelseRetrySpek : Spek({
                 oversikthendelseRetryProducer = oversikthendelseRetryProducer
             )
 
-            val consumerPropertiesOversikthendelseRetry = kafkaConsumerOversikthendelseRetryProperties(env, vaultSecrets)
+            val consumerPropertiesOversikthendelseRetry = kafkaConsumerOversikthendelseRetryProperties(env = env)
                 .overrideForTest()
 
             val consumerOversikthendelseRetry = KafkaConsumer<String, String>(consumerPropertiesOversikthendelseRetry)
@@ -253,7 +251,7 @@ object KafkaOversikthendelseRetrySpek : Spek({
                 oversikthendelseRetryProducer = mockOversikthendelseRetryProducer
             )
 
-            val consumerPropertiesOversikthendelseRetry = kafkaConsumerOversikthendelseRetryProperties(env, vaultSecrets)
+            val consumerPropertiesOversikthendelseRetry = kafkaConsumerOversikthendelseRetryProperties(env = env)
                 .overrideForTest()
 
             val consumerOversikthendelseRetry = KafkaConsumer<String, String>(consumerPropertiesOversikthendelseRetry)

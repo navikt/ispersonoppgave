@@ -37,7 +37,6 @@ object VeilederPersonOppgaveApiV2Spek : Spek({
             val externalMockEnvironment = ExternalMockEnvironment()
             val database = externalMockEnvironment.database
             val env = externalMockEnvironment.environment
-            val vaultSecrets = externalMockEnvironment.vaultSecrets
 
             val baseUrl = registerVeilederPersonOppgaveApiV2BasePath
 
@@ -46,7 +45,7 @@ object VeilederPersonOppgaveApiV2Spek : Spek({
                 remove("sasl.mechanism")
             }
 
-            val consumerPropertiesOversikthendelse = kafkaConsumerConfig(env, vaultSecrets)
+            val consumerPropertiesOversikthendelse = kafkaConsumerConfig(env = env)
                 .overrideForTest()
                 .apply {
                     put("specific.avro.reader", false)
@@ -56,7 +55,7 @@ object VeilederPersonOppgaveApiV2Spek : Spek({
             val consumerOversikthendelse = KafkaConsumer<String, String>(consumerPropertiesOversikthendelse)
             consumerOversikthendelse.subscribe(listOf(OVERSIKTHENDELSE_TOPIC))
 
-            val producerProperties = kafkaProducerConfig(env, vaultSecrets)
+            val producerProperties = kafkaProducerConfig(env = env)
                 .overrideForTest()
             val oversikthendelseRecordProducer = KafkaProducer<String, KOversikthendelse>(producerProperties)
             val oversikthendelseProducer = OversikthendelseProducer(oversikthendelseRecordProducer)

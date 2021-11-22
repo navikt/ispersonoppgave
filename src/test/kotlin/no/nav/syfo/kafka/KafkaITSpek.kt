@@ -2,7 +2,6 @@ package no.nav.syfo.kafka
 
 import io.confluent.kafka.serializers.AbstractKafkaSchemaSerDeConfig
 import no.nav.common.KafkaEnvironment
-import no.nav.syfo.VaultSecrets
 import no.nav.syfo.oppfolgingsplan.avro.KOppfolgingsplanLPSNAV
 import no.nav.syfo.personoppgave.oppfolgingsplanlps.kafka.OPPFOLGINGSPLAN_LPS_NAV_TOPIC
 import no.nav.syfo.testutil.testEnvironment
@@ -22,10 +21,6 @@ object KafkaITSpek : Spek({
             OPPFOLGINGSPLAN_LPS_NAV_TOPIC
         )
     )
-    val credentials = VaultSecrets(
-        "",
-        ""
-    )
     val env = testEnvironment(
         kafkaBootstrapServers = embeddedEnvironment.brokersURL,
     )
@@ -36,7 +31,7 @@ object KafkaITSpek : Spek({
         put(AbstractKafkaSchemaSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG, embeddedEnvironment.schemaRegistry!!.url)
     }
 
-    val consumerPropertiesOppfolgingsplanLPS = kafkaConsumerConfig(env, credentials)
+    val consumerPropertiesOppfolgingsplanLPS = kafkaConsumerConfig(env = env)
         .overrideForTest()
 
     val consumerOppfolgingsplanLPS = KafkaConsumer<String, KOppfolgingsplanLPSNAV>(consumerPropertiesOppfolgingsplanLPS)

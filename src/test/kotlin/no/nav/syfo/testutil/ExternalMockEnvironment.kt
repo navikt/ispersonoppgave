@@ -3,7 +3,6 @@ package no.nav.syfo.testutil
 import io.ktor.server.netty.*
 import no.nav.common.KafkaEnvironment
 import no.nav.syfo.ApplicationState
-import no.nav.syfo.VaultSecrets
 import no.nav.syfo.testutil.mock.*
 
 class ExternalMockEnvironment {
@@ -26,10 +25,6 @@ class ExternalMockEnvironment {
         azureTokenEndpoint = azureAdV2Mock.url,
         behandlendeEnhetUrl = behandlendeEnhetMock.url,
         syfotilgangskontrollUrl = tilgangskontrollMock.url
-    )
-    val vaultSecrets = VaultSecrets(
-        "",
-        "",
     )
 
     val wellKnownInternADV2Mock = wellKnownInternADV2Mock()

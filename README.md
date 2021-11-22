@@ -15,7 +15,6 @@ A future goal is to move the Person-Oppgave for received answers to Motebehov fr
 * Kafka
 * Ktor
 * Postgres
-* Vault
 
 ##### Test Libraries:
 * Kluent
