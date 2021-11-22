@@ -4,7 +4,7 @@ import com.fasterxml.jackson.databind.*
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.readValue
 import com.fasterxml.jackson.module.kotlin.registerKotlinModule
-import kotlinx.coroutines.*
+import kotlinx.coroutines.delay
 import net.logstash.logback.argument.StructuredArguments
 import no.nav.syfo.*
 import no.nav.syfo.kafka.kafkaConsumerOversikthendelseRetryProperties
@@ -25,7 +25,8 @@ suspend fun blockingApplicationLogicOversikthendelseRetry(
 ) {
     LOG.info("Setting up kafka consumer OversikthendelseRetry")
 
-    val consumerOversikthendelseRetryProperties = kafkaConsumerOversikthendelseRetryProperties(environment, vaultSecrets)
+    val consumerOversikthendelseRetryProperties =
+        kafkaConsumerOversikthendelseRetryProperties(environment, vaultSecrets)
     val kafkaConsumerOversikthendelseRetry = KafkaConsumer<String, String>(consumerOversikthendelseRetryProperties)
 
     kafkaConsumerOversikthendelseRetry.subscribe(
@@ -67,18 +68,6 @@ suspend fun pollAndProcessOversikthendelseRetryTopic(
         kafkaConsumer.commitSync()
     }
 }
-
-fun CoroutineScope.createListenerOversikthendelseRetry(
-    applicationState: ApplicationState,
-    action: suspend CoroutineScope.() -> Unit
-): Job =
-    launch {
-        try {
-            action()
-        } finally {
-            applicationState.alive = false
-        }
-    }
 
 private val objectMapper: ObjectMapper = ObjectMapper().apply {
     registerKotlinModule()

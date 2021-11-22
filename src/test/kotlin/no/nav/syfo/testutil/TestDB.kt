@@ -34,6 +34,15 @@ class TestDB : DatabaseInterface {
     }
 }
 
+class TestDatabaseNotResponding : DatabaseInterface {
+
+    override val connection: Connection
+        get() = throw Exception("Not working")
+
+    fun stop() {
+    }
+}
+
 fun Connection.dropData() {
     val query = "DELETE FROM PERSON_OPPGAVE"
     use { connection ->

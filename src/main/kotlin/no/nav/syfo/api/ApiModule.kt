@@ -52,7 +52,10 @@ fun Application.apiModule(
     )
 
     routing {
-        registerPodApi(applicationState)
+        registerPodApi(
+            applicationState = applicationState,
+            database = database,
+        )
         registerPrometheusApi()
         authenticate(JwtIssuerType.INTERN_AZUREAD_V2.name) {
             registerVeilederPersonOppgaveApiV2(

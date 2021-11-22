@@ -1,7 +1,6 @@
 package no.nav.syfo.personoppgave.oppfolgingsplanlps.kafka
 
-import io.ktor.util.*
-import kotlinx.coroutines.*
+import kotlinx.coroutines.delay
 import net.logstash.logback.argument.StructuredArguments
 import no.nav.syfo.*
 import no.nav.syfo.kafka.kafkaConsumerConfig
@@ -18,7 +17,6 @@ private val LOG: Logger = LoggerFactory.getLogger("no.nav.syfo.personoppgave.opp
 
 const val OPPFOLGINGSPLAN_LPS_NAV_TOPIC = "aapen-syfo-oppfolgingsplan-lps-nav-v1"
 
-@KtorExperimentalAPI
 suspend fun blockingApplicationLogicOppfolgingsplanLPS(
     applicationState: ApplicationState,
     environment: Environment,
@@ -71,15 +69,3 @@ suspend fun pollAndProcessKOppfolgingsplanLPSNAV(
         )
     }
 }
-
-fun CoroutineScope.createListenerOppfolgingsplanLPS(
-    applicationState: ApplicationState,
-    action: suspend CoroutineScope.() -> Unit
-): Job =
-    launch {
-        try {
-            action()
-        } finally {
-            applicationState.alive = false
-        }
-    }

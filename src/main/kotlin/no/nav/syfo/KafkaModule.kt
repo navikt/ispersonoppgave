@@ -1,17 +1,14 @@
 package no.nav.syfo
 
-import io.ktor.application.Application
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.*
 import no.nav.syfo.client.enhet.BehandlendeEnhetClient
 import no.nav.syfo.database.DatabaseInterface
-import no.nav.syfo.database.database
-import no.nav.syfo.kafka.setupKafka
 import no.nav.syfo.oversikthendelse.OversikthendelseProducer
-import no.nav.syfo.oversikthendelse.retry.OversikthendelseRetryProducer
-import no.nav.syfo.oversikthendelse.retry.OversikthendelseRetryService
+import no.nav.syfo.oversikthendelse.retry.*
 import no.nav.syfo.personoppgave.oppfolgingsplanlps.OppfolgingsplanLPSService
+import no.nav.syfo.personoppgave.oppfolgingsplanlps.kafka.blockingApplicationLogicOppfolgingsplanLPS
 
-fun Application.kafkaModule(
+fun launchKafkaTasks(
     applicationState: ApplicationState,
     database: DatabaseInterface,
     environment: Environment,
@@ -32,13 +29,37 @@ fun Application.kafkaModule(
         oversikthendelseProducer,
         oversikthendelseRetryProducer,
     )
-    launch(backgroundTasksContext) {
-        setupKafka(
+
+    launchBackgroundTask(applicationState) {
+        blockingApplicationLogicOppfolgingsplanLPS(
             applicationState = applicationState,
             environment = environment,
             vaultSecrets = vaultSecrets,
             oppfolgingsplanLPSService = oppfolgingsplanLPSService,
+        )
+    }
+
+    launchBackgroundTask(applicationState) {
+        blockingApplicationLogicOversikthendelseRetry(
+            applicationState = applicationState,
+            environment = environment,
+            vaultSecrets = vaultSecrets,
             oversikthendelseRetryService = oversikthendelseRetryService,
         )
+    }
+    applicationState.ready = true
+}
+
+fun launchBackgroundTask(
+    applicationState: ApplicationState,
+    action: suspend CoroutineScope.() -> Unit
+): Job = GlobalScope.launch {
+    try {
+        action()
+    } catch (ex: Exception) {
+        log.error("Exception received while launching background task. Terminating application.", ex)
+    } finally {
+        applicationState.alive = false
+        applicationState.ready = false
     }
 }

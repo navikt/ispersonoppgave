@@ -93,7 +93,7 @@ fun main() {
                     oversikthendelseProducer = oversikthendelseProducer,
                     wellKnownInternADV2 = wellKnownInternADV2,
                 )
-                kafkaModule(
+                launchKafkaTasks(
                     applicationState = applicationState,
                     database = database,
                     environment = environment,
