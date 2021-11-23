@@ -45,8 +45,6 @@ spec:
     application:
       enabled: true
       tenant: trygdeetaten.no
-      replyURLs:
-        - "https://ispersonoppgave.dev.intern.nav.no/oauth2/callback"
       claims:
         extra:
           - "NAVident"
