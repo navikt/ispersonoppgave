@@ -83,4 +83,4 @@ spec:
     - name: SYFOTILGANGSKONTROLL_URL
       value: "https://syfo-tilgangskontroll.prod-fss-pub.nais.io"
     - name: TOGGLE_KAFKA_CONSUMER_ENABLED
-      value: "false"
+      value: "true"
