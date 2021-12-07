@@ -29,8 +29,8 @@ object Versions {
 
 plugins {
     kotlin("jvm") version "1.5.10"
-    id("com.github.johnrengelman.shadow") version "7.0.0"
-    id("org.jlleitschuh.gradle.ktlint") version "10.1.0"
+    id("com.github.johnrengelman.shadow") version "7.1.0"
+    id("org.jlleitschuh.gradle.ktlint") version "10.2.0"
 }
 
 val githubUser: String by project
