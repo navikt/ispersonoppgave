@@ -7,13 +7,11 @@ version = "1.0-SNAPSHOT"
 object Versions {
     const val avroVersion = "1.10.0"
     const val confluentVersion = "5.5.0"
-    const val coroutinesVersion = "1.4.2"
     const val flywayVersion = "8.2.1"
     const val hikariVersion = "5.0.0"
     const val kafkaVersion = "2.7.0"
     const val kafkaEmbeddedVersion = "2.5.0"
     const val kluentVersion = "1.68"
-    const val kotlinSerializationVersion = "0.20.0"
     const val ktorVersion = "1.6.1"
     const val logbackVersion = "1.2.3"
     const val logstashEncoderVersion = "6.3"
@@ -52,11 +50,6 @@ repositories {
 dependencies {
     implementation(kotlin("stdlib"))
     implementation(kotlin("reflect"))
-
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-slf4j:${Versions.coroutinesVersion}")
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:${Versions.coroutinesVersion}")
-    implementation("org.jetbrains.kotlinx:kotlinx-serialization-runtime:${Versions.kotlinSerializationVersion}")
-    implementation("org.jetbrains.kotlinx:kotlinx-serialization-runtime-common:${Versions.kotlinSerializationVersion}")
 
     implementation("io.ktor:ktor-auth-jwt:${Versions.ktorVersion}")
     implementation("io.ktor:ktor-client-apache:${Versions.ktorVersion}")
