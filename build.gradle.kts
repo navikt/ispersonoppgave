@@ -23,7 +23,7 @@ object Versions {
     const val spekVersion = "2.0.17"
     const val jacksonVersion = "2.11.3"
     const val mockkVersion = "1.10.5"
-    const val nimbusjosejwtVersion = "9.11.3"
+    const val nimbusjosejwtVersion = "9.15.2"
     const val syfoOppfolgingsplanSchemaVersion = "1.0.2"
 }
 
