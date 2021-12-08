@@ -8,7 +8,7 @@ object Versions {
     const val avroVersion = "1.10.0"
     const val confluentVersion = "5.5.0"
     const val coroutinesVersion = "1.4.2"
-    const val flywayVersion = "7.15.0"
+    const val flywayVersion = "8.2.1"
     const val hikariVersion = "5.0.0"
     const val kafkaVersion = "2.7.0"
     const val kafkaEmbeddedVersion = "2.5.0"
