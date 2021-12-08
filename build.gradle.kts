@@ -14,7 +14,7 @@ object Versions {
     const val kafkaEmbeddedVersion = "2.5.0"
     const val kluentVersion = "1.68"
     const val kotlinSerializationVersion = "0.20.0"
-    const val ktorVersion = "1.6.0"
+    const val ktorVersion = "1.6.1"
     const val logbackVersion = "1.2.3"
     const val logstashEncoderVersion = "6.3"
     const val postgresVersion = "42.2.23"
