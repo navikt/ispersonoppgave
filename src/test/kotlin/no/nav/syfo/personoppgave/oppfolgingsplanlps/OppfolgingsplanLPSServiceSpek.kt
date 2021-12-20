@@ -1,13 +1,7 @@
 package no.nav.syfo.personoppgave.oppfolgingsplanlps
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.databind.SerializationFeature
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.readValue
-import com.fasterxml.jackson.module.kotlin.registerKotlinModule
-import io.ktor.application.*
-import io.ktor.features.*
-import io.ktor.jackson.*
 import io.ktor.server.testing.*
 import io.mockk.*
 import kotlinx.coroutines.runBlocking
@@ -24,8 +18,6 @@ import no.nav.syfo.personoppgave.domain.PersonOppgaveType
 import no.nav.syfo.testutil.*
 import no.nav.syfo.testutil.UserConstants.ARBEIDSTAKER_2_FNR
 import no.nav.syfo.testutil.UserConstants.ARBEIDSTAKER_FNR
-import no.nav.syfo.testutil.mock.AzureAdV2Mock
-import no.nav.syfo.testutil.mock.BehandlendeEnhetMock
 import no.nav.syfo.util.configuredJacksonMapper
 import org.amshove.kluent.*
 import org.apache.kafka.clients.consumer.KafkaConsumer
@@ -38,41 +30,25 @@ import java.util.*
 class OppfolgingsplanLPSServiceSpek : Spek({
     val objectMapper: ObjectMapper = configuredJacksonMapper()
 
-    val embeddedEnvironment = testKafka()
-
-    val env = testEnvironment(embeddedEnvironment.brokersURL)
-
-    val consumerPropertiesOversikthendelse = kafkaConsumerConfig(env = env)
-        .overrideForTest()
-        .apply {
-            put("specific.avro.reader", false)
-            put("key.deserializer", "org.apache.kafka.common.serialization.StringDeserializer")
-            put("value.deserializer", "org.apache.kafka.common.serialization.StringDeserializer")
-        }
-    val consumerOversikthendelse = KafkaConsumer<String, String>(consumerPropertiesOversikthendelse)
-    consumerOversikthendelse.subscribe(listOf(OVERSIKTHENDELSE_TOPIC))
-
-    val consumerPropertiesOversikthendelseRetry = kafkaConsumerOversikthendelseRetryProperties(env = env)
-        .overrideForTest()
-    val consumerOversikthendelseRetry = KafkaConsumer<String, String>(consumerPropertiesOversikthendelseRetry)
-    consumerOversikthendelseRetry.subscribe(listOf(OVERSIKTHENDELSE_RETRY_TOPIC))
-
     describe("OppfolgingsplanLPSService") {
-        val database by lazy { TestDB() }
+        val externalMockEnvironment = ExternalMockEnvironment()
 
-        val azureAdMock = AzureAdV2Mock()
-        val azureAdClient = AzureAdV2Client(
-            azureAppClientId = env.azureAppClientId,
-            azureAppClientSecret = env.azureAppClientSecret,
-            azureTokenEndpoint = azureAdMock.url,
-        )
+        val env = externalMockEnvironment.environment
 
-        val behandlendeEnhetMock = BehandlendeEnhetMock()
-        val behandlendeEnhetClient = BehandlendeEnhetClient(
-            azureAdClient = azureAdClient,
-            baseUrl = behandlendeEnhetMock.url,
-            syfobehandlendeenhetClientId = env.syfobehandlendeenhetClientId,
-        )
+        val consumerPropertiesOversikthendelse = kafkaConsumerConfig(env = env)
+            .overrideForTest()
+            .apply {
+                put("specific.avro.reader", false)
+                put("key.deserializer", "org.apache.kafka.common.serialization.StringDeserializer")
+                put("value.deserializer", "org.apache.kafka.common.serialization.StringDeserializer")
+            }
+        val consumerOversikthendelse = KafkaConsumer<String, String>(consumerPropertiesOversikthendelse)
+        consumerOversikthendelse.subscribe(listOf(OVERSIKTHENDELSE_TOPIC))
+
+        val consumerPropertiesOversikthendelseRetry = kafkaConsumerOversikthendelseRetryProperties(env = env)
+            .overrideForTest()
+        val consumerOversikthendelseRetry = KafkaConsumer<String, String>(consumerPropertiesOversikthendelseRetry)
+        consumerOversikthendelseRetry.subscribe(listOf(OVERSIKTHENDELSE_RETRY_TOPIC))
 
         val producerProperties = kafkaProducerConfig(env = env)
             .overrideForTest()
@@ -85,45 +61,45 @@ class OppfolgingsplanLPSServiceSpek : Spek({
             KafkaProducer<String, KOversikthendelseRetry>(oversikthendelseRetryProducerProperties)
         val oversikthendelseRetryProducer = OversikthendelseRetryProducer(oversikthendelseRetryRecordProducer)
 
-        val oppfolgingsplanLPSService = OppfolgingsplanLPSService(
-            database,
-            behandlendeEnhetClient,
-            oversikthendelseProducer,
-            oversikthendelseRetryProducer
-        )
-
-        beforeGroup {
-            embeddedEnvironment.start()
-
-            azureAdMock.server.start()
-            behandlendeEnhetMock.server.start()
-        }
-
-        afterGroup {
-            embeddedEnvironment.tearDown()
-            database.stop()
-
-            azureAdMock.server.stop(1L, 10L)
-            behandlendeEnhetMock.server.stop(1L, 10L)
-        }
-
         with(TestApplicationEngine()) {
             start()
 
-            application.install(ContentNegotiation) {
-                jackson {
-                    registerKotlinModule()
-                    registerModule(JavaTimeModule())
-                    configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false)
-                }
-            }
+            val database = externalMockEnvironment.database
 
-            beforeEachTest {
-                database.connection.dropData()
-            }
+            val azureAdClient = AzureAdV2Client(
+                azureAppClientId = env.azureAppClientId,
+                azureAppClientSecret = env.azureAppClientSecret,
+                azureTokenEndpoint = externalMockEnvironment.azureAdV2Mock.url,
+            )
+
+            val behandlendeEnhetClient = BehandlendeEnhetClient(
+                azureAdClient = azureAdClient,
+                baseUrl = externalMockEnvironment.behandlendeEnhetMock.url,
+                syfobehandlendeenhetClientId = env.syfobehandlendeenhetClientId,
+            )
+
+            val oppfolgingsplanLPSService = OppfolgingsplanLPSService(
+                database,
+                behandlendeEnhetClient,
+                oversikthendelseProducer,
+                oversikthendelseRetryProducer
+            )
+
+            application.testApiModule(
+                externalMockEnvironment = externalMockEnvironment,
+                oversikthendelseProducer = oversikthendelseProducer,
+            )
 
             afterEachTest {
                 database.connection.dropData()
+            }
+
+            beforeGroup {
+                externalMockEnvironment.startExternalMocks()
+            }
+
+            afterGroup {
+                externalMockEnvironment.stopExternalMocks()
             }
 
             describe("Receive kOppfolgingsplanLPSNAV") {
@@ -151,7 +127,7 @@ class OppfolgingsplanLPSServiceSpek : Spek({
 
                     messages.size shouldBeEqualTo 1
                     messages.first().fnr shouldBeEqualTo kOppfolgingsplanLPSNAV.getFodselsnummer()
-                    messages.first().enhetId shouldBeEqualTo behandlendeEnhetMock.behandlendeEnhet.enhetId
+                    messages.first().enhetId shouldBeEqualTo externalMockEnvironment.behandlendeEnhetMock.behandlendeEnhet.enhetId
                     messages.first().hendelseId shouldBeEqualTo OversikthendelseType.OPPFOLGINGSPLANLPS_BISTAND_MOTTATT.name
                 }
 

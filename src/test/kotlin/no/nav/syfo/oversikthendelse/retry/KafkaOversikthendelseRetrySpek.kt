@@ -17,8 +17,6 @@ import no.nav.syfo.testutil.*
 import no.nav.syfo.testutil.UserConstants.ARBEIDSTAKER_2_FNR
 import no.nav.syfo.testutil.UserConstants.ARBEIDSTAKER_FNR
 import no.nav.syfo.testutil.generator.generateKOversikthendelseRetry
-import no.nav.syfo.testutil.mock.AzureAdV2Mock
-import no.nav.syfo.testutil.mock.BehandlendeEnhetMock
 import no.nav.syfo.util.configuredJacksonMapper
 import org.amshove.kluent.*
 import org.apache.kafka.clients.consumer.*
@@ -36,27 +34,22 @@ class KafkaOversikthendelseRetrySpek : Spek({
     with(TestApplicationEngine()) {
         start()
 
+        val externalMockEnvironment = ExternalMockEnvironment()
+
         val oversikthendelseRetryTopic = OVERSIKTHENDELSE_RETRY_TOPIC
 
-        val embeddedEnvironment = testKafka()
+        val database = externalMockEnvironment.database
+        val env = externalMockEnvironment.environment
 
-        val env = testEnvironment(
-            embeddedEnvironment.brokersURL
-        )
-
-        val database = TestDB()
-
-        val azureAdMock = AzureAdV2Mock()
         val azureAdClient = AzureAdV2Client(
             azureAppClientId = env.azureAppClientId,
             azureAppClientSecret = env.azureAppClientSecret,
-            azureTokenEndpoint = azureAdMock.url,
+            azureTokenEndpoint = externalMockEnvironment.azureAdV2Mock.url,
         )
 
-        val behandlendeEnhetMock = BehandlendeEnhetMock()
         val behandlendeEnhetClient = BehandlendeEnhetClient(
             azureAdClient = azureAdClient,
-            baseUrl = behandlendeEnhetMock.url,
+            baseUrl = externalMockEnvironment.behandlendeEnhetMock.url,
             syfobehandlendeenhetClientId = env.syfobehandlendeenhetClientId,
         )
 
@@ -76,23 +69,16 @@ class KafkaOversikthendelseRetrySpek : Spek({
         val consumerOversikthendelse = KafkaConsumer<String, String>(consumerPropertiesOversikthendelse)
         consumerOversikthendelse.subscribe(listOf(OVERSIKTHENDELSE_TOPIC))
 
-        beforeGroup {
-            embeddedEnvironment.start()
+        afterEachTest {
+            database.connection.dropData()
+        }
 
-            azureAdMock.server.start()
-            behandlendeEnhetMock.server.start()
+        beforeGroup {
+            externalMockEnvironment.startExternalMocks()
         }
 
         afterGroup {
-            embeddedEnvironment.tearDown()
-
-            database.stop()
-            azureAdMock.server.stop(1L, 10L)
-            behandlendeEnhetMock.server.stop(1L, 10L)
-        }
-
-        afterEachTest {
-            database.connection.dropData()
+            externalMockEnvironment.stopExternalMocks()
         }
 
         describe("Read and process KOversikthendelseRetry") {
@@ -173,7 +159,7 @@ class KafkaOversikthendelseRetrySpek : Spek({
                 }
                 messages.size shouldBeEqualTo 1
                 messages.first().fnr shouldBeEqualTo kOppfolgingsplanLPSNAV.getFodselsnummer()
-                messages.first().enhetId shouldBeEqualTo behandlendeEnhetMock.behandlendeEnhet.enhetId
+                messages.first().enhetId shouldBeEqualTo externalMockEnvironment.behandlendeEnhetMock.behandlendeEnhet.enhetId
                 messages.first().hendelseId shouldBeEqualTo OversikthendelseType.OPPFOLGINGSPLANLPS_BISTAND_MOTTATT.name
             }
 
