@@ -8,20 +8,15 @@ import kotlinx.coroutines.runBlocking
 import no.nav.syfo.client.azuread.v2.AzureAdV2Client
 import no.nav.syfo.client.enhet.BehandlendeEnhetClient
 import no.nav.syfo.domain.PersonIdentNumber
-import no.nav.syfo.kafka.*
-import no.nav.syfo.oversikthendelse.OVERSIKTHENDELSE_TOPIC
-import no.nav.syfo.oversikthendelse.OversikthendelseProducer
 import no.nav.syfo.oversikthendelse.domain.KOversikthendelse
 import no.nav.syfo.oversikthendelse.domain.OversikthendelseType
-import no.nav.syfo.oversikthendelse.retry.*
+import no.nav.syfo.oversikthendelse.retry.OversikthendelseRetryProducer
 import no.nav.syfo.personoppgave.domain.PersonOppgaveType
 import no.nav.syfo.testutil.*
 import no.nav.syfo.testutil.UserConstants.ARBEIDSTAKER_2_FNR
 import no.nav.syfo.testutil.UserConstants.ARBEIDSTAKER_FNR
 import no.nav.syfo.util.configuredJacksonMapper
 import org.amshove.kluent.*
-import org.apache.kafka.clients.consumer.KafkaConsumer
-import org.apache.kafka.clients.producer.KafkaProducer
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
 import java.time.Duration
@@ -35,31 +30,20 @@ class OppfolgingsplanLPSServiceSpek : Spek({
 
         val env = externalMockEnvironment.environment
 
-        val consumerPropertiesOversikthendelse = kafkaConsumerConfig(env = env)
-            .overrideForTest()
-            .apply {
-                put("specific.avro.reader", false)
-                put("key.deserializer", "org.apache.kafka.common.serialization.StringDeserializer")
-                put("value.deserializer", "org.apache.kafka.common.serialization.StringDeserializer")
-            }
-        val consumerOversikthendelse = KafkaConsumer<String, String>(consumerPropertiesOversikthendelse)
-        consumerOversikthendelse.subscribe(listOf(OVERSIKTHENDELSE_TOPIC))
+        val consumerOversikthendelse = testOversikthendelseConsumer(
+            environment = externalMockEnvironment.environment,
+        )
 
-        val consumerPropertiesOversikthendelseRetry = kafkaConsumerOversikthendelseRetryProperties(env = env)
-            .overrideForTest()
-        val consumerOversikthendelseRetry = KafkaConsumer<String, String>(consumerPropertiesOversikthendelseRetry)
-        consumerOversikthendelseRetry.subscribe(listOf(OVERSIKTHENDELSE_RETRY_TOPIC))
+        val consumerOversikthendelseRetry = testOversikthendelseRetryConsumer(
+            environment = externalMockEnvironment.environment
+        )
 
-        val producerProperties = kafkaProducerConfig(env = env)
-            .overrideForTest()
-        val oversikthendelseRecordProducer = KafkaProducer<String, KOversikthendelse>(producerProperties)
-        val oversikthendelseProducer = OversikthendelseProducer(oversikthendelseRecordProducer)
-
-        val oversikthendelseRetryProducerProperties = kafkaProducerConfig(env = env)
-            .overrideForTest()
-        val oversikthendelseRetryRecordProducer =
-            KafkaProducer<String, KOversikthendelseRetry>(oversikthendelseRetryProducerProperties)
-        val oversikthendelseRetryProducer = OversikthendelseRetryProducer(oversikthendelseRetryRecordProducer)
+        val oversikthendelseProducer = testOversikthendelseProducer(
+            environment = externalMockEnvironment.environment,
+        )
+        val oversikthendelseRetryProducer = testOversikthendelseRetryProducer(
+            environment = externalMockEnvironment.environment,
+        )
 
         with(TestApplicationEngine()) {
             start()

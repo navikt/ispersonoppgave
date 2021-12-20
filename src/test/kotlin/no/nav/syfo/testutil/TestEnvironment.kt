@@ -1,10 +1,8 @@
 package no.nav.syfo.testutil
 
-import no.nav.syfo.*
-import org.apache.kafka.clients.CommonClientConfigs
-import org.apache.kafka.common.config.SaslConfigs
+import no.nav.syfo.ApplicationState
+import no.nav.syfo.Environment
 import java.net.ServerSocket
-import java.util.*
 
 fun testEnvironment(
     kafkaBootstrapServers: String,
@@ -33,11 +31,6 @@ fun testEnvironment(
     syfotilgangskontrollUrl = syfotilgangskontrollUrl,
     toggleKafkaConsumerEnabled = true,
 )
-
-fun Properties.overrideForTest(): Properties = apply {
-    remove(CommonClientConfigs.SECURITY_PROTOCOL_CONFIG)
-    remove(SaslConfigs.SASL_MECHANISM)
-}
 
 fun testAppState() = ApplicationState(
     alive = true,

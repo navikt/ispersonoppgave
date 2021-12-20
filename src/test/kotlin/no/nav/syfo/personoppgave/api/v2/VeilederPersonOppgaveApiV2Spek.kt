@@ -4,10 +4,6 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
 import io.ktor.http.*
 import io.ktor.server.testing.*
-import no.nav.syfo.kafka.kafkaConsumerConfig
-import no.nav.syfo.kafka.kafkaProducerConfig
-import no.nav.syfo.oversikthendelse.OVERSIKTHENDELSE_TOPIC
-import no.nav.syfo.oversikthendelse.OversikthendelseProducer
 import no.nav.syfo.oversikthendelse.domain.KOversikthendelse
 import no.nav.syfo.oversikthendelse.domain.OversikthendelseType
 import no.nav.syfo.personoppgave.api.PersonOppgaveVeileder
@@ -17,8 +13,6 @@ import no.nav.syfo.testutil.UserConstants.ARBEIDSTAKER_FNR
 import no.nav.syfo.testutil.UserConstants.VEILEDER_IDENT
 import no.nav.syfo.util.*
 import org.amshove.kluent.*
-import org.apache.kafka.clients.consumer.KafkaConsumer
-import org.apache.kafka.clients.producer.KafkaProducer
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
 import java.time.Duration
@@ -33,24 +27,15 @@ class VeilederPersonOppgaveApiV2Spek : Spek({
 
             val externalMockEnvironment = ExternalMockEnvironment()
             val database = externalMockEnvironment.database
-            val env = externalMockEnvironment.environment
 
             val baseUrl = registerVeilederPersonOppgaveApiV2BasePath
 
-            val consumerPropertiesOversikthendelse = kafkaConsumerConfig(env = env)
-                .overrideForTest()
-                .apply {
-                    put("specific.avro.reader", false)
-                    put("key.deserializer", "org.apache.kafka.common.serialization.StringDeserializer")
-                    put("value.deserializer", "org.apache.kafka.common.serialization.StringDeserializer")
-                }
-            val consumerOversikthendelse = KafkaConsumer<String, String>(consumerPropertiesOversikthendelse)
-            consumerOversikthendelse.subscribe(listOf(OVERSIKTHENDELSE_TOPIC))
-
-            val producerProperties = kafkaProducerConfig(env = env)
-                .overrideForTest()
-            val oversikthendelseRecordProducer = KafkaProducer<String, KOversikthendelse>(producerProperties)
-            val oversikthendelseProducer = OversikthendelseProducer(oversikthendelseRecordProducer)
+            val consumerOversikthendelse = testOversikthendelseConsumer(
+                environment = externalMockEnvironment.environment,
+            )
+            val oversikthendelseProducer = testOversikthendelseProducer(
+                environment = externalMockEnvironment.environment,
+            )
 
             application.testApiModule(
                 externalMockEnvironment = externalMockEnvironment,
