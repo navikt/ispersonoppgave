@@ -5,10 +5,14 @@ import no.nav.common.KafkaEnvironment
 import no.nav.syfo.ApplicationState
 import no.nav.syfo.testutil.mock.*
 
-class ExternalMockEnvironment {
+class ExternalMockEnvironment(
+    withSchemaRegistry: Boolean = false,
+) {
     val applicationState: ApplicationState = testAppState()
     val database = TestDB()
-    val embeddedEnvironment: KafkaEnvironment = testKafka()
+    val embeddedEnvironment: KafkaEnvironment = testKafka(
+        withSchemaRegistry = withSchemaRegistry,
+    )
 
     val azureAdV2Mock = AzureAdV2Mock()
     val behandlendeEnhetMock = BehandlendeEnhetMock()

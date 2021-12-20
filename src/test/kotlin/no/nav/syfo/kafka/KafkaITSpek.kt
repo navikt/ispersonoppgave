@@ -12,27 +12,29 @@ import java.time.Duration
 
 class KafkaITSpek : Spek({
 
-    val embeddedEnvironment = testKafka(
+    val externalMockEnvironment = ExternalMockEnvironment(
         withSchemaRegistry = true,
     )
-    val env = testEnvironment(
-        kafkaBootstrapServers = embeddedEnvironment.brokersURL,
-    )
+    val env = externalMockEnvironment.environment
 
     val consumerPropertiesOppfolgingsplanLPS = kafkaConsumerConfig(env = env)
-        .overrideForTest().apply {
-            put(AbstractKafkaSchemaSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG, embeddedEnvironment.schemaRegistry!!.url)
+        .overrideForTest()
+        .apply {
+            put(
+                AbstractKafkaSchemaSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG,
+                externalMockEnvironment.embeddedEnvironment.schemaRegistry!!.url
+            )
         }
 
     val consumerOppfolgingsplanLPS = KafkaConsumer<String, KOppfolgingsplanLPSNAV>(consumerPropertiesOppfolgingsplanLPS)
     consumerOppfolgingsplanLPS.subscribe(listOf(OPPFOLGINGSPLAN_LPS_NAV_TOPIC))
 
     beforeGroup {
-        embeddedEnvironment.start()
+        externalMockEnvironment.startExternalMocks()
     }
 
     afterGroup {
-        embeddedEnvironment.tearDown()
+        externalMockEnvironment.stopExternalMocks()
     }
 
     describe("Produce and consume messages from topic") {
