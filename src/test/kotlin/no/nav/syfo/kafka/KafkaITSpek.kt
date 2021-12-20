@@ -1,10 +1,10 @@
 package no.nav.syfo.kafka
 
 import io.confluent.kafka.serializers.AbstractKafkaSchemaSerDeConfig
-import no.nav.common.KafkaEnvironment
 import no.nav.syfo.oppfolgingsplan.avro.KOppfolgingsplanLPSNAV
 import no.nav.syfo.personoppgave.oppfolgingsplanlps.kafka.OPPFOLGINGSPLAN_LPS_NAV_TOPIC
 import no.nav.syfo.testutil.testEnvironment
+import no.nav.syfo.testutil.testKafka
 import org.amshove.kluent.shouldBeEqualTo
 import org.apache.kafka.clients.consumer.KafkaConsumer
 import org.spekframework.spek2.Spek
@@ -12,14 +12,10 @@ import org.spekframework.spek2.style.specification.describe
 import java.time.Duration
 import java.util.*
 
-object KafkaITSpek : Spek({
+class KafkaITSpek : Spek({
 
-    val embeddedEnvironment = KafkaEnvironment(
-        autoStart = false,
+    val embeddedEnvironment = testKafka(
         withSchemaRegistry = true,
-        topicNames = listOf(
-            OPPFOLGINGSPLAN_LPS_NAV_TOPIC
-        )
     )
     val env = testEnvironment(
         kafkaBootstrapServers = embeddedEnvironment.brokersURL,

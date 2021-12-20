@@ -11,7 +11,7 @@ import org.amshove.kluent.shouldNotBeEqualTo
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
 
-object PodApiSpek : Spek({
+class PodApiSpek : Spek({
 
     describe("Successful liveness and readiness checks") {
         with(TestApplicationEngine()) {

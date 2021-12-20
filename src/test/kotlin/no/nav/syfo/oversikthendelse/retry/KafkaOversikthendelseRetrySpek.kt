@@ -1,14 +1,10 @@
 package no.nav.syfo.oversikthendelse.retry
 
-import com.fasterxml.jackson.databind.*
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
-import com.fasterxml.jackson.module.kotlin.registerKotlinModule
 import io.ktor.server.testing.*
-import io.ktor.util.*
 import io.mockk.*
 import kotlinx.coroutines.runBlocking
-import no.nav.common.KafkaEnvironment
 import no.nav.syfo.client.azuread.v2.AzureAdV2Client
 import no.nav.syfo.client.enhet.BehandlendeEnhetClient
 import no.nav.syfo.kafka.*
@@ -18,10 +14,12 @@ import no.nav.syfo.oversikthendelse.domain.KOversikthendelse
 import no.nav.syfo.oversikthendelse.domain.OversikthendelseType
 import no.nav.syfo.personoppgave.domain.PersonOppgaveType
 import no.nav.syfo.testutil.*
-import no.nav.syfo.testutil.UserConstants.ARBEIDSTAKER_FNR
 import no.nav.syfo.testutil.UserConstants.ARBEIDSTAKER_2_FNR
+import no.nav.syfo.testutil.UserConstants.ARBEIDSTAKER_FNR
 import no.nav.syfo.testutil.generator.generateKOversikthendelseRetry
-import no.nav.syfo.testutil.mock.*
+import no.nav.syfo.testutil.mock.AzureAdV2Mock
+import no.nav.syfo.testutil.mock.BehandlendeEnhetMock
+import no.nav.syfo.util.configuredJacksonMapper
 import org.amshove.kluent.*
 import org.apache.kafka.clients.consumer.*
 import org.apache.kafka.clients.producer.KafkaProducer
@@ -32,21 +30,16 @@ import java.time.Duration
 import java.time.LocalDateTime
 import java.util.*
 
-@InternalAPI
-object KafkaOversikthendelseRetrySpek : Spek({
+class KafkaOversikthendelseRetrySpek : Spek({
+    val objectMapper: ObjectMapper = configuredJacksonMapper()
 
     with(TestApplicationEngine()) {
         start()
 
         val oversikthendelseRetryTopic = OVERSIKTHENDELSE_RETRY_TOPIC
-        val embeddedEnvironment = KafkaEnvironment(
-            autoStart = false,
-            withSchemaRegistry = false,
-            topicNames = listOf(
-                oversikthendelseRetryTopic,
-                OVERSIKTHENDELSE_TOPIC
-            )
-        )
+
+        val embeddedEnvironment = testKafka()
+
         val env = testEnvironment(
             embeddedEnvironment.brokersURL
         )
@@ -69,7 +62,8 @@ object KafkaOversikthendelseRetrySpek : Spek({
 
         val oversikthendelseProducerProperties = kafkaProducerConfig(env = env)
             .overrideForTest()
-        val oversikthendelseRecordProducer = KafkaProducer<String, KOversikthendelse>(oversikthendelseProducerProperties)
+        val oversikthendelseRecordProducer =
+            KafkaProducer<String, KOversikthendelse>(oversikthendelseProducerProperties)
         val oversikthendelseProducer = OversikthendelseProducer(oversikthendelseRecordProducer)
 
         val consumerPropertiesOversikthendelse = kafkaConsumerConfig(env = env)
@@ -104,7 +98,8 @@ object KafkaOversikthendelseRetrySpek : Spek({
         describe("Read and process KOversikthendelseRetry") {
             val oversikthendelseRetryProducerProperties = kafkaProducerConfig(env = env)
                 .overrideForTest()
-            val oversikthendelseRetryRecordProducer = KafkaProducer<String, KOversikthendelseRetry>(oversikthendelseRetryProducerProperties)
+            val oversikthendelseRetryRecordProducer =
+                KafkaProducer<String, KOversikthendelseRetry>(oversikthendelseRetryProducerProperties)
             val oversikthendelseRetryProducer = OversikthendelseRetryProducer(oversikthendelseRetryRecordProducer)
 
             val oversikthendelseRetryService = OversikthendelseRetryService(
@@ -318,7 +313,11 @@ object KafkaOversikthendelseRetrySpek : Spek({
                 }
                 messagesKOversikthendelse.size shouldBeEqualTo 0
 
-                verify(exactly = 1) { mockOversikthendelseRetryProducer.sendAgainOversikthendelseRetry(kOversikthendelseRetry) }
+                verify(exactly = 1) {
+                    mockOversikthendelseRetryProducer.sendAgainOversikthendelseRetry(
+                        kOversikthendelseRetry
+                    )
+                }
             }
 
             it("should resend KOversikthendelseRetry when retried and failed due to missing behandlendeEnhet") {
@@ -378,15 +377,12 @@ object KafkaOversikthendelseRetrySpek : Spek({
                 }
                 messagesKOversikthendelse.size shouldBeEqualTo 0
 
-                verify(exactly = 1) { mockOversikthendelseRetryProducer.sendRetriedOversikthendelseRetry(kOversikthendelseRetry) }
+                verify(exactly = 1) {
+                    mockOversikthendelseRetryProducer.sendRetriedOversikthendelseRetry(
+                        kOversikthendelseRetry
+                    )
+                }
             }
         }
     }
 })
-
-private val objectMapper: ObjectMapper = ObjectMapper().apply {
-    registerKotlinModule()
-    registerModule(JavaTimeModule())
-    configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
-    configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false)
-}

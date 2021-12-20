@@ -1,6 +1,7 @@
 package no.nav.syfo.personoppgave.oppfolgingsplanlps
 
-import com.fasterxml.jackson.databind.*
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.readValue
 import com.fasterxml.jackson.module.kotlin.registerKotlinModule
@@ -8,10 +9,8 @@ import io.ktor.application.*
 import io.ktor.features.*
 import io.ktor.jackson.*
 import io.ktor.server.testing.*
-import io.ktor.util.*
 import io.mockk.*
 import kotlinx.coroutines.runBlocking
-import no.nav.common.KafkaEnvironment
 import no.nav.syfo.client.azuread.v2.AzureAdV2Client
 import no.nav.syfo.client.enhet.BehandlendeEnhetClient
 import no.nav.syfo.domain.PersonIdentNumber
@@ -25,7 +24,9 @@ import no.nav.syfo.personoppgave.domain.PersonOppgaveType
 import no.nav.syfo.testutil.*
 import no.nav.syfo.testutil.UserConstants.ARBEIDSTAKER_2_FNR
 import no.nav.syfo.testutil.UserConstants.ARBEIDSTAKER_FNR
-import no.nav.syfo.testutil.mock.*
+import no.nav.syfo.testutil.mock.AzureAdV2Mock
+import no.nav.syfo.testutil.mock.BehandlendeEnhetMock
+import no.nav.syfo.util.configuredJacksonMapper
 import org.amshove.kluent.*
 import org.apache.kafka.clients.consumer.KafkaConsumer
 import org.apache.kafka.clients.producer.KafkaProducer
@@ -34,23 +35,10 @@ import org.spekframework.spek2.style.specification.describe
 import java.time.Duration
 import java.util.*
 
-private val objectMapper: ObjectMapper = ObjectMapper().apply {
-    registerKotlinModule()
-    registerModule(JavaTimeModule())
-    configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
-    configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false)
-}
+class OppfolgingsplanLPSServiceSpek : Spek({
+    val objectMapper: ObjectMapper = configuredJacksonMapper()
 
-@InternalAPI
-object OppfolgingsplanLPSServiceSpek : Spek({
-
-    val embeddedEnvironment = KafkaEnvironment(
-        autoStart = false,
-        withSchemaRegistry = false,
-        topicNames = listOf(
-            OVERSIKTHENDELSE_TOPIC
-        )
-    )
+    val embeddedEnvironment = testKafka()
 
     val env = testEnvironment(embeddedEnvironment.brokersURL)
 
@@ -93,7 +81,8 @@ object OppfolgingsplanLPSServiceSpek : Spek({
 
         val oversikthendelseRetryProducerProperties = kafkaProducerConfig(env = env)
             .overrideForTest()
-        val oversikthendelseRetryRecordProducer = KafkaProducer<String, KOversikthendelseRetry>(oversikthendelseRetryProducerProperties)
+        val oversikthendelseRetryRecordProducer =
+            KafkaProducer<String, KOversikthendelseRetry>(oversikthendelseRetryProducerProperties)
         val oversikthendelseRetryProducer = OversikthendelseRetryProducer(oversikthendelseRetryRecordProducer)
 
         val oppfolgingsplanLPSService = OppfolgingsplanLPSService(
@@ -168,7 +157,14 @@ object OppfolgingsplanLPSServiceSpek : Spek({
 
                 it("should create a new PPersonOppgave with correct type and send KOversikthendelseRetry when behovForBistand=true and behandlendeEnhet=null") {
                     val mockOversikthendelseRetryProducer = mockk<OversikthendelseRetryProducer>()
-                    justRun { mockOversikthendelseRetryProducer.sendFirstOversikthendelseRetry(any(), any(), any(), any()) }
+                    justRun {
+                        mockOversikthendelseRetryProducer.sendFirstOversikthendelseRetry(
+                            any(),
+                            any(),
+                            any(),
+                            any()
+                        )
+                    }
 
                     val oppfolgingsplanLPSServiceWithMockOversikthendelseRetryProcuer = OppfolgingsplanLPSService(
                         database,
@@ -182,7 +178,9 @@ object OppfolgingsplanLPSServiceSpek : Spek({
                     val fodselsnummer = PersonIdentNumber(kOppfolgingsplanLPSNAV.getFodselsnummer())
 
                     runBlocking {
-                        oppfolgingsplanLPSServiceWithMockOversikthendelseRetryProcuer.receiveOppfolgingsplanLPS(kOppfolgingsplanLPSNAV)
+                        oppfolgingsplanLPSServiceWithMockOversikthendelseRetryProcuer.receiveOppfolgingsplanLPS(
+                            kOppfolgingsplanLPSNAV
+                        )
                     }
 
                     val personOppgaveListe = database.connection.getPersonOppgaveList(fodselsnummer)

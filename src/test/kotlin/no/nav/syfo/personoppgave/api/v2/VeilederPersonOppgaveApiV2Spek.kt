@@ -4,7 +4,6 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
 import io.ktor.http.*
 import io.ktor.server.testing.*
-import io.ktor.util.*
 import no.nav.syfo.kafka.kafkaConsumerConfig
 import no.nav.syfo.kafka.kafkaProducerConfig
 import no.nav.syfo.oversikthendelse.OVERSIKTHENDELSE_TOPIC
@@ -25,8 +24,7 @@ import org.spekframework.spek2.style.specification.describe
 import java.time.Duration
 import java.util.*
 
-@InternalAPI
-object VeilederPersonOppgaveApiV2Spek : Spek({
+class VeilederPersonOppgaveApiV2Spek : Spek({
     val objectMapper: ObjectMapper = configuredJacksonMapper()
 
     describe(VeilederPersonOppgaveApiV2Spek::class.java.simpleName) {
