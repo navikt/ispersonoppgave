@@ -22,7 +22,6 @@ import org.apache.kafka.clients.producer.KafkaProducer
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
 import java.time.Duration
-import java.util.*
 
 class VeilederPersonOppgaveApiV2Spek : Spek({
     val objectMapper: ObjectMapper = configuredJacksonMapper()
@@ -37,11 +36,6 @@ class VeilederPersonOppgaveApiV2Spek : Spek({
             val env = externalMockEnvironment.environment
 
             val baseUrl = registerVeilederPersonOppgaveApiV2BasePath
-
-            fun Properties.overrideForTest(): Properties = apply {
-                remove("security.protocol")
-                remove("sasl.mechanism")
-            }
 
             val consumerPropertiesOversikthendelse = kafkaConsumerConfig(env = env)
                 .overrideForTest()

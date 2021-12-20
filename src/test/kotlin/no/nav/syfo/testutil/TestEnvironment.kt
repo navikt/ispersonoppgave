@@ -1,6 +1,8 @@
 package no.nav.syfo.testutil
 
 import no.nav.syfo.*
+import org.apache.kafka.clients.CommonClientConfigs
+import org.apache.kafka.common.config.SaslConfigs
 import java.net.ServerSocket
 import java.util.*
 
@@ -33,8 +35,8 @@ fun testEnvironment(
 )
 
 fun Properties.overrideForTest(): Properties = apply {
-    remove("security.protocol")
-    remove("sasl.mechanism")
+    remove(CommonClientConfigs.SECURITY_PROTOCOL_CONFIG)
+    remove(SaslConfigs.SASL_MECHANISM)
 }
 
 fun testAppState() = ApplicationState(
