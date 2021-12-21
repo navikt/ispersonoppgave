@@ -6,11 +6,11 @@ version = "1.0-SNAPSHOT"
 
 object Versions {
     const val avroVersion = "1.10.0"
-    const val confluentVersion = "5.5.0"
+    const val confluentVersion = "6.1.3"
     const val flywayVersion = "8.2.1"
     const val hikariVersion = "5.0.0"
     const val kafkaVersion = "2.7.0"
-    const val kafkaEmbeddedVersion = "2.5.0"
+    const val kafkaEmbeddedVersion = "2.7.0"
     const val kluentVersion = "1.68"
     const val ktorVersion = "1.6.1"
     const val logbackVersion = "1.2.3"
@@ -22,6 +22,7 @@ object Versions {
     const val jacksonVersion = "2.11.4"
     const val mockkVersion = "1.12.1"
     const val nimbusjosejwtVersion = "9.15.2"
+    const val scala = "2.13.7"
     const val syfoOppfolgingsplanSchemaVersion = "1.0.2"
 }
 
@@ -76,11 +77,16 @@ dependencies {
     testImplementation("com.opentable.components:otj-pg-embedded:${Versions.postgresEmbeddedVersion}")
 
     // Kafka
-    implementation("org.apache.kafka:kafka_2.12:${Versions.kafkaVersion}")
+    implementation("org.apache.kafka:kafka_2.13:${Versions.kafkaVersion}")
     implementation("org.apache.avro:avro:${Versions.avroVersion}")
     implementation("io.confluent:kafka-avro-serializer:${Versions.confluentVersion}")
     implementation("io.confluent:kafka-schema-registry:${Versions.confluentVersion}")
     implementation("no.nav.syfo.oppfolgingsplan.avro:syfoopservice-schema:${Versions.syfoOppfolgingsplanSchemaVersion}")
+    implementation("org.scala-lang:scala-library") {
+        version {
+            strictly(Versions.scala)
+        }
+    }
     testImplementation("no.nav:kafka-embedded-env:${Versions.kafkaEmbeddedVersion}")
 
     testImplementation("com.nimbusds:nimbus-jose-jwt:${Versions.nimbusjosejwtVersion}")
