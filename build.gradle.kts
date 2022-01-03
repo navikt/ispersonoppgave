@@ -7,19 +7,19 @@ version = "1.0-SNAPSHOT"
 object Versions {
     const val avroVersion = "1.10.0"
     const val confluentVersion = "6.1.3"
-    const val flywayVersion = "8.2.1"
+    const val flywayVersion = "8.2.2"
     const val hikariVersion = "5.0.0"
     const val kafkaVersion = "2.7.0"
     const val kafkaEmbeddedVersion = "2.7.0"
     const val kluentVersion = "1.68"
-    const val ktorVersion = "1.6.1"
-    const val logbackVersion = "1.2.3"
-    const val logstashEncoderVersion = "6.3"
+    const val ktorVersion = "1.6.7"
+    const val logbackVersion = "1.2.10"
+    const val logstashEncoderVersion = "7.0.1"
     const val postgresVersion = "42.3.1"
     const val postgresEmbeddedVersion = "0.13.4"
     const val prometheusVersion = "0.9.0"
     const val spekVersion = "2.0.17"
-    const val jacksonVersion = "2.11.4"
+    const val jacksonVersion = "2.13.0"
     const val mockkVersion = "1.12.1"
     const val nimbusjosejwtVersion = "9.15.2"
     const val scala = "2.13.7"
@@ -27,8 +27,8 @@ object Versions {
 }
 
 plugins {
-    kotlin("jvm") version "1.6.0"
-    id("com.github.johnrengelman.shadow") version "7.1.0"
+    kotlin("jvm") version "1.6.10"
+    id("com.github.johnrengelman.shadow") version "7.1.1"
     id("org.jlleitschuh.gradle.ktlint") version "10.2.0"
 }
 
