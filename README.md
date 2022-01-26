@@ -111,3 +111,9 @@ If the maximum number of retries is reached, the application will stop retry of 
 2. Check if NAV-Veileder has access to the person of the PersonOppgave.
 2. Update PersonOppgave with who processed and when it was processed.
 3. Send Oversikthendelse for processed PersonOppgave to Kafka-topic.
+
+## Contact
+
+### For NAV employees
+
+We are available at the Slack channel `#isyfo`.
