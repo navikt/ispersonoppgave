@@ -43,11 +43,11 @@ class VeilederTilgangskontrollClient(
                 header(NAV_CALL_ID, callId)
                 accept(ContentType.Application.Json)
             }
-            COUNT_CALL_TILGANGSKONTROLL_PERSON_SUCCESS.inc()
+            COUNT_CALL_TILGANGSKONTROLL_PERSON_SUCCESS.increment()
             return response.receive<Tilgang>().harTilgang
         } catch (e: ClientRequestException) {
             return if (e.response.status == HttpStatusCode.Forbidden) {
-                COUNT_CALL_TILGANGSKONTROLL_PERSON_FORBIDDEN.inc()
+                COUNT_CALL_TILGANGSKONTROLL_PERSON_FORBIDDEN.increment()
                 false
             } else {
                 return handleUnexpectedReponseException(e.response)
@@ -62,7 +62,7 @@ class VeilederTilgangskontrollClient(
             "Error while requesting access to person from syfo-tilgangskontroll with {}",
             StructuredArguments.keyValue("statusCode", response.status.value.toString())
         )
-        COUNT_CALL_TILGANGSKONTROLL_PERSON_FAIL.inc()
+        COUNT_CALL_TILGANGSKONTROLL_PERSON_FAIL.increment()
         return false
     }
 

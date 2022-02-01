@@ -16,11 +16,11 @@ object Versions {
     const val ktorVersion = "1.6.7"
     const val logbackVersion = "1.2.10"
     const val logstashEncoderVersion = "7.0.1"
+    const val micrometerRegistry = "1.8.2"
     const val mockkVersion = "1.12.2"
     const val nimbusjosejwtVersion = "9.18"
     const val postgresVersion = "42.3.1"
     const val postgresEmbeddedVersion = "0.13.4"
-    const val prometheusVersion = "0.9.0"
     const val scala = "2.13.7"
     const val spekVersion = "2.0.17"
     const val syfoOppfolgingsplanSchemaVersion = "1.0.2"
@@ -63,9 +63,9 @@ dependencies {
     implementation("ch.qos.logback:logback-classic:${Versions.logbackVersion}")
     implementation("net.logstash.logback:logstash-logback-encoder:${Versions.logstashEncoderVersion}")
 
-    // Metrics
-    implementation("io.prometheus:simpleclient_common:${Versions.prometheusVersion}")
-    implementation("io.prometheus:simpleclient_hotspot:${Versions.prometheusVersion}")
+    // Metrics and Prometheus
+    implementation("io.ktor:ktor-metrics-micrometer:${Versions.ktorVersion}")
+    implementation("io.micrometer:micrometer-registry-prometheus:${Versions.micrometerRegistry}")
 
     // (De-)serialization
     implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:${Versions.jacksonVersion}")

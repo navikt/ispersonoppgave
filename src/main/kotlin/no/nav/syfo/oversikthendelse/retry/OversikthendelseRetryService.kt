@@ -78,7 +78,7 @@ class OversikthendelseRetryService(
     private fun skip(oversikthendelseRetry: KOversikthendelseRetry) {
         LOG.error("Retry limit $RETRY_OVERSIKTHENDELSE_COUNT_LIMIT reached, skipping oversikthendelseRetry with retryCounter=${oversikthendelseRetry.retriedCount}")
         if (oversikthendelseRetry.oversikthendelseType == OversikthendelseType.OPPFOLGINGSPLANLPS_BISTAND_MOTTATT.name) {
-            COUNT_OVERSIKTHENDELSE_RETRY_OPPFOLGINGSPLANLPS_BISTAND_MOTTATT_SKIPPED.inc()
+            COUNT_OVERSIKTHENDELSE_RETRY_OPPFOLGINGSPLANLPS_BISTAND_MOTTATT_SKIPPED.increment()
         }
     }
 

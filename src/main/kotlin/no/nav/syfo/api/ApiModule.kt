@@ -24,6 +24,7 @@ fun Application.apiModule(
 ) {
     installCallId()
     installContentNegotiation()
+    installMetrics()
     installJwtAuthentication(
         jwtIssuerList = listOf(
             JwtIssuer(
@@ -56,7 +57,7 @@ fun Application.apiModule(
             applicationState = applicationState,
             database = database,
         )
-        registerPrometheusApi()
+        registerMetricApi()
         authenticate(JwtIssuerType.INTERN_AZUREAD_V2.name) {
             registerVeilederPersonOppgaveApiV2(
                 personOppgaveService,

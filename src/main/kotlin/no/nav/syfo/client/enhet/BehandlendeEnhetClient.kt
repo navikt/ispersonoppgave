@@ -43,10 +43,10 @@ class BehandlendeEnhetClient(
                 HttpStatusCode.OK -> {
                     val behandlendeEnhet = response.receive<BehandlendeEnhet>()
                     return if (isValid(behandlendeEnhet)) {
-                        COUNT_CALL_BEHANDLENDEENHET_SUCCESS.inc()
+                        COUNT_CALL_BEHANDLENDEENHET_SUCCESS.increment()
                         behandlendeEnhet
                     } else {
-                        COUNT_CALL_BEHANDLENDEENHET_FAIL.inc()
+                        COUNT_CALL_BEHANDLENDEENHET_FAIL.increment()
                         LOG.error(
                             "Error while requesting behandlendeenhet from syfobehandlendeenhet: Received invalid EnhetId with more than 4 chars for EnhetId {}",
                             behandlendeEnhet.enhetId
@@ -56,17 +56,17 @@ class BehandlendeEnhetClient(
                 }
                 HttpStatusCode.NoContent -> {
                     LOG.error("BehandlendeEnhet returned HTTP-${response.status.value}: No BehandlendeEnhet was found for Fodselsnummer")
-                    COUNT_CALL_BEHANDLENDEENHET_EMPTY.inc()
+                    COUNT_CALL_BEHANDLENDEENHET_EMPTY.increment()
                     return null
                 }
                 else -> {
-                    COUNT_CALL_BEHANDLENDEENHET_FAIL.inc()
+                    COUNT_CALL_BEHANDLENDEENHET_FAIL.increment()
                     LOG.error("Error with responseCode=${response.status.value} with callId=$callId while requesting behandlendeenhet from syfobehandlendeenhet")
                     return null
                 }
             }
         } catch (responseException: ResponseException) {
-            COUNT_CALL_BEHANDLENDEENHET_FAIL.inc()
+            COUNT_CALL_BEHANDLENDEENHET_FAIL.increment()
             LOG.error("Error with responseCode=${responseException.response.status.value} with callId=$callId while requesting behandlendeenhet from syfobehandlendeenhet")
             return null
         }
