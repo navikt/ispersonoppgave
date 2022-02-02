@@ -25,62 +25,55 @@ fun Route.registerVeilederPersonOppgaveApiV2(
     route(registerVeilederPersonOppgaveApiV2BasePath) {
         get("/personident") {
             val callId = getCallId()
-            try {
-                val token = getBearerHeader()
-                    ?: throw IllegalArgumentException("No Authorization header supplied")
+            val token = getBearerHeader()
+                ?: throw IllegalArgumentException("Could not retrieve PersonOppgaveList for PersonIdent: No Authorization header supplied")
 
-                val personIdent = call.request.headers[NAV_PERSONIDENT_HEADER.toLowerCase()]
-                    ?: throw IllegalArgumentException("No PersonIdent supplied")
-                val fnr = PersonIdentNumber(personIdent)
+            val personIdent = personIdentHeader()
+                ?: throw IllegalArgumentException("Could not retrieve PersonOppgaveList for PersonIdent: No PersonIdent supplied")
+            val fnr = PersonIdentNumber(personIdent)
 
-                if (veilederTilgangskontrollClient.hasAccessWithOBO(fnr, token, callId)) {
-                    val personOppaveList = personOppgaveService.getPersonOppgaveList(fnr).map {
-                        it.toPersonOppgaveVeileder()
-                    }
-                    if (personOppaveList.isNotEmpty()) {
-                        call.respond(personOppaveList)
-                    } else call.respond(HttpStatusCode.NoContent)
-                } else {
-                    val accessDeniedMessage = "Denied Veileder access to PersonIdent with Fodselsnummer"
-                    log.warn("$accessDeniedMessage, {}", callIdArgument(callId))
-                    call.respond(HttpStatusCode.Forbidden, accessDeniedMessage)
+            if (veilederTilgangskontrollClient.hasAccessWithOBO(fnr, token, callId)) {
+                val personOppaveList = personOppgaveService.getPersonOppgaveList(fnr).map {
+                    it.toPersonOppgaveVeileder()
                 }
-            } catch (e: IllegalArgumentException) {
-                val illegalArgumentMessage = "Could not retrieve PersonOppgaveList for PersonIdent"
-                log.error("$illegalArgumentMessage: {}, {}", e.message, callIdArgument(callId))
-                call.respond(HttpStatusCode.BadRequest, e.message ?: illegalArgumentMessage)
+                if (personOppaveList.isNotEmpty()) {
+                    call.respond(personOppaveList)
+                } else call.respond(HttpStatusCode.NoContent)
+            } else {
+                val accessDeniedMessage = "Denied Veileder access to PersonIdent with Fodselsnummer"
+                log.warn("$accessDeniedMessage, {}", callIdArgument(callId))
+                call.respond(HttpStatusCode.Forbidden, accessDeniedMessage)
             }
         }
 
         post("/{uuid}/behandle") {
             val callId = getCallId()
-            try {
-                val token = getBearerHeader()
-                    ?: throw IllegalArgumentException("No Authorization header supplied")
+            val token = getBearerHeader()
+                ?: throw IllegalArgumentException("Error while processing of PersonOppgave for PersonIdent for navIdent: No Authorization header supplied")
 
-                val uuid: UUID = UUID.fromString(call.parameters["uuid"])
+            val uuid: UUID = UUID.fromString(call.parameters["uuid"])
 
-                val personoppgave = personOppgaveService.getPersonOppgave(uuid)
-                personoppgave?.let {
-                    if (personoppgave.behandletTidspunkt != null) {
-                        call.respond(HttpStatusCode.Conflict)
+            val personoppgave = personOppgaveService.getPersonOppgave(uuid)
+            personoppgave?.let {
+                if (personoppgave.behandletTidspunkt != null) {
+                    call.respond(HttpStatusCode.Conflict)
+                } else {
+                    if (veilederTilgangskontrollClient.hasAccessWithOBO(
+                            personoppgave.personIdentNumber,
+                            token,
+                            callId
+                        )
+                    ) {
+                        val navIdent = getNAVIdentFromToken(token)
+                        personOppgaveService.behandlePersonOppgave(personoppgave, navIdent, callId)
+                        call.respond(HttpStatusCode.OK)
                     } else {
-                        if (veilederTilgangskontrollClient.hasAccessWithOBO(personoppgave.personIdentNumber, token, callId)) {
-                            val navIdent = getNAVIdentFromToken(token)
-                            personOppgaveService.behandlePersonOppgave(personoppgave, navIdent, callId)
-                            call.respond(HttpStatusCode.OK)
-                        } else {
-                            val accessDeniedMessage = "Denied Veileder access to PersonOppgave for PersonIdent with Fodselsnummer"
-                            log.warn("$accessDeniedMessage, {}", callIdArgument(callId))
-                            call.respond(HttpStatusCode.Forbidden, accessDeniedMessage)
-                        }
+                        val accessDeniedMessage = "Denied Veileder access to PersonOppgave for PersonIdent with Fodselsnummer"
+                        log.warn("$accessDeniedMessage, {}", callIdArgument(callId))
+                        call.respond(HttpStatusCode.Forbidden, accessDeniedMessage)
                     }
-                } ?: call.respond(HttpStatusCode.BadRequest)
-            } catch (e: IllegalArgumentException) {
-                val illegalArgumentMessage = "Error while processing of PersonOppgave for PersonIdent for navIdent"
-                log.error("$illegalArgumentMessage: {}, {}", e.message, callIdArgument(callId))
-                call.respond(HttpStatusCode.BadRequest, e.message ?: illegalArgumentMessage)
-            }
+                }
+            } ?: throw IllegalArgumentException("Error while processing of PersonOppgave for PersonIdent for navIdent: No PersonOppgave was found for uuid")
         }
     }
 }
