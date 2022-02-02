@@ -36,13 +36,13 @@ class OppfolgingsplanLPSService(
                     kOppfolgingsplanLPSNAV,
                     PersonOppgaveType.OPPFOLGINGSPLANLPS
                 )
-                COUNT_PERSON_OPPGAVE_OPPFOLGINGSPLANLPS_CREATED.inc()
+                COUNT_PERSON_OPPGAVE_OPPFOLGINGSPLANLPS_CREATED.increment()
 
                 val fodselsnummer = PersonIdentNumber(kOppfolgingsplanLPSNAV.getFodselsnummer())
                 val sent = sendOversikthendelse(idPair.second, fodselsnummer, callId)
                 if (sent) {
                     database.updatePersonOppgaveOversikthendelse(idPair.first)
-                    COUNT_OVERSIKTHENDELSE_OPPFOLGINGSPLANLPS_BISTAND_MOTTATT_SENT.inc()
+                    COUNT_OVERSIKTHENDELSE_OPPFOLGINGSPLANLPS_BISTAND_MOTTATT_SENT.increment()
                 } else {
                     log.warn("Failed to send Oversikthendelse for OppfolgingsplanLPS due to missing BehandlendeEnhet. Sending Retry message {}", callIdArgument(callId))
                     oversikthendelseRetryProducer.sendFirstOversikthendelseRetry(
@@ -52,15 +52,15 @@ class OppfolgingsplanLPSService(
                         personOppgaveUUID = idPair.second,
                         callId = callId
                     )
-                    COUNT_OPPFOLGINGSPLANLPS_FIRST_OVERSIKTHENDELSE_RETRY.inc()
+                    COUNT_OPPFOLGINGSPLANLPS_FIRST_OVERSIKTHENDELSE_RETRY.increment()
                 }
             } else {
                 log.error("Already create a PersonOppgave for OppfolgingsplanLPS with UUID {}, {}", kOppfolgingsplanLPSNAV.getUuid(), callIdArgument(callId))
-                COUNT_PERSON_OPPGAVE_OPPFOLGINGSPLANLPS_ALREADY_CREATED.inc()
+                COUNT_PERSON_OPPGAVE_OPPFOLGINGSPLANLPS_ALREADY_CREATED.increment()
             }
         } else {
             log.info("OppfolgingsplanLPS does not have BehovForBistandFraNav=true and is skipped, {}", callIdArgument(callId))
-            COUNT_PERSON_OPPGAVE_OPPFOLGINGSPLANLPS_NO_BEHOVFORBISTAND.inc()
+            COUNT_PERSON_OPPGAVE_OPPFOLGINGSPLANLPS_NO_BEHOVFORBISTAND.increment()
         }
     }
 

@@ -42,7 +42,7 @@ class OversikthendelseRetryProducer(
             StructuredArguments.keyValue("retryTime", firstKOversikthendelseRetry.retryTime)!!,
             callIdArgument(callId)
         )
-        COUNT_OVERSIKTHENDELSE_RETRY_FIRST.inc()
+        COUNT_OVERSIKTHENDELSE_RETRY_FIRST.increment()
     }
 
     fun sendRetriedOversikthendelseRetry(
@@ -64,7 +64,7 @@ class OversikthendelseRetryProducer(
             StructuredArguments.keyValue("retryTime", newKOversikthendelseRetry.retryTime)!!,
             callIdArgument(callId)
         )
-        COUNT_OVERSIKTHENDELSE_RETRY_NEW.inc()
+        COUNT_OVERSIKTHENDELSE_RETRY_NEW.increment()
     }
 
     fun sendAgainOversikthendelseRetry(
@@ -79,7 +79,7 @@ class OversikthendelseRetryProducer(
             StructuredArguments.keyValue("retryTime", kOversikthendelseRetry.retryTime)!!,
             callIdArgument(callId)
         )
-        COUNT_OVERSIKTHENDELSE_RETRY_AGAIN.inc()
+        COUNT_OVERSIKTHENDELSE_RETRY_AGAIN.increment()
     }
 
     private fun producerRecord(oversikthendelseRetry: KOversikthendelseRetry) =
