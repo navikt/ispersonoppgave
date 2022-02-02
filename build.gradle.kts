@@ -5,25 +5,25 @@ group = "no.nav.syfo"
 version = "1.0-SNAPSHOT"
 
 object Versions {
-    const val avroVersion = "1.10.0"
-    const val confluentVersion = "6.1.3"
-    const val jacksonVersion = "2.13.1"
-    const val flywayVersion = "8.4.3"
-    const val hikariVersion = "5.0.1"
-    const val kafkaVersion = "2.7.0"
-    const val kafkaEmbeddedVersion = "2.7.0"
-    const val kluentVersion = "1.68"
-    const val ktorVersion = "1.6.7"
-    const val logbackVersion = "1.2.10"
-    const val logstashEncoderVersion = "7.0.1"
+    const val avro = "1.10.0"
+    const val confluent = "6.1.3"
+    const val jackson = "2.13.1"
+    const val flyway = "8.4.3"
+    const val hikari = "5.0.1"
+    const val kafka = "2.7.0"
+    const val kafkaEmbedded = "2.7.0"
+    const val kluent = "1.68"
+    const val ktor = "1.6.7"
+    const val logback = "1.2.10"
+    const val logstashEncoder = "7.0.1"
     const val micrometerRegistry = "1.8.2"
-    const val mockkVersion = "1.12.2"
-    const val nimbusjosejwtVersion = "9.18"
-    const val postgresVersion = "42.3.1"
-    const val postgresEmbeddedVersion = "0.13.4"
+    const val mockk = "1.12.2"
+    const val nimbusjosejwt = "9.18"
+    const val postgres = "42.3.1"
+    const val postgresEmbedded = "0.13.4"
     const val scala = "2.13.7"
-    const val spekVersion = "2.0.17"
-    const val syfoOppfolgingsplanSchemaVersion = "1.0.2"
+    const val spek = "2.0.17"
+    const val syfoOppfolgingsplanSchema = "1.0.2"
 }
 
 plugins {
@@ -52,51 +52,51 @@ dependencies {
     implementation(kotlin("stdlib"))
     implementation(kotlin("reflect"))
 
-    implementation("io.ktor:ktor-auth-jwt:${Versions.ktorVersion}")
-    implementation("io.ktor:ktor-client-apache:${Versions.ktorVersion}")
-    implementation("io.ktor:ktor-client-cio:${Versions.ktorVersion}")
-    implementation("io.ktor:ktor-client-jackson:${Versions.ktorVersion}")
-    implementation("io.ktor:ktor-jackson:${Versions.ktorVersion}")
-    implementation("io.ktor:ktor-server-netty:${Versions.ktorVersion}")
+    implementation("io.ktor:ktor-auth-jwt:${Versions.ktor}")
+    implementation("io.ktor:ktor-client-apache:${Versions.ktor}")
+    implementation("io.ktor:ktor-client-cio:${Versions.ktor}")
+    implementation("io.ktor:ktor-client-jackson:${Versions.ktor}")
+    implementation("io.ktor:ktor-jackson:${Versions.ktor}")
+    implementation("io.ktor:ktor-server-netty:${Versions.ktor}")
 
     // Logging
-    implementation("ch.qos.logback:logback-classic:${Versions.logbackVersion}")
-    implementation("net.logstash.logback:logstash-logback-encoder:${Versions.logstashEncoderVersion}")
+    implementation("ch.qos.logback:logback-classic:${Versions.logback}")
+    implementation("net.logstash.logback:logstash-logback-encoder:${Versions.logstashEncoder}")
 
     // Metrics and Prometheus
-    implementation("io.ktor:ktor-metrics-micrometer:${Versions.ktorVersion}")
+    implementation("io.ktor:ktor-metrics-micrometer:${Versions.ktor}")
     implementation("io.micrometer:micrometer-registry-prometheus:${Versions.micrometerRegistry}")
 
     // (De-)serialization
-    implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:${Versions.jacksonVersion}")
+    implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:${Versions.jackson}")
 
     // Database
-    implementation("org.postgresql:postgresql:${Versions.postgresVersion}")
-    implementation("org.flywaydb:flyway-core:${Versions.flywayVersion}")
-    implementation("com.zaxxer:HikariCP:${Versions.hikariVersion}")
-    testImplementation("com.opentable.components:otj-pg-embedded:${Versions.postgresEmbeddedVersion}")
+    implementation("org.postgresql:postgresql:${Versions.postgres}")
+    implementation("org.flywaydb:flyway-core:${Versions.flyway}")
+    implementation("com.zaxxer:HikariCP:${Versions.hikari}")
+    testImplementation("com.opentable.components:otj-pg-embedded:${Versions.postgresEmbedded}")
 
     // Kafka
-    implementation("org.apache.kafka:kafka_2.13:${Versions.kafkaVersion}")
-    implementation("org.apache.avro:avro:${Versions.avroVersion}")
-    implementation("io.confluent:kafka-avro-serializer:${Versions.confluentVersion}")
-    implementation("io.confluent:kafka-schema-registry:${Versions.confluentVersion}")
-    implementation("no.nav.syfo.oppfolgingsplan.avro:syfoopservice-schema:${Versions.syfoOppfolgingsplanSchemaVersion}")
+    implementation("org.apache.kafka:kafka_2.13:${Versions.kafka}")
+    implementation("org.apache.avro:avro:${Versions.avro}")
+    implementation("io.confluent:kafka-avro-serializer:${Versions.confluent}")
+    implementation("io.confluent:kafka-schema-registry:${Versions.confluent}")
+    implementation("no.nav.syfo.oppfolgingsplan.avro:syfoopservice-schema:${Versions.syfoOppfolgingsplanSchema}")
     implementation("org.scala-lang:scala-library") {
         version {
             strictly(Versions.scala)
         }
     }
-    testImplementation("no.nav:kafka-embedded-env:${Versions.kafkaEmbeddedVersion}")
+    testImplementation("no.nav:kafka-embedded-env:${Versions.kafkaEmbedded}")
 
-    testImplementation("com.nimbusds:nimbus-jose-jwt:${Versions.nimbusjosejwtVersion}")
-    testImplementation("io.ktor:ktor-server-test-host:${Versions.ktorVersion}")
-    testImplementation("io.mockk:mockk:${Versions.mockkVersion}")
-    testImplementation("org.amshove.kluent:kluent:${Versions.kluentVersion}")
-    testImplementation("org.spekframework.spek2:spek-dsl-jvm:${Versions.spekVersion}") {
+    testImplementation("com.nimbusds:nimbus-jose-jwt:${Versions.nimbusjosejwt}")
+    testImplementation("io.ktor:ktor-server-test-host:${Versions.ktor}")
+    testImplementation("io.mockk:mockk:${Versions.mockk}")
+    testImplementation("org.amshove.kluent:kluent:${Versions.kluent}")
+    testImplementation("org.spekframework.spek2:spek-dsl-jvm:${Versions.spek}") {
         exclude(group = "org.jetbrains.kotlin")
     }
-    testRuntimeOnly("org.spekframework.spek2:spek-runner-junit5:${Versions.spekVersion}") {
+    testRuntimeOnly("org.spekframework.spek2:spek-runner-junit5:${Versions.spek}") {
         exclude(group = "org.jetbrains.kotlin")
     }
 }
