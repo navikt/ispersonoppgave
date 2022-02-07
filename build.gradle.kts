@@ -76,18 +76,21 @@ dependencies {
     implementation("com.zaxxer:HikariCP:${Versions.hikari}")
     testImplementation("com.opentable.components:otj-pg-embedded:${Versions.postgresEmbedded}")
 
+    val excludeLog4j = fun ExternalModuleDependency.() {
+        exclude(group = "log4j")
+    }
     // Kafka
-    implementation("org.apache.kafka:kafka_2.13:${Versions.kafka}")
+    implementation("org.apache.kafka:kafka_2.13:${Versions.kafka}", excludeLog4j)
     implementation("org.apache.avro:avro:${Versions.avro}")
     implementation("io.confluent:kafka-avro-serializer:${Versions.confluent}")
-    implementation("io.confluent:kafka-schema-registry:${Versions.confluent}")
+    implementation("io.confluent:kafka-schema-registry:${Versions.confluent}", excludeLog4j)
     implementation("no.nav.syfo.oppfolgingsplan.avro:syfoopservice-schema:${Versions.syfoOppfolgingsplanSchema}")
     implementation("org.scala-lang:scala-library") {
         version {
             strictly(Versions.scala)
         }
     }
-    testImplementation("no.nav:kafka-embedded-env:${Versions.kafkaEmbedded}")
+    testImplementation("no.nav:kafka-embedded-env:${Versions.kafkaEmbedded}", excludeLog4j)
 
     testImplementation("com.nimbusds:nimbus-jose-jwt:${Versions.nimbusjosejwt}")
     testImplementation("io.ktor:ktor-server-test-host:${Versions.ktor}")
