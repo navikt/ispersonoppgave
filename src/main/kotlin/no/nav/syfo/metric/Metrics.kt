@@ -28,7 +28,7 @@ val COUNT_PERSON_OPPGAVE_OPPFOLGINGSPLANLPS_NO_BEHOVFORBISTAND: Counter =
         .register(METRICS_REGISTRY)
 
 const val OVERSIKTHENDELSE_OPPFOLGINGSPLANLPS_BISTAND_MOTTATT_SENT =
-    "oversikthendelse_oppfolgingsplanlps_bistand_mottatt_sent_count"
+    "${METRICS_NS}_oversikthendelse_oppfolgingsplanlps_bistand_mottatt_sent_count"
 val COUNT_OVERSIKTHENDELSE_OPPFOLGINGSPLANLPS_BISTAND_MOTTATT_SENT: Counter =
     Counter.builder(OVERSIKTHENDELSE_OPPFOLGINGSPLANLPS_BISTAND_MOTTATT_SENT)
         .description("Counts the number of Oversikthendelse with OversikthendelseType OPPFOLGINGSPLANLPS_BISTAND_MOTTATT created from a KOppfolgingsplanLPS")
