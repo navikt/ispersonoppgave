@@ -33,20 +33,14 @@ class AzureAdV2Mock {
     )
 
     val name = "azureadv2"
-    val server = mockAzureAdV2Server(port = port)
-
-    private fun mockAzureAdV2Server(
-        port: Int
-    ): NettyApplicationEngine {
-        return embeddedServer(
-            factory = Netty,
-            port = port
-        ) {
-            installContentNegotiation()
-            routing {
-                post {
-                    call.respond(aadV2TokenResponse)
-                }
+    val server = embeddedServer(
+        factory = Netty,
+        port = port,
+    ) {
+        installContentNegotiation()
+        routing {
+            post {
+                call.respond(aadV2TokenResponse)
             }
         }
     }

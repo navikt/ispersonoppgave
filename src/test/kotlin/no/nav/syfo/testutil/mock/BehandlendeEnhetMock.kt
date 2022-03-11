@@ -27,23 +27,19 @@ class BehandlendeEnhetMock {
 
     val behandlendeEnhet = generateBehandlendeEnhet()
     val name = "behandlendeenhet"
-    val server = mockBehandlendeEnhetServer()
-
-    private fun mockBehandlendeEnhetServer(): NettyApplicationEngine {
-        return embeddedServer(
-            factory = Netty,
-            port = port,
-        ) {
-            installContentNegotiation()
-            routing {
-                get(BEHANDLENDEENHET_PATH) {
-                    when {
-                        call.request.headers[NAV_PERSONIDENT_HEADER] == ARBEIDSTAKER_FNR.value -> {
-                            call.respond(behandlendeEnhet)
-                        }
-                        call.request.headers[NAV_PERSONIDENT_HEADER] == ARBEIDSTAKER_2_FNR.value -> {
-                            call.respond(HttpStatusCode.InternalServerError)
-                        }
+    val server = embeddedServer(
+        factory = Netty,
+        port = port,
+    ) {
+        installContentNegotiation()
+        routing {
+            get(BEHANDLENDEENHET_PATH) {
+                when {
+                    call.request.headers[NAV_PERSONIDENT_HEADER] == ARBEIDSTAKER_FNR.value -> {
+                        call.respond(behandlendeEnhet)
+                    }
+                    call.request.headers[NAV_PERSONIDENT_HEADER] == ARBEIDSTAKER_2_FNR.value -> {
+                        call.respond(HttpStatusCode.InternalServerError)
                     }
                 }
             }
