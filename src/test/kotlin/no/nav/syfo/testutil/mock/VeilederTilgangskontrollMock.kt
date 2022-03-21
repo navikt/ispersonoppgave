@@ -17,12 +17,10 @@ class VeilederTilgangskontrollMock {
     private val port = getRandomPort()
     val url = "http://localhost:$port"
     val tilgangFalse = Tilgang(
-        false,
-        ""
+        harTilgang = false,
     )
     val tilgangTrue = Tilgang(
-        true,
-        ""
+        harTilgang = true,
     )
 
     val name = "veiledertilgangskontroll"
