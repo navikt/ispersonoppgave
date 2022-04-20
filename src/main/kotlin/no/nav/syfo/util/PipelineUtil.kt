@@ -1,6 +1,6 @@
 package no.nav.syfo.util
 
-import io.ktor.application.*
+import io.ktor.server.application.*
 import io.ktor.util.pipeline.*
 import java.util.*
 

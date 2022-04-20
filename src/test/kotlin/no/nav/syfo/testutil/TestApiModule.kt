@@ -1,6 +1,6 @@
 package no.nav.syfo.testutil
 
-import io.ktor.application.*
+import io.ktor.server.application.*
 import no.nav.syfo.api.apiModule
 import no.nav.syfo.client.azuread.v2.AzureAdV2Client
 import no.nav.syfo.client.enhet.BehandlendeEnhetClient
