@@ -1,6 +1,6 @@
 package no.nav.syfo.database
 
-import io.ktor.application.*
+import io.ktor.server.application.*
 import no.nav.syfo.*
 
 lateinit var database: DatabaseInterface

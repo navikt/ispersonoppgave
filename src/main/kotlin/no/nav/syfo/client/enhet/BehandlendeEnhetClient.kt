@@ -1,7 +1,7 @@
 package no.nav.syfo.client.enhet
 
 import io.ktor.client.call.*
-import io.ktor.client.features.*
+import io.ktor.client.plugins.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
@@ -41,7 +41,7 @@ class BehandlendeEnhetClient(
 
             when (response.status) {
                 HttpStatusCode.OK -> {
-                    val behandlendeEnhet = response.receive<BehandlendeEnhet>()
+                    val behandlendeEnhet = response.body<BehandlendeEnhet>()
                     return if (isValid(behandlendeEnhet)) {
                         COUNT_CALL_BEHANDLENDEENHET_SUCCESS.increment()
                         behandlendeEnhet

@@ -1,9 +1,9 @@
 package no.nav.syfo.personoppgave.api.v2
 
-import io.ktor.application.*
+import io.ktor.server.application.*
 import io.ktor.http.*
-import io.ktor.response.*
-import io.ktor.routing.*
+import io.ktor.server.response.*
+import io.ktor.server.routing.*
 import no.nav.syfo.auth.getNAVIdentFromToken
 import no.nav.syfo.client.veiledertilgang.VeilederTilgangskontrollClient
 import no.nav.syfo.domain.PersonIdentNumber
