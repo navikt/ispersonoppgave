@@ -1,6 +1,5 @@
 package no.nav.syfo
 
-import kotlinx.coroutines.*
 import no.nav.syfo.client.enhet.BehandlendeEnhetClient
 import no.nav.syfo.database.DatabaseInterface
 import no.nav.syfo.oversikthendelse.OversikthendelseProducer
@@ -43,19 +42,5 @@ fun launchKafkaTasks(
             environment = environment,
             oversikthendelseRetryService = oversikthendelseRetryService,
         )
-    }
-}
-
-fun launchBackgroundTask(
-    applicationState: ApplicationState,
-    action: suspend CoroutineScope.() -> Unit
-): Job = GlobalScope.launch {
-    try {
-        action()
-    } catch (ex: Exception) {
-        log.error("Exception received while launching background task. Terminating application.", ex)
-    } finally {
-        applicationState.alive = false
-        applicationState.ready = false
     }
 }
