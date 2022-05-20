@@ -7,19 +7,19 @@ version = "1.0-SNAPSHOT"
 object Versions {
     const val avro = "1.10.0"
     const val confluent = "6.2.2"
-    const val jackson = "2.13.1"
-    const val flyway = "8.5.9"
+    const val jackson = "2.13.3"
+    const val flyway = "8.5.11"
     const val hikari = "5.0.1"
     const val kafka = "2.8.1"
     const val kafkaEmbedded = "2.8.1"
     const val kluent = "1.68"
-    const val ktor = "2.0.0"
+    const val ktor = "2.0.1"
     const val logback = "1.2.11"
-    const val logstashEncoder = "7.1.1"
-    const val micrometerRegistry = "1.8.5"
-    const val mockk = "1.12.3"
+    const val logstashEncoder = "7.2"
+    const val micrometerRegistry = "1.9.0"
+    const val mockk = "1.12.4"
     const val nimbusjosejwt = "9.22"
-    const val postgres = "42.3.4"
+    const val postgres = "42.3.5"
     const val postgresEmbedded = "0.13.4"
     const val scala = "2.13.7"
     const val spek = "2.0.18"
@@ -27,9 +27,9 @@ object Versions {
 }
 
 plugins {
-    kotlin("jvm") version "1.6.20"
+    kotlin("jvm") version "1.6.21"
     id("com.github.johnrengelman.shadow") version "7.1.2"
-    id("org.jlleitschuh.gradle.ktlint") version "10.2.1"
+    id("org.jlleitschuh.gradle.ktlint") version "10.3.0"
 }
 
 val githubUser: String by project
