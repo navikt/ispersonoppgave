@@ -109,7 +109,7 @@ fun main() {
         }
     )
 
-    server.start(wait = false)
+    server.start(wait = true)
 }
 
 val Application.envKind get() = environment.config.property("ktor.environment").getString()
