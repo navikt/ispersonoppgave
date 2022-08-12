@@ -10,7 +10,7 @@ import no.nav.syfo.client.azuread.v2.AzureAdV2Client
 import no.nav.syfo.client.enhet.BehandlendeEnhetClient
 import no.nav.syfo.client.veiledertilgang.VeilederTilgangskontrollClient
 import no.nav.syfo.database.DatabaseInterface
-import no.nav.syfo.oversikthendelse.OversikthendelseProducer
+import no.nav.syfo.personoppgavehendelse.PersonoppgavehendelseProducer
 import no.nav.syfo.personoppgave.PersonOppgaveService
 import no.nav.syfo.personoppgave.api.v2.registerVeilederPersonOppgaveApiV2
 
@@ -19,7 +19,7 @@ fun Application.apiModule(
     behandlendeEnhetClient: BehandlendeEnhetClient,
     database: DatabaseInterface,
     environment: Environment,
-    oversikthendelseProducer: OversikthendelseProducer,
+    personoppgavehendelseProducer: PersonoppgavehendelseProducer,
     wellKnownInternADV2: WellKnown,
 ) {
     installCallId()
@@ -39,7 +39,7 @@ fun Application.apiModule(
     val personOppgaveService = PersonOppgaveService(
         database = database,
         behandlendeEnhetClient = behandlendeEnhetClient,
-        oversikthendelseProducer = oversikthendelseProducer,
+        personoppgavehendelseProducer = personoppgavehendelseProducer,
     )
     val azureAdV2Client = AzureAdV2Client(
         azureAppClientId = environment.azureAppClientId,

@@ -4,11 +4,11 @@ import io.ktor.server.application.*
 import no.nav.syfo.api.apiModule
 import no.nav.syfo.client.azuread.v2.AzureAdV2Client
 import no.nav.syfo.client.enhet.BehandlendeEnhetClient
-import no.nav.syfo.oversikthendelse.OversikthendelseProducer
+import no.nav.syfo.personoppgavehendelse.PersonoppgavehendelseProducer
 
 fun Application.testApiModule(
     externalMockEnvironment: ExternalMockEnvironment,
-    oversikthendelseProducer: OversikthendelseProducer,
+    personoppgavehendelseProducer: PersonoppgavehendelseProducer,
 ) {
     val azureAdClient = AzureAdV2Client(
         azureAppClientId = externalMockEnvironment.environment.azureAppClientId,
@@ -27,7 +27,7 @@ fun Application.testApiModule(
         database = externalMockEnvironment.database,
         environment = externalMockEnvironment.environment,
         behandlendeEnhetClient = behandlendeEnhetClient,
-        oversikthendelseProducer = oversikthendelseProducer,
+        personoppgavehendelseProducer = personoppgavehendelseProducer,
         wellKnownInternADV2 = externalMockEnvironment.wellKnownInternADV2Mock,
     )
 }

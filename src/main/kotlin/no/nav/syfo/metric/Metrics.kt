@@ -27,11 +27,11 @@ val COUNT_PERSON_OPPGAVE_OPPFOLGINGSPLANLPS_NO_BEHOVFORBISTAND: Counter =
         .description("Counts the number KOppfolgingsplanLPS skipped due to no BehovForBistandFraNav")
         .register(METRICS_REGISTRY)
 
-const val OVERSIKTHENDELSE_OPPFOLGINGSPLANLPS_BISTAND_MOTTATT_SENT =
-    "${METRICS_NS}_oversikthendelse_oppfolgingsplanlps_bistand_mottatt_sent_count"
-val COUNT_OVERSIKTHENDELSE_OPPFOLGINGSPLANLPS_BISTAND_MOTTATT_SENT: Counter =
-    Counter.builder(OVERSIKTHENDELSE_OPPFOLGINGSPLANLPS_BISTAND_MOTTATT_SENT)
-        .description("Counts the number of Oversikthendelse with OversikthendelseType OPPFOLGINGSPLANLPS_BISTAND_MOTTATT created from a KOppfolgingsplanLPS")
+const val PERSONOPPGAVEHENDELSE_OPPFOLGINGSPLANLPS_BISTAND_MOTTATT_SENT =
+    "${METRICS_NS}_personoppgavehendelse_oppfolgingsplanlps_bistand_mottatt_sent_count"
+val COUNT_PERSONOPPGAVEHENDELSE_OPPFOLGINGSPLANLPS_BISTAND_MOTTATT_SENT: Counter =
+    Counter.builder(PERSONOPPGAVEHENDELSE_OPPFOLGINGSPLANLPS_BISTAND_MOTTATT_SENT)
+        .description("Counts the number of personoppgavehendelse with PersonoppgavehendelseType OPPFOLGINGSPLANLPS_BISTAND_MOTTATT created from a KOppfolgingsplanLPS")
         .register(METRICS_REGISTRY)
 
 const val CALL_BEHANDLENDEENHET_SUCCESS = "${METRICS_NS}_call_behandlendeenhet_success_count"
@@ -58,31 +58,4 @@ val COUNT_CALL_TILGANGSKONTROLL_PERSON_FAIL: Counter = Counter.builder(CALL_TILG
     .register(METRICS_REGISTRY)
 val COUNT_CALL_TILGANGSKONTROLL_PERSON_FORBIDDEN: Counter = Counter.builder(CALL_TILGANGSKONTROLL_PERSON_FORBIDDEN)
     .description("Counts the number of forbidden calls to syfo-tilgangskontroll - person")
-    .register(METRICS_REGISTRY)
-
-const val OPPFOLGINGSPLANLPS_FIRST_OVERSIKTHENDELSE_RETRY =
-    "${METRICS_NS}_oppfolgingsplanlps_first_oversikthendelse_retry_count"
-val COUNT_OPPFOLGINGSPLANLPS_FIRST_OVERSIKTHENDELSE_RETRY: Counter =
-    Counter.builder(OPPFOLGINGSPLANLPS_FIRST_OVERSIKTHENDELSE_RETRY)
-        .description("Counts the number of KOppfolgingsplanLPS generated new OversikthendelseRetry because BehandlendeEnhet was not found")
-        .register(METRICS_REGISTRY)
-
-const val OVERSIKTHENDELSE_RETRY_OPPFOLGINGSPLANLPS_BISTAND_MOTTATT_SKIPPED =
-    "${METRICS_NS}_oppfolgingsplanlps_skipped_retry_count"
-val COUNT_OVERSIKTHENDELSE_RETRY_OPPFOLGINGSPLANLPS_BISTAND_MOTTATT_SKIPPED: Counter =
-    Counter.builder(OVERSIKTHENDELSE_RETRY_OPPFOLGINGSPLANLPS_BISTAND_MOTTATT_SKIPPED)
-        .description("Counts the number of Oversikthendelse with type OPPFOLGINGSPLANLPS_MOTTATT not sent due to reached try limit for")
-        .register(METRICS_REGISTRY)
-
-const val OVERSIKTHENDELSE_RETRY_FIRST = "${METRICS_NS}_oversikthendelse_retry_first_count"
-val COUNT_OVERSIKTHENDELSE_RETRY_FIRST: Counter = Counter.builder(OVERSIKTHENDELSE_RETRY_FIRST)
-    .description("Counts the number of OversikthendelseRetry with unchanged retryCount sent")
-    .register(METRICS_REGISTRY)
-const val OVERSIKTHENDELSE_RETRY_NEW = "${METRICS_NS}_oversikthendelse_retry_new_count"
-val COUNT_OVERSIKTHENDELSE_RETRY_NEW: Counter = Counter.builder(OVERSIKTHENDELSE_RETRY_NEW)
-    .description("Counts the number of OversikthendelseRetry with increased retryCount sent")
-    .register(METRICS_REGISTRY)
-const val OVERSIKTHENDELSE_RETRY_AGAIN = "${METRICS_NS}_oversikthendelse_retry_again_count"
-val COUNT_OVERSIKTHENDELSE_RETRY_AGAIN: Counter = Counter.builder(OVERSIKTHENDELSE_RETRY_AGAIN)
-    .description("Counts the number of OversikthendelseRetry with increased retryCount sent")
     .register(METRICS_REGISTRY)

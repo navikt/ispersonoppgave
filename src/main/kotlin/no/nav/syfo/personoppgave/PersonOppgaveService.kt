@@ -4,8 +4,8 @@ import net.logstash.logback.argument.StructuredArguments
 import no.nav.syfo.client.enhet.BehandlendeEnhetClient
 import no.nav.syfo.database.DatabaseInterface
 import no.nav.syfo.domain.PersonIdentNumber
-import no.nav.syfo.oversikthendelse.OversikthendelseProducer
-import no.nav.syfo.oversikthendelse.domain.OversikthendelseType
+import no.nav.syfo.personoppgavehendelse.PersonoppgavehendelseProducer
+import no.nav.syfo.personoppgavehendelse.domain.PersonoppgavehendelseType
 import no.nav.syfo.personoppgave.domain.*
 import org.slf4j.LoggerFactory
 import java.util.*
@@ -13,7 +13,7 @@ import java.util.*
 class PersonOppgaveService(
     private val database: DatabaseInterface,
     private val behandlendeEnhetClient: BehandlendeEnhetClient,
-    private val oversikthendelseProducer: OversikthendelseProducer,
+    private val personoppgavehendelseProducer: PersonoppgavehendelseProducer,
 ) {
     fun getPersonOppgaveList(
         personIdentNumber: PersonIdentNumber
@@ -48,22 +48,20 @@ class PersonOppgaveService(
             .size == 1
 
         if (isOnePersonOppgaveUbehandlet) {
-            oversikthendelseProducer.sendOversikthendelse(
-                personoppgave.uuid,
+            personoppgavehendelseProducer.sendPersonoppgavehendelse(
+                PersonoppgavehendelseType.OPPFOLGINGSPLANLPS_BISTAND_BEHANDLET,
                 personFnr,
-                behandlendeEnhet,
-                OversikthendelseType.OPPFOLGINGSPLANLPS_BISTAND_BEHANDLET,
-                callId
+                personoppgave.uuid,
             )
             LOG.info(
-                "Sent Oversikthendelse, {}, {}",
-                StructuredArguments.keyValue("type", OversikthendelseType.OPPFOLGINGSPLANLPS_BISTAND_BEHANDLET),
+                "Sent Personoppgavehendelse, {}, {}",
+                StructuredArguments.keyValue("type", PersonoppgavehendelseType.OPPFOLGINGSPLANLPS_BISTAND_BEHANDLET),
                 StructuredArguments.keyValue("veilederident", veilederIdent)
             )
         } else {
             LOG.info(
-                "No Oversikthendelse sent, isOnePersonOppgaveUbehandlet=false, {}, {}",
-                StructuredArguments.keyValue("type", OversikthendelseType.OPPFOLGINGSPLANLPS_BISTAND_BEHANDLET),
+                "No Personoppgavehendelse sent, isOnePersonOppgaveUbehandlet=false, {}, {}",
+                StructuredArguments.keyValue("type", PersonoppgavehendelseType.OPPFOLGINGSPLANLPS_BISTAND_BEHANDLET),
                 StructuredArguments.keyValue("veilederident", veilederIdent)
             )
         }

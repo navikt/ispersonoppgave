@@ -1,7 +1,6 @@
 package no.nav.syfo.testutil
 
-import no.nav.syfo.ApplicationState
-import no.nav.syfo.Environment
+import no.nav.syfo.*
 import java.net.ServerSocket
 
 fun testEnvironment(
@@ -29,6 +28,16 @@ fun testEnvironment(
     behandlendeenhetUrl = behandlendeEnhetUrl,
     syfotilgangskontrollClientId = syfotilgangskontrollUrl,
     syfotilgangskontrollUrl = syfotilgangskontrollUrl,
+    kafka = EnvironmentKafka(
+        aivenBootstrapServers = kafkaBootstrapServers,
+        aivenSchemaRegistryUrl = "http://kafka-schema-registry.tpa.svc.nais.local:8081",
+        aivenRegistryUser = "registryuser",
+        aivenRegistryPassword = "registrypassword",
+        aivenSecurityProtocol = "SSL",
+        aivenCredstorePassword = "credstorepassord",
+        aivenTruststoreLocation = "truststore",
+        aivenKeystoreLocation = "keystore",
+    ),
     toggleKafkaConsumerEnabled = true,
 )
 

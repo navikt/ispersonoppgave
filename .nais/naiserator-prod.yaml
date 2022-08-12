@@ -67,6 +67,8 @@ spec:
         diskAutoresize: true
   envFrom:
     - secret: ispersonoppgave-serviceuser
+  kafka:
+    pool: nav-prod
   env:
     - name: KTOR_ENV
       value: production
