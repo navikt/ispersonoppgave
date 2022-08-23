@@ -6,17 +6,17 @@ version = "1.0-SNAPSHOT"
 
 object Versions {
     const val avro = "1.10.0"
-    const val confluent = "6.2.2"
+    const val confluent = "7.2.1"
     const val jackson = "2.13.3"
     const val flyway = "8.5.13"
     const val hikari = "5.0.1"
-    const val kafka = "2.8.1"
-    const val kafkaEmbedded = "2.8.1"
+    const val kafka = "3.2.0"
+    const val kafkaEmbedded = "3.2.1"
     const val kluent = "1.68"
-    const val ktor = "2.0.2"
+    const val ktor = "2.1.0"
     const val logback = "1.2.11"
     const val logstashEncoder = "7.2"
-    const val micrometerRegistry = "1.9.1"
+    const val micrometerRegistry = "1.9.2"
     const val mockk = "1.12.4"
     const val nimbusjosejwt = "9.23"
     const val postgres = "42.4.1"
@@ -94,6 +94,14 @@ dependencies {
         }
     }
     testImplementation("no.nav:kafka-embedded-env:${Versions.kafkaEmbedded}", excludeLog4j)
+    constraints {
+        implementation("org.eclipse.jetty.http2:http2-server") {
+            because("no.nav:kafka-embedded-env:${Versions.kafkaEmbedded} -> https://advisory.checkmarx.net/advisory/vulnerability/CVE-2022-2048/")
+            version {
+                require("9.4.48.v20220622")
+            }
+        }
+    }
 
     testImplementation("com.nimbusds:nimbus-jose-jwt:${Versions.nimbusjosejwt}")
     testImplementation("io.ktor:ktor-server-test-host:${Versions.ktor}")
