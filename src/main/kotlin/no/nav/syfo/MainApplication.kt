@@ -11,11 +11,9 @@ import no.nav.syfo.client.azuread.v2.AzureAdV2Client
 import no.nav.syfo.client.enhet.BehandlendeEnhetClient
 import no.nav.syfo.database.database
 import no.nav.syfo.database.databaseModule
-import no.nav.syfo.kafka.kafkaProducerConfig
-import no.nav.syfo.oversikthendelse.OversikthendelseProducer
-import no.nav.syfo.oversikthendelse.domain.KOversikthendelse
-import no.nav.syfo.oversikthendelse.retry.KOversikthendelseRetry
-import no.nav.syfo.oversikthendelse.retry.OversikthendelseRetryProducer
+import no.nav.syfo.kafka.kafkaAivenProducerConfig
+import no.nav.syfo.personoppgavehendelse.PersonoppgavehendelseProducer
+import no.nav.syfo.personoppgavehendelse.domain.KPersonoppgavehendelse
 import org.apache.kafka.clients.producer.KafkaProducer
 import org.slf4j.LoggerFactory
 import java.util.concurrent.TimeUnit
@@ -44,14 +42,9 @@ fun main() {
         baseUrl = environment.behandlendeenhetUrl,
         syfobehandlendeenhetClientId = environment.syfobehandlendeenhetClientId,
     )
-    val producerProperties = kafkaProducerConfig(env = environment)
-    val oversikthendelseRecordProducer = KafkaProducer<String, KOversikthendelse>(producerProperties)
-    val oversikthendelseProducer = OversikthendelseProducer(oversikthendelseRecordProducer)
-
-    val oversikthendelseRetryProducerProperties = kafkaProducerConfig(env = environment)
-    val oversikthendelseRetryRecordProducer =
-        KafkaProducer<String, KOversikthendelseRetry>(oversikthendelseRetryProducerProperties)
-    val oversikthendelseRetryProducer = OversikthendelseRetryProducer(oversikthendelseRetryRecordProducer)
+    val producerProperties = kafkaAivenProducerConfig(kafkaEnvironment = environment.kafka)
+    val kafkaProducer = KafkaProducer<String, KPersonoppgavehendelse>(producerProperties)
+    val personoppgavehendelseProducer = PersonoppgavehendelseProducer(kafkaProducer)
 
     val wellKnownInternADV2 = getWellKnown(
         wellKnownUrl = environment.azureAppWellKnownUrl,
@@ -73,7 +66,7 @@ fun main() {
                 behandlendeEnhetClient = behandlendeEnhetClient,
                 database = database,
                 environment = environment,
-                oversikthendelseProducer = oversikthendelseProducer,
+                personoppgavehendelseProducer = personoppgavehendelseProducer,
                 wellKnownInternADV2 = wellKnownInternADV2,
             )
         }
@@ -87,9 +80,7 @@ fun main() {
                 applicationState = applicationState,
                 database = database,
                 environment = environment,
-                behandlendeEnhetClient = behandlendeEnhetClient,
-                oversikthendelseProducer = oversikthendelseProducer,
-                oversikthendelseRetryProducer = oversikthendelseRetryProducer,
+                personoppgavehendelseProducer = personoppgavehendelseProducer,
             )
         }
     }

@@ -23,15 +23,3 @@ spec:
       description: "App restarter mange ganger"
       action: "Undersøk hvorfor pods restarter ofte."
       severity: warning
-    - alert: ISPERSONOPPGAVE prøver å sende Oversikthendelse(r) på nytt(PROD)
-      expr: sum(increase(ispersonoppgave_oversikthendelse_retry_again_count_total{app="ispersonoppgave"} [1h])) > 0
-      for: 5m
-      description: "Minst 1 Oversikthendelse har ikke blitt sent til topic og app er i gang med retry"
-      action: "Overvåk situasjonen og se etter feil i ispersonoppgave eller syfobehandlendenhet."
-      severity: warning
-    - alert: ISPERSONOPPGAVE mislykkes i å sende Oversikthendelse for OPPFOLGINGSPLANLPS_BISTAND_MOTTATT!(PROD)
-      expr: sum(increase(ispersonoppgave_oppfolgingsplanlps_skipped_retry_count_total{app="ispersonoppgave"} [1h])) > 0
-      for: 5m
-      description: "Minst 1 Oversikthendelse med type OPPFOLGINGSPLANLPS_BISTAND_MOTTATT har ikke blitt sent til topic."
-      action: "Minst 1 hendelse har ikke kommet frem dit den skal. Dette må håndteres manuelt slik at Oversikthendelse blir sendt."
-      severity: danger

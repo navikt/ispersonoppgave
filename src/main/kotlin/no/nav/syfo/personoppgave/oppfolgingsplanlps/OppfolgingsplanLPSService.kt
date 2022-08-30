@@ -1,16 +1,14 @@
 package no.nav.syfo.personoppgave.oppfolgingsplanlps
 
-import no.nav.syfo.client.enhet.BehandlendeEnhetClient
 import no.nav.syfo.database.DatabaseInterface
 import no.nav.syfo.domain.PersonIdentNumber
 import no.nav.syfo.metric.*
 import no.nav.syfo.oppfolgingsplan.avro.KOppfolgingsplanLPSNAV
-import no.nav.syfo.oversikthendelse.OversikthendelseProducer
-import no.nav.syfo.oversikthendelse.domain.OversikthendelseType
-import no.nav.syfo.oversikthendelse.retry.OversikthendelseRetryProducer
 import no.nav.syfo.personoppgave.*
 import no.nav.syfo.personoppgave.domain.PPersonOppgave
 import no.nav.syfo.personoppgave.domain.PersonOppgaveType
+import no.nav.syfo.personoppgavehendelse.PersonoppgavehendelseProducer
+import no.nav.syfo.personoppgavehendelse.domain.PersonoppgavehendelseType
 import no.nav.syfo.util.callIdArgument
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -20,11 +18,9 @@ val log: Logger = LoggerFactory.getLogger("no.nav.syfo.personoppgave.oppfolgings
 
 class OppfolgingsplanLPSService(
     private val database: DatabaseInterface,
-    private val behandlendeEnhetClient: BehandlendeEnhetClient,
-    private val oversikthendelseProducer: OversikthendelseProducer,
-    private val oversikthendelseRetryProducer: OversikthendelseRetryProducer
+    private val personoppgavehendelseProducer: PersonoppgavehendelseProducer,
 ) {
-    suspend fun receiveOppfolgingsplanLPS(
+    fun receiveOppfolgingsplanLPS(
         kOppfolgingsplanLPSNAV: KOppfolgingsplanLPSNAV,
         callId: String = ""
     ) {
@@ -32,6 +28,7 @@ class OppfolgingsplanLPSService(
             val person: PPersonOppgave? = database.getPersonOppgaveList(PersonIdentNumber(kOppfolgingsplanLPSNAV.getFodselsnummer()))
                 .find { it.referanseUuid == UUID.fromString(kOppfolgingsplanLPSNAV.getUuid()) }
             if (person == null) {
+                log.info("Didn't find person with oppgave based on given referanseUuid: ${kOppfolgingsplanLPSNAV.getUuid()} creating new Personoppgave")
                 val idPair = database.createPersonOppgave(
                     kOppfolgingsplanLPSNAV,
                     PersonOppgaveType.OPPFOLGINGSPLANLPS
@@ -39,21 +36,9 @@ class OppfolgingsplanLPSService(
                 COUNT_PERSON_OPPGAVE_OPPFOLGINGSPLANLPS_CREATED.increment()
 
                 val fodselsnummer = PersonIdentNumber(kOppfolgingsplanLPSNAV.getFodselsnummer())
-                val sent = sendOversikthendelse(idPair.second, fodselsnummer, callId)
-                if (sent) {
-                    database.updatePersonOppgaveOversikthendelse(idPair.first)
-                    COUNT_OVERSIKTHENDELSE_OPPFOLGINGSPLANLPS_BISTAND_MOTTATT_SENT.increment()
-                } else {
-                    log.warn("Failed to send Oversikthendelse for OppfolgingsplanLPS due to missing BehandlendeEnhet. Sending Retry message {}", callIdArgument(callId))
-                    oversikthendelseRetryProducer.sendFirstOversikthendelseRetry(
-                        personIdentNumber = fodselsnummer,
-                        oversikthendelseType = OversikthendelseType.OPPFOLGINGSPLANLPS_BISTAND_MOTTATT,
-                        personOppgaveId = idPair.first,
-                        personOppgaveUUID = idPair.second,
-                        callId = callId
-                    )
-                    COUNT_OPPFOLGINGSPLANLPS_FIRST_OVERSIKTHENDELSE_RETRY.increment()
-                }
+                sendPersonoppgavehendelse(idPair.second, fodselsnummer)
+                database.updatePersonOppgaveOversikthendelse(idPair.first)
+                COUNT_PERSONOPPGAVEHENDELSE_OPPFOLGINGSPLANLPS_BISTAND_MOTTATT_SENT.increment()
             } else {
                 log.error("Already create a PersonOppgave for OppfolgingsplanLPS with UUID {}, {}", kOppfolgingsplanLPSNAV.getUuid(), callIdArgument(callId))
                 COUNT_PERSON_OPPGAVE_OPPFOLGINGSPLANLPS_ALREADY_CREATED.increment()
@@ -64,20 +49,14 @@ class OppfolgingsplanLPSService(
         }
     }
 
-    suspend fun sendOversikthendelse(
+    private fun sendPersonoppgavehendelse(
         personOppgaveUUID: UUID,
         personIdentNumber: PersonIdentNumber,
-        callId: String = ""
-    ): Boolean {
-        val behandlendeEnhet = behandlendeEnhetClient.getEnhet(personIdentNumber, callId) ?: return false
-
-        oversikthendelseProducer.sendOversikthendelse(
-            personOppgaveUUID,
+    ) {
+        personoppgavehendelseProducer.sendPersonoppgavehendelse(
+            PersonoppgavehendelseType.OPPFOLGINGSPLANLPS_BISTAND_MOTTATT,
             personIdentNumber,
-            behandlendeEnhet,
-            OversikthendelseType.OPPFOLGINGSPLANLPS_BISTAND_MOTTATT,
-            callId
+            personOppgaveUUID,
         )
-        return true
     }
 }

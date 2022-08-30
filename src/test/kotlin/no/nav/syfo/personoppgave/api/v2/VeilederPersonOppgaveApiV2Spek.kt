@@ -4,8 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
 import io.ktor.http.*
 import io.ktor.server.testing.*
-import no.nav.syfo.oversikthendelse.domain.KOversikthendelse
-import no.nav.syfo.oversikthendelse.domain.OversikthendelseType
+import no.nav.syfo.personoppgavehendelse.domain.*
 import no.nav.syfo.personoppgave.api.PersonOppgaveVeileder
 import no.nav.syfo.personoppgave.domain.PersonOppgaveType
 import no.nav.syfo.testutil.*
@@ -30,16 +29,16 @@ class VeilederPersonOppgaveApiV2Spek : Spek({
 
             val baseUrl = registerVeilederPersonOppgaveApiV2BasePath
 
-            val consumerOversikthendelse = testOversikthendelseConsumer(
+            val consumerPersonoppgavehendelse = testPersonoppgavehendelseConsumer(
                 environment = externalMockEnvironment.environment,
             )
-            val oversikthendelseProducer = testOversikthendelseProducer(
+            val personoppgavehendelseProducer = testPersonoppgavehendelseProducer(
                 environment = externalMockEnvironment.environment,
             )
 
             application.testApiModule(
                 externalMockEnvironment = externalMockEnvironment,
-                oversikthendelseProducer = oversikthendelseProducer,
+                personoppgavehendelseProducer = personoppgavehendelseProducer,
             )
 
             afterEachTest {
@@ -63,7 +62,7 @@ class VeilederPersonOppgaveApiV2Spek : Spek({
             describe("Get PersonOppgave for PersonIdent") {
                 val url = "$baseUrl/personident"
 
-                it("should return status BadRequest if not NAV_PERSONIDENT_HEADER is supplied") {
+                it("returns status BadRequest if NAV_PERSONIDENT_HEADER is missing") {
 
                     with(
                         handleRequest(HttpMethod.Get, url) {
@@ -74,7 +73,7 @@ class VeilederPersonOppgaveApiV2Spek : Spek({
                     }
                 }
 
-                it("should return status BadRequest if NAV_PERSONIDENT_HEADER with invalid Fodselsnummer is supplied") {
+                it("returns status BadRequest if NAV_PERSONIDENT_HEADER has an invalid Fodselsnummer") {
                     with(
                         handleRequest(HttpMethod.Get, url) {
                             addHeader(NAV_PERSONIDENT_HEADER, ARBEIDSTAKER_FNR.value.drop(1))
@@ -85,7 +84,7 @@ class VeilederPersonOppgaveApiV2Spek : Spek({
                     }
                 }
 
-                it("should return status Forbidden Veileder does not have access to request PersonIdent") {
+                it("returns status Forbidden if Veileder does not have access to request PersonIdent") {
                     with(
                         handleRequest(HttpMethod.Get, url) {
                             addHeader(NAV_PERSONIDENT_HEADER, ARBEIDSTAKER_FNR.value.drop(1).plus("0"))
@@ -96,7 +95,7 @@ class VeilederPersonOppgaveApiV2Spek : Spek({
                     }
                 }
 
-                it("should return status NoContent if there is no PersonOppgaver for PersonIdent") {
+                it("returns status NoContent if there is no PersonOppgaver for PersonIdent") {
                     with(
                         handleRequest(HttpMethod.Get, url) {
                             addHeader(NAV_PERSONIDENT_HEADER, ARBEIDSTAKER_FNR.value)
@@ -107,7 +106,7 @@ class VeilederPersonOppgaveApiV2Spek : Spek({
                     }
                 }
 
-                it("should return PersonOppgaveList if there is a PersonOppgave for PersonIdent with type OppfolgingsplanLPS") {
+                it("returns PersonOppgaveList if there is a PersonOppgave with type OppfolgingsplanLPS for PersonIdent") {
                     val kOppfolgingsplanLPSNAV = generateKOppfolgingsplanLPSNAV
                     val personOppgaveType = PersonOppgaveType.OPPFOLGINGSPLANLPS
                     database.connection.createPersonOppgave(
@@ -141,7 +140,7 @@ class VeilederPersonOppgaveApiV2Spek : Spek({
             }
 
             describe("Process PersonOppgave for PersonIdent") {
-                it("should return OK and not send Oversikthendelse if processed 1 of 2 existing PersonOppgave") {
+                it("returns OK and does NOT send Personoppgavehendelse if processed 1 of 2 existing PersonOppgave") {
                     val kOppfolgingsplanLPSNAV = generateKOppfolgingsplanLPSNAV
                     val kOppfolgingsplanLPSNAV2 = generateKOppfolgingsplanLPSNAV2
                     val personOppgaveType = PersonOppgaveType.OPPFOLGINGSPLANLPS
@@ -207,16 +206,16 @@ class VeilederPersonOppgaveApiV2Spek : Spek({
                         personOppgaveUbehandlet.behandletVeilederIdent.shouldBeNull()
                         personOppgaveUbehandlet.opprettet.shouldNotBeNull()
 
-                        val messages: ArrayList<KOversikthendelse> = arrayListOf()
-                        consumerOversikthendelse.poll(Duration.ofMillis(5000)).forEach {
-                            val consumedOversikthendelse: KOversikthendelse = objectMapper.readValue(it.value())
-                            messages.add(consumedOversikthendelse)
+                        val messages: ArrayList<KPersonoppgavehendelse> = arrayListOf()
+                        consumerPersonoppgavehendelse.poll(Duration.ofMillis(5000)).forEach {
+                            val consumedPersonoppgavehendelse: KPersonoppgavehendelse = objectMapper.readValue(it.value())
+                            messages.add(consumedPersonoppgavehendelse)
                         }
                         messages.size shouldBeEqualTo 0
                     }
                 }
 
-                it("should return OK and send Oversikthendelse if processed 1 of  existing PersonOppgave") {
+                it("returns OK and sends Personoppgavehendelse if processed the 1 and only existing PersonOppgave") {
                     val kOppfolgingsplanLPSNAV = generateKOppfolgingsplanLPSNAV
                     val personOppgaveType = PersonOppgaveType.OPPFOLGINGSPLANLPS
 
@@ -259,15 +258,14 @@ class VeilederPersonOppgaveApiV2Spek : Spek({
                         personOppgave.opprettet.shouldNotBeNull()
                     }
 
-                    val messages: ArrayList<KOversikthendelse> = arrayListOf()
-                    consumerOversikthendelse.poll(Duration.ofMillis(5000)).forEach {
-                        val consumedOversikthendelse: KOversikthendelse = objectMapper.readValue(it.value())
-                        messages.add(consumedOversikthendelse)
+                    val messages: ArrayList<KPersonoppgavehendelse> = arrayListOf()
+                    consumerPersonoppgavehendelse.poll(Duration.ofMillis(5000)).forEach {
+                        val consumedPersonoppgavehendelse: KPersonoppgavehendelse = objectMapper.readValue(it.value())
+                        messages.add(consumedPersonoppgavehendelse)
                     }
                     messages.size shouldBeEqualTo 1
-                    messages.first().fnr shouldBeEqualTo kOppfolgingsplanLPSNAV.getFodselsnummer()
-                    messages.first().enhetId shouldBeEqualTo externalMockEnvironment.behandlendeEnhetMock.behandlendeEnhet.enhetId
-                    messages.first().hendelseId shouldBeEqualTo OversikthendelseType.OPPFOLGINGSPLANLPS_BISTAND_BEHANDLET.name
+                    messages.first().personident shouldBeEqualTo kOppfolgingsplanLPSNAV.getFodselsnummer()
+                    messages.first().hendelsetype shouldBeEqualTo PersonoppgavehendelseType.OPPFOLGINGSPLANLPS_BISTAND_BEHANDLET.name
                 }
             }
         }
