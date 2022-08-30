@@ -35,7 +35,7 @@ fun testEnvironment(
         aivenTruststoreLocation = "truststore",
         aivenKeystoreLocation = "keystore",
     ),
-    toggleKafkaConsumerEnabled = true,
+    toggleKafkaConsumerStatusendringEnabled = true,
 )
 
 fun testAppState() = ApplicationState(
