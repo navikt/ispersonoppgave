@@ -1,7 +1,7 @@
 package no.nav.syfo.personoppgave.oppfolgingsplanlps
 
 import no.nav.syfo.database.DatabaseInterface
-import no.nav.syfo.domain.PersonIdentNumber
+import no.nav.syfo.domain.PersonIdent
 import no.nav.syfo.metric.*
 import no.nav.syfo.oppfolgingsplan.avro.KOppfolgingsplanLPSNAV
 import no.nav.syfo.personoppgave.*
@@ -25,7 +25,7 @@ class OppfolgingsplanLPSService(
         callId: String = ""
     ) {
         if (kOppfolgingsplanLPSNAV.getBehovForBistandFraNav() == true) {
-            val person: PPersonOppgave? = database.getPersonOppgaveList(PersonIdentNumber(kOppfolgingsplanLPSNAV.getFodselsnummer()))
+            val person: PPersonOppgave? = database.getPersonOppgaveList(PersonIdent(kOppfolgingsplanLPSNAV.getFodselsnummer()))
                 .find { it.referanseUuid == UUID.fromString(kOppfolgingsplanLPSNAV.getUuid()) }
             if (person == null) {
                 log.info("Didn't find person with oppgave based on given referanseUuid: ${kOppfolgingsplanLPSNAV.getUuid()} creating new Personoppgave")
@@ -35,7 +35,7 @@ class OppfolgingsplanLPSService(
                 )
                 COUNT_PERSON_OPPGAVE_OPPFOLGINGSPLANLPS_CREATED.increment()
 
-                val fodselsnummer = PersonIdentNumber(kOppfolgingsplanLPSNAV.getFodselsnummer())
+                val fodselsnummer = PersonIdent(kOppfolgingsplanLPSNAV.getFodselsnummer())
                 sendPersonoppgavehendelse(idPair.second, fodselsnummer)
                 database.updatePersonOppgaveOversikthendelse(idPair.first)
                 COUNT_PERSONOPPGAVEHENDELSE_OPPFOLGINGSPLANLPS_BISTAND_MOTTATT_SENT.increment()
@@ -51,11 +51,11 @@ class OppfolgingsplanLPSService(
 
     private fun sendPersonoppgavehendelse(
         personOppgaveUUID: UUID,
-        personIdentNumber: PersonIdentNumber,
+        personIdent: PersonIdent,
     ) {
         personoppgavehendelseProducer.sendPersonoppgavehendelse(
             PersonoppgavehendelseType.OPPFOLGINGSPLANLPS_BISTAND_MOTTATT,
-            personIdentNumber,
+            personIdent,
             personOppgaveUUID,
         )
     }

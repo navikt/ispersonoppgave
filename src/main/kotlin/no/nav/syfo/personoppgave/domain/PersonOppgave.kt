@@ -1,6 +1,6 @@
 package no.nav.syfo.personoppgave.domain
 
-import no.nav.syfo.domain.PersonIdentNumber
+import no.nav.syfo.domain.PersonIdent
 import no.nav.syfo.domain.Virksomhetsnummer
 import no.nav.syfo.personoppgave.api.PersonOppgaveVeileder
 import java.time.LocalDateTime
@@ -10,7 +10,7 @@ data class PersonOppgave(
     val id: Int,
     val uuid: UUID,
     val referanseUuid: UUID,
-    val personIdentNumber: PersonIdentNumber,
+    val personIdent: PersonIdent,
     val virksomhetsnummer: Virksomhetsnummer,
     val type: PersonOppgaveType,
     val oversikthendelseTidspunkt: LocalDateTime?,
@@ -24,7 +24,7 @@ fun PersonOppgave.toPersonOppgaveVeileder(): PersonOppgaveVeileder {
     return PersonOppgaveVeileder(
         uuid = this.uuid.toString(),
         referanseUuid = this.referanseUuid.toString(),
-        fnr = this.personIdentNumber.value,
+        fnr = this.personIdent.value,
         virksomhetsnummer = this.virksomhetsnummer.value,
         type = this.type.name,
         behandletTidspunkt = this.behandletTidspunkt,

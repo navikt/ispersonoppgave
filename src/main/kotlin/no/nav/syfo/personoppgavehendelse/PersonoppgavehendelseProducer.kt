@@ -1,6 +1,6 @@
 package no.nav.syfo.personoppgavehendelse
 
-import no.nav.syfo.domain.PersonIdentNumber
+import no.nav.syfo.domain.PersonIdent
 import no.nav.syfo.personoppgavehendelse.domain.KPersonoppgavehendelse
 import no.nav.syfo.personoppgavehendelse.domain.PersonoppgavehendelseType
 import org.apache.kafka.clients.producer.KafkaProducer
@@ -18,7 +18,7 @@ class PersonoppgavehendelseProducer(
 ) {
     fun sendPersonoppgavehendelse(
         hendelsetype: PersonoppgavehendelseType,
-        personIdent: PersonIdentNumber,
+        personIdent: PersonIdent,
         personoppgaveId: UUID,
     ) {
         val kPersonoppgavehendelse = KPersonoppgavehendelse(

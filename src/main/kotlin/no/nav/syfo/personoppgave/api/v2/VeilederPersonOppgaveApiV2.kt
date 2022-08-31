@@ -6,7 +6,7 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import no.nav.syfo.auth.getNAVIdentFromToken
 import no.nav.syfo.client.veiledertilgang.VeilederTilgangskontrollClient
-import no.nav.syfo.domain.PersonIdentNumber
+import no.nav.syfo.domain.PersonIdent
 import no.nav.syfo.personoppgave.PersonOppgaveService
 import no.nav.syfo.personoppgave.domain.toPersonOppgaveVeileder
 import no.nav.syfo.util.*
@@ -30,7 +30,7 @@ fun Route.registerVeilederPersonOppgaveApiV2(
 
             val personIdent = personIdentHeader()
                 ?: throw IllegalArgumentException("Could not retrieve PersonOppgaveList for PersonIdent: No PersonIdent supplied")
-            val fnr = PersonIdentNumber(personIdent)
+            val fnr = PersonIdent(personIdent)
 
             if (veilederTilgangskontrollClient.hasAccessWithOBO(fnr, token, callId)) {
                 val personOppaveList = personOppgaveService.getPersonOppgaveList(fnr).map {
@@ -59,7 +59,7 @@ fun Route.registerVeilederPersonOppgaveApiV2(
                     call.respond(HttpStatusCode.Conflict)
                 } else {
                     if (veilederTilgangskontrollClient.hasAccessWithOBO(
-                            personoppgave.personIdentNumber,
+                            personoppgave.personIdent,
                             token,
                             callId
                         )
