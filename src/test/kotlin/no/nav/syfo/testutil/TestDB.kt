@@ -3,7 +3,7 @@ package no.nav.syfo.testutil
 import com.opentable.db.postgres.embedded.EmbeddedPostgres
 import no.nav.syfo.database.DatabaseInterface
 import no.nav.syfo.database.toList
-import no.nav.syfo.domain.PersonIdentNumber
+import no.nav.syfo.domain.PersonIdent
 import no.nav.syfo.oppfolgingsplan.avro.KOppfolgingsplanLPSNAV
 import no.nav.syfo.personoppgave.*
 import no.nav.syfo.personoppgave.domain.PPersonOppgave
@@ -51,7 +51,7 @@ fun Connection.dropData() {
     }
 }
 
-fun Connection.getPersonOppgaveList(fodselnummer: PersonIdentNumber): List<PPersonOppgave> {
+fun Connection.getPersonOppgaveList(fodselnummer: PersonIdent): List<PPersonOppgave> {
     return use { connection ->
         connection.prepareStatement(queryGetPersonOppgaveListForFnr).use {
             it.setString(1, fodselnummer.value)

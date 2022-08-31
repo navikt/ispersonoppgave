@@ -7,7 +7,7 @@ import io.ktor.client.statement.*
 import io.ktor.http.*
 import no.nav.syfo.client.azuread.v2.AzureAdV2Client
 import no.nav.syfo.client.httpClientDefault
-import no.nav.syfo.domain.PersonIdentNumber
+import no.nav.syfo.domain.PersonIdent
 import no.nav.syfo.metric.*
 import no.nav.syfo.util.*
 import org.slf4j.LoggerFactory
@@ -22,7 +22,7 @@ class BehandlendeEnhetClient(
     private val behandlendeEnhetUrl = "$baseUrl$BEHANDLENDEENHET_PATH"
 
     suspend fun getEnhet(
-        personIdentNumber: PersonIdentNumber,
+        personIdent: PersonIdent,
         callId: String
     ): BehandlendeEnhet? {
         val bearer = azureAdClient.getSystemToken(
@@ -35,7 +35,7 @@ class BehandlendeEnhetClient(
                 header(HttpHeaders.Authorization, bearerHeader(bearer))
                 header(NAV_CALL_ID, callId)
                 header(NAV_CONSUMER_ID, APP_CONSUMER_ID)
-                header(NAV_PERSONIDENT_HEADER, personIdentNumber.value)
+                header(NAV_PERSONIDENT_HEADER, personIdent.value)
                 accept(ContentType.Application.Json)
             }
 

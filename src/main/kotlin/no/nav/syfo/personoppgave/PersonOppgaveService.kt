@@ -3,7 +3,7 @@ package no.nav.syfo.personoppgave
 import net.logstash.logback.argument.StructuredArguments
 import no.nav.syfo.client.enhet.BehandlendeEnhetClient
 import no.nav.syfo.database.DatabaseInterface
-import no.nav.syfo.domain.PersonIdentNumber
+import no.nav.syfo.domain.PersonIdent
 import no.nav.syfo.personoppgavehendelse.PersonoppgavehendelseProducer
 import no.nav.syfo.personoppgavehendelse.domain.PersonoppgavehendelseType
 import no.nav.syfo.personoppgave.domain.*
@@ -16,9 +16,9 @@ class PersonOppgaveService(
     private val personoppgavehendelseProducer: PersonoppgavehendelseProducer,
 ) {
     fun getPersonOppgaveList(
-        personIdentNumber: PersonIdentNumber
+        personIdent: PersonIdent
     ): List<PersonOppgave> {
-        return database.getPersonOppgaveList(personIdentNumber).map {
+        return database.getPersonOppgaveList(personIdent).map {
             it.toPersonOppgave()
         }
     }
@@ -39,7 +39,7 @@ class PersonOppgaveService(
         veilederIdent: String,
         callId: String,
     ) {
-        val personFnr = personoppgave.personIdentNumber
+        val personFnr = personoppgave.personIdent
         val behandlendeEnhet = behandlendeEnhetClient.getEnhet(personFnr, callId)
             ?: throw BehandlePersonOppgaveFailedException("Veileder $veilederIdent failed to get BehandleEnhet for PersonIdent Fodselsnummer")
 
