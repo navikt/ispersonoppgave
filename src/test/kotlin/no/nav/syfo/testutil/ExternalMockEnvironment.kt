@@ -27,7 +27,6 @@ class ExternalMockEnvironment(
     val environment = testEnvironment(
         kafkaBootstrapServers = embeddedEnvironment.brokersURL,
         azureTokenEndpoint = azureAdV2Mock.url,
-        behandlendeEnhetUrl = behandlendeEnhetMock.url,
         syfotilgangskontrollUrl = tilgangskontrollMock.url
     )
 

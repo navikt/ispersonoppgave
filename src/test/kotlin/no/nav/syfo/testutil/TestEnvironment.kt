@@ -6,7 +6,6 @@ import java.net.ServerSocket
 fun testEnvironment(
     kafkaBootstrapServers: String,
     azureTokenEndpoint: String = "azureTokenEndpoint",
-    behandlendeEnhetUrl: String = "behandlendeenhet",
     syfotilgangskontrollUrl: String = "tilgangskontroll",
 ) = Environment(
     applicationThreads = 1,
@@ -24,8 +23,6 @@ fun testEnvironment(
     kafkaSchemaRegistryUrl = "http://kafka-schema-registry.tpa.svc.nais.local:8081",
     serviceuserUsername = "",
     serviceuserPassword = "",
-    syfobehandlendeenhetClientId = "dev-fss:teamsykefravr:syfobehandlendeenhet",
-    behandlendeenhetUrl = behandlendeEnhetUrl,
     syfotilgangskontrollClientId = syfotilgangskontrollUrl,
     syfotilgangskontrollUrl = syfotilgangskontrollUrl,
     kafka = EnvironmentKafka(

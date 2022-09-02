@@ -8,7 +8,6 @@ import io.ktor.server.netty.*
 import no.nav.syfo.api.apiModule
 import no.nav.syfo.api.authentication.getWellKnown
 import no.nav.syfo.client.azuread.v2.AzureAdV2Client
-import no.nav.syfo.client.enhet.BehandlendeEnhetClient
 import no.nav.syfo.database.database
 import no.nav.syfo.database.databaseModule
 import no.nav.syfo.kafka.kafkaAivenProducerConfig
@@ -37,11 +36,6 @@ fun main() {
         azureTokenEndpoint = environment.azureTokenEndpoint,
     )
 
-    val behandlendeEnhetClient = BehandlendeEnhetClient(
-        azureAdClient = azureAdClient,
-        baseUrl = environment.behandlendeenhetUrl,
-        syfobehandlendeenhetClientId = environment.syfobehandlendeenhetClientId,
-    )
     val producerProperties = kafkaAivenProducerConfig(kafkaEnvironment = environment.kafka)
     val kafkaProducer = KafkaProducer<String, KPersonoppgavehendelse>(producerProperties)
     val personoppgavehendelseProducer = PersonoppgavehendelseProducer(kafkaProducer)
@@ -63,7 +57,6 @@ fun main() {
             )
             apiModule(
                 applicationState = applicationState,
-                behandlendeEnhetClient = behandlendeEnhetClient,
                 database = database,
                 environment = environment,
                 personoppgavehendelseProducer = personoppgavehendelseProducer,

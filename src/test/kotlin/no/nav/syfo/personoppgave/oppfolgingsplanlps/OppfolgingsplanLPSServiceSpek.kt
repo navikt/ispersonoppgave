@@ -4,7 +4,6 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
 import io.ktor.server.testing.*
 import kotlinx.coroutines.runBlocking
-import no.nav.syfo.client.azuread.v2.AzureAdV2Client
 import no.nav.syfo.personoppgavehendelse.domain.*
 import no.nav.syfo.personoppgave.domain.PersonOppgaveType
 import no.nav.syfo.testutil.*
@@ -22,8 +21,6 @@ class OppfolgingsplanLPSServiceSpek : Spek({
     describe("OppfolgingsplanLPSService") {
         val externalMockEnvironment = ExternalMockEnvironment()
 
-        val env = externalMockEnvironment.environment
-
         val consumerPersonoppgavehendelse = testPersonoppgavehendelseConsumer(
             environment = externalMockEnvironment.environment,
         )
@@ -36,12 +33,6 @@ class OppfolgingsplanLPSServiceSpek : Spek({
             start()
 
             val database = externalMockEnvironment.database
-
-            val azureAdClient = AzureAdV2Client(
-                azureAppClientId = env.azureAppClientId,
-                azureAppClientSecret = env.azureAppClientSecret,
-                azureTokenEndpoint = externalMockEnvironment.azureAdV2Mock.url,
-            )
 
             val oppfolgingsplanLPSService = OppfolgingsplanLPSService(
                 database,
