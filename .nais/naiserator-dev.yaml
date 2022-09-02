@@ -76,10 +76,6 @@ spec:
       value: SSL://b27apvl00045.preprod.local:8443,SSL://b27apvl00046.preprod.local:8443,SSL://b27apvl00047.preprod.local:8443
     - name: KAFKA_SCHEMA_REGISTRY_URL
       value: "https://kafka-schema-registry.nais-q.adeo.no"
-    - name: SYFOBEHANDLENDEENHET_CLIENT_ID
-      value: "dev-gcp.teamsykefravr.syfobehandlendeenhet"
-    - name: SYFOBEHANDLENDEENHET_URL
-      value: "https://syfobehandlendeenhet.dev.intern.nav.no"
     - name: SYFOTILGANGSKONTROLL_CLIENT_ID
       value: "dev-fss.teamsykefravr.syfo-tilgangskontroll"
     - name: SYFOTILGANGSKONTROLL_URL
