@@ -15,12 +15,10 @@ class ExternalMockEnvironment(
     )
 
     val azureAdV2Mock = AzureAdV2Mock()
-    val behandlendeEnhetMock = BehandlendeEnhetMock()
     val tilgangskontrollMock = VeilederTilgangskontrollMock()
 
     val externalApplicationMockMap = hashMapOf(
         azureAdV2Mock.name to azureAdV2Mock.server,
-        behandlendeEnhetMock.name to behandlendeEnhetMock.server,
         tilgangskontrollMock.name to tilgangskontrollMock.server
     )
 

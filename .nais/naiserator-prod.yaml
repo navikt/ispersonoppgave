@@ -50,7 +50,6 @@ spec:
     outbound:
       external:
         - host: "kafka-schema-registry.nais.adeo.no"
-        - host: "syfobehandlendeenhet.intern.nav.no"
         - host: "syfo-tilgangskontroll.prod-fss-pub.nais.io"
   azure:
     application:
