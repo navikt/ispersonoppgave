@@ -91,13 +91,7 @@ receive OppfolgingsplanLPS, retrieve PersonOppgave list and process PersonOppgav
 ##### Flow
 1. Read OppfolgingsplanLPS from Kafka-topic.
 2. Create PersonOppgave if OppfolgingsplanLPS has Bistandsbehov.
-3. Send Oversikthendelse for received PersonOppgave to Kafka-topic.
-
-##### Fault tolerance
-In case of a failure when trying to generate a Oversikthendelse based on a asynchronous event,
-the application will create a retry-object and publish it to a retry-topic.
-The application will attempt to retry sending of Oversikthendelse until the limit for maximum retries is reached.
-If the maximum number of retries is reached, the application will stop retry of sending of Oversikthendels and manual handling of sending is needed.
+3. Send Personoppgavehendelse for received PersonOppgave to Kafka-topic.
 
 #### Retrieve PersonOppgave list
 ##### Flow:

@@ -34,19 +34,6 @@ val COUNT_PERSONOPPGAVEHENDELSE_OPPFOLGINGSPLANLPS_BISTAND_MOTTATT_SENT: Counter
         .description("Counts the number of personoppgavehendelse with PersonoppgavehendelseType OPPFOLGINGSPLANLPS_BISTAND_MOTTATT created from a KOppfolgingsplanLPS")
         .register(METRICS_REGISTRY)
 
-const val CALL_BEHANDLENDEENHET_SUCCESS = "${METRICS_NS}_call_behandlendeenhet_success_count"
-const val CALL_BEHANDLENDEENHET_FAIL = "${METRICS_NS}_call_behandlendeenhet_fail_count"
-const val CALL_BEHANDLENDEENHET_EMPTY = "${METRICS_NS}_call_behandlendeenhet_empty_count"
-val COUNT_CALL_BEHANDLENDEENHET_SUCCESS: Counter = Counter.builder(CALL_BEHANDLENDEENHET_SUCCESS)
-    .description("Counts the number of successful calls to syfobehandlendeenhet")
-    .register(METRICS_REGISTRY)
-val COUNT_CALL_BEHANDLENDEENHET_FAIL: Counter = Counter.builder(CALL_BEHANDLENDEENHET_FAIL)
-    .description("Counts the number of failed calls to syfobehandlendeenhet")
-    .register(METRICS_REGISTRY)
-val COUNT_CALL_BEHANDLENDEENHET_EMPTY: Counter = Counter.builder(CALL_BEHANDLENDEENHET_EMPTY)
-    .description("Counts the number of responses from syfobehandlendeenhet with status 204 received")
-    .register(METRICS_REGISTRY)
-
 const val CALL_TILGANGSKONTROLL_PERSON_SUCCESS = "${METRICS_NS}_call_tilgangskontroll_person_success_count"
 const val CALL_TILGANGSKONTROLL_PERSON_FAIL = "${METRICS_NS}_call_tilgangskontroll_person_fail_count"
 const val CALL_TILGANGSKONTROLL_PERSON_FORBIDDEN = "${METRICS_NS}_call_tilgangskontroll_person_forbidden_count"
