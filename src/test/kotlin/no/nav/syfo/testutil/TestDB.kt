@@ -3,6 +3,7 @@ package no.nav.syfo.testutil
 import com.opentable.db.postgres.embedded.EmbeddedPostgres
 import no.nav.syfo.database.DatabaseInterface
 import no.nav.syfo.database.toList
+import no.nav.syfo.dialogmotesvar.domain.KDialogmotesvar
 import no.nav.syfo.domain.PersonIdent
 import no.nav.syfo.oppfolgingsplan.avro.KOppfolgingsplanLPSNAV
 import no.nav.syfo.personoppgave.*
@@ -73,6 +74,34 @@ fun Connection.createPersonOppgave(
             it.setString(2, kOppfolgingsplanLPSNAV.getUuid())
             it.setString(3, kOppfolgingsplanLPSNAV.getFodselsnummer())
             it.setString(4, kOppfolgingsplanLPSNAV.getVirksomhetsnummer())
+            it.setString(5, type.name)
+            it.setTimestamp(6, now)
+            it.setTimestamp(7, now)
+            it.executeQuery().toList { getInt("id") }
+        }
+
+        if (personIdList.size != 1) {
+            throw SQLException("Creating person failed, no rows affected.")
+        }
+        connection.commit()
+
+        return Pair(personIdList.first(), UUID.fromString(uuid))
+    }
+}
+
+fun Connection.createPersonOppgave(
+    kDialogmotesvar: KDialogmotesvar,
+    type: PersonOppgaveType
+): Pair<Int, UUID> {
+    val uuid = UUID.randomUUID().toString()
+    val now = Timestamp.from(Instant.now())
+
+    use { connection ->
+        val personIdList = connection.prepareStatement(queryCreatePersonOppgave).use {
+            it.setString(1, uuid)
+            it.setString(2, kDialogmotesvar.dialogmoteUuid)
+            it.setString(3, kDialogmotesvar.personident)
+            it.setString(4, kDialogmotesvar.virksomhetsnummer)
             it.setString(5, type.name)
             it.setTimestamp(6, now)
             it.setTimestamp(7, now)

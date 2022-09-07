@@ -3,6 +3,7 @@ package no.nav.syfo.personoppgave
 import no.nav.syfo.database.DatabaseInterface
 import no.nav.syfo.database.toList
 import no.nav.syfo.domain.PersonIdent
+import no.nav.syfo.log
 import no.nav.syfo.oppfolgingsplan.avro.KOppfolgingsplanLPSNAV
 import no.nav.syfo.personoppgave.domain.PPersonOppgave
 import no.nav.syfo.personoppgave.domain.PersonOppgaveType
@@ -127,6 +128,29 @@ fun DatabaseInterface.createPersonOppgave(
 
         return Pair(personIdList.first(), UUID.fromString(uuid))
     }
+}
+
+const val queryBehandleOppgaveByReferanseUuid =
+    """
+    UPDATE PERSON_OPPGAVE
+    SET behandlet_tidspunkt = ?, behandlet_veileder_ident = ?
+    WHERE referanse_uuid = ?
+    """
+
+fun Connection.behandleOppgave(
+    referanseUuid: UUID,
+    veilederIdent: String
+): Boolean {
+    val now = Timestamp.from(Instant.now())
+    val behandletOppgaver = this.prepareStatement(queryBehandleOppgaveByReferanseUuid).use {
+        it.setTimestamp(1, now)
+        it.setString(2, veilederIdent)
+        it.setString(3, referanseUuid.toString())
+        it.executeUpdate()
+    }
+
+    log.info("TRACE: BehandletOppgaver: $behandletOppgaver")
+    return behandletOppgaver >= 1
 }
 
 fun ResultSet.toPPersonOppgave(): PPersonOppgave =

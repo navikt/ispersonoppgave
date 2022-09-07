@@ -10,6 +10,7 @@ object Versions {
     const val jackson = "2.13.3"
     const val flyway = "8.5.13"
     const val hikari = "5.0.1"
+    const val isdialogmoteSchema = "1.0.5"
     const val kafka = "2.8.1"
     const val kafkaEmbedded = "2.8.1"
     const val kluent = "1.68"
@@ -41,6 +42,13 @@ repositories {
     maven(url = "https://jitpack.io")
     maven {
         url = uri("https://maven.pkg.github.com/navikt/syfoopservice-schema")
+        credentials {
+            username = githubUser
+            password = githubPassword
+        }
+    }
+    maven {
+        url = uri("https://maven.pkg.github.com/navikt/isdialogmote-schema")
         credentials {
             username = githubUser
             password = githubPassword
@@ -87,6 +95,7 @@ dependencies {
     implementation("org.apache.avro:avro:${Versions.avro}")
     implementation("io.confluent:kafka-avro-serializer:${Versions.confluent}")
     implementation("io.confluent:kafka-schema-registry:${Versions.confluent}", excludeLog4j)
+    implementation("no.nav.syfo.dialogmote.avro:isdialogmote-schema:${Versions.isdialogmoteSchema}")
     implementation("no.nav.syfo.oppfolgingsplan.avro:syfoopservice-schema:${Versions.syfoOppfolgingsplanSchema}")
     implementation("org.scala-lang:scala-library") {
         version {

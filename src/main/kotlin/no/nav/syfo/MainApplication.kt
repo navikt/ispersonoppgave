@@ -7,7 +7,6 @@ import io.ktor.server.engine.*
 import io.ktor.server.netty.*
 import no.nav.syfo.api.apiModule
 import no.nav.syfo.api.authentication.getWellKnown
-import no.nav.syfo.client.azuread.v2.AzureAdV2Client
 import no.nav.syfo.database.database
 import no.nav.syfo.database.databaseModule
 import no.nav.syfo.kafka.kafkaAivenProducerConfig
@@ -30,13 +29,7 @@ fun main() {
     val applicationState = ApplicationState()
     val environment = Environment()
 
-    val azureAdClient = AzureAdV2Client(
-        azureAppClientId = environment.azureAppClientId,
-        azureAppClientSecret = environment.azureAppClientSecret,
-        azureTokenEndpoint = environment.azureTokenEndpoint,
-    )
-
-    val producerProperties = kafkaAivenProducerConfig(kafkaEnvironment = environment.kafka)
+    val producerProperties = kafkaAivenProducerConfig(environmentKafka = environment.kafka)
     val kafkaProducer = KafkaProducer<String, KPersonoppgavehendelse>(producerProperties)
     val personoppgavehendelseProducer = PersonoppgavehendelseProducer(kafkaProducer)
 
@@ -68,14 +61,12 @@ fun main() {
     applicationEngineEnvironment.monitor.subscribe(ApplicationStarted) { application ->
         applicationState.ready = true
         application.environment.log.info("Application is ready, running Java VM ${Runtime.version()}")
-        if (environment.toggleKafkaConsumerEnabled) {
-            launchKafkaTasks(
-                applicationState = applicationState,
-                database = database,
-                environment = environment,
-                personoppgavehendelseProducer = personoppgavehendelseProducer,
-            )
-        }
+        launchKafkaTasks(
+            applicationState = applicationState,
+            database = database,
+            environment = environment,
+            personoppgavehendelseProducer = personoppgavehendelseProducer,
+        )
     }
 
     val server = embeddedServer(

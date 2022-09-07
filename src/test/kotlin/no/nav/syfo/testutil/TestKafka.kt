@@ -50,7 +50,7 @@ fun testOppfolgingsplanLPSConsumer(
 fun testPersonoppgavehendelseProducer(
     environment: Environment,
 ): PersonoppgavehendelseProducer {
-    val personoppgavehendelseProducerProperties = kafkaAivenProducerConfig(kafkaEnvironment = environment.kafka)
+    val personoppgavehendelseProducerProperties = kafkaAivenProducerConfig(environmentKafka = environment.kafka)
         .overrideForTest()
     val personoppgavehendelseRecordProducer =
         KafkaProducer<String, KPersonoppgavehendelse>(personoppgavehendelseProducerProperties)

@@ -1,6 +1,7 @@
 package no.nav.syfo
 
 import no.nav.syfo.database.DatabaseInterface
+import no.nav.syfo.dialogmotestatusendring.kafka.consumeDialogmotestatusendring
 import no.nav.syfo.personoppgave.oppfolgingsplanlps.OppfolgingsplanLPSService
 import no.nav.syfo.personoppgave.oppfolgingsplanlps.kafka.blockingApplicationLogicOppfolgingsplanLPS
 import no.nav.syfo.personoppgavehendelse.PersonoppgavehendelseProducer
@@ -23,5 +24,15 @@ fun launchKafkaTasks(
             environment = environment,
             oppfolgingsplanLPSService = oppfolgingsplanLPSService,
         )
+    }
+    if (environment.toggleKafkaConsumerStatusendringEnabled) {
+        launchBackgroundTask(applicationState) {
+            log.info("Launch launchBackgroundTask for Dialogmøtestatusendringer")
+            consumeDialogmotestatusendring(
+                database = database,
+                applicationState = applicationState,
+                environment = environment
+            )
+        }
     }
 }
