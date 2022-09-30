@@ -14,15 +14,15 @@ object Versions {
     const val kafka = "2.8.1"
     const val kafkaEmbedded = "2.8.1"
     const val kluent = "1.68"
-    const val ktor = "2.0.2"
+    const val ktor = "2.1.1"
     const val logback = "1.2.11"
     const val logstashEncoder = "7.2"
-    const val micrometerRegistry = "1.9.1"
+    const val micrometerRegistry = "1.9.4"
     const val mockk = "1.12.4"
-    const val nimbusjosejwt = "9.23"
+    const val nimbusjosejwt = "9.25.3"
     const val postgres = "42.4.1"
     const val postgresEmbedded = "0.13.4"
-    const val scala = "2.13.7"
+    const val scala = "2.13.9"
     const val spek = "2.0.18"
     const val syfoOppfolgingsplanSchema = "1.0.2"
 }
@@ -95,6 +95,26 @@ dependencies {
     implementation("org.apache.avro:avro:${Versions.avro}")
     implementation("io.confluent:kafka-avro-serializer:${Versions.confluent}")
     implementation("io.confluent:kafka-schema-registry:${Versions.confluent}", excludeLog4j)
+    constraints {
+        implementation("org.yaml:snakeyaml") {
+            because("io.confluent:kafka-schema-registry:${Versions.confluent} -> https://advisory.checkmarx.net/advisory/vulnerability/CVE-2022-25857/")
+            version {
+                require("1.31")
+            }
+        }
+        implementation("org.glassfish:jakarta.el") {
+            because("io.confluent:kafka-schema-registry:${Versions.confluent} -> https://advisory.checkmarx.net/advisory/vulnerability/CVE-2021-28170/")
+            version {
+                require("3.0.4")
+            }
+        }
+        implementation("com.google.protobuf:protobuf-java") {
+            because("io.confluent:kafka-schema-registry:${Versions.confluent} -> https://www.cve.org/CVERecord?id=CVE-2021-22569")
+            version {
+                require("3.19.2")
+            }
+        }
+    }
     implementation("no.nav.syfo.dialogmote.avro:isdialogmote-schema:${Versions.isdialogmoteSchema}")
     implementation("no.nav.syfo.oppfolgingsplan.avro:syfoopservice-schema:${Versions.syfoOppfolgingsplanSchema}")
     implementation("org.scala-lang:scala-library") {
