@@ -2,14 +2,14 @@ package no.nav.syfo.dialogmotestatusendring
 
 import io.ktor.util.*
 import no.nav.syfo.dialogmotestatusendring.domain.DialogmoteStatusendringType
-import no.nav.syfo.dialogmotesvar.domain.DialogmoteSvartype
-import no.nav.syfo.dialogmotesvar.domain.KDialogmotesvar
+import no.nav.syfo.dialogmotesvar.domain.*
 import no.nav.syfo.personoppgave.domain.PersonOppgaveType
 import no.nav.syfo.testutil.*
 import org.amshove.kluent.shouldBeEqualTo
 import org.amshove.kluent.shouldNotBe
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
+import java.time.OffsetDateTime
 import java.util.*
 
 @InternalAPI
@@ -18,12 +18,13 @@ object DialogmoteStatusendringServiceSpek : Spek({
         val externalMockEnvironment = ExternalMockEnvironment()
         val database = externalMockEnvironment.database
         val dialogmoteUuid = UUID.randomUUID()
-        val kDialogmotesvar = KDialogmotesvar(
-            personident = UserConstants.ARBEIDSTAKER_FNR.value,
-            type = DialogmoteSvartype.KOMMER_IKKE.name,
-            dialogmoteUuid = dialogmoteUuid.toString(),
-            virksomhetsnummer = UserConstants.VIRKSOMHETSNUMMER.value,
-        )
+        val dialogmotesvar = KDialogmotesvar(
+            ident = UserConstants.ARBEIDSTAKER_FNR,
+            svarType = DialogmoteSvartype.KOMMER_IKKE,
+            senderType = SenderType.ARBEIDSTAKER,
+            brevSentAt = OffsetDateTime.now(),
+            svarReceivedAt = OffsetDateTime.now(),
+        ).toDialogmotesvar(dialogmoteUuid)
 
         afterEachTest {
             database.connection.dropData()
@@ -31,7 +32,7 @@ object DialogmoteStatusendringServiceSpek : Spek({
 
         it("Finish personoppgave when a dialogmote gets a referat") {
             database.connection.createPersonOppgave(
-                kDialogmotesvar = kDialogmotesvar,
+                dialogmotesvar = dialogmotesvar,
                 type = PersonOppgaveType.DIALOGMOTESVAR,
             )
             val statusendring = getDialogmotestatusendring(DialogmoteStatusendringType.FERDIGSTILT, dialogmoteUuid)
@@ -50,7 +51,7 @@ object DialogmoteStatusendringServiceSpek : Spek({
 
         it("Finish personoppgave when a dialogmote changes place or time") {
             database.connection.createPersonOppgave(
-                kDialogmotesvar = kDialogmotesvar,
+                dialogmotesvar = dialogmotesvar,
                 type = PersonOppgaveType.DIALOGMOTESVAR,
             )
             val statusendring = getDialogmotestatusendring(DialogmoteStatusendringType.NYTT_TID_STED, dialogmoteUuid)
@@ -69,7 +70,7 @@ object DialogmoteStatusendringServiceSpek : Spek({
 
         it("Finish personoppgave when a dialogmote is cancelled") {
             database.connection.createPersonOppgave(
-                kDialogmotesvar = kDialogmotesvar,
+                dialogmotesvar = dialogmotesvar,
                 type = PersonOppgaveType.DIALOGMOTESVAR,
             )
             val statusendring = getDialogmotestatusendring(DialogmoteStatusendringType.AVLYST, dialogmoteUuid)
