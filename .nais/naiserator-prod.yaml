@@ -81,3 +81,5 @@ spec:
       value: "https://syfo-tilgangskontroll.prod-fss-pub.nais.io"
     - name: TOGGLE_KAFKA_STATUSENDRING_CONSUMER_ENABLED
       value: "false"
+    - name: TOGGLE_KAFKA_DIALOGMOTESVAR_CONSUMER_ENABLED
+      value: "false"

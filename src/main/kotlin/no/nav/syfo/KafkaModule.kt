@@ -2,6 +2,7 @@ package no.nav.syfo
 
 import no.nav.syfo.database.DatabaseInterface
 import no.nav.syfo.dialogmotestatusendring.kafka.consumeDialogmotestatusendring
+import no.nav.syfo.dialogmotesvar.kafka.consumeDialogmotesvar
 import no.nav.syfo.personoppgave.oppfolgingsplanlps.OppfolgingsplanLPSService
 import no.nav.syfo.personoppgave.oppfolgingsplanlps.kafka.blockingApplicationLogicOppfolgingsplanLPS
 import no.nav.syfo.personoppgavehendelse.PersonoppgavehendelseProducer
@@ -31,7 +32,18 @@ fun launchKafkaTasks(
             consumeDialogmotestatusendring(
                 database = database,
                 applicationState = applicationState,
-                environment = environment
+                environment = environment,
+            )
+        }
+    }
+
+    if (environment.toggleKafkaConsumerDialogmotesvarEnabled) {
+        launchBackgroundTask(applicationState) {
+            log.info("Launch background task for dialogmotesvar")
+            consumeDialogmotesvar(
+                database = database,
+                applicationState = applicationState,
+                environment = environment,
             )
         }
     }
