@@ -3,7 +3,7 @@ package no.nav.syfo.testutil
 import com.opentable.db.postgres.embedded.EmbeddedPostgres
 import no.nav.syfo.database.DatabaseInterface
 import no.nav.syfo.database.toList
-import no.nav.syfo.dialogmotesvar.domain.KDialogmotesvar
+import no.nav.syfo.dialogmotesvar.domain.Dialogmotesvar
 import no.nav.syfo.domain.PersonIdent
 import no.nav.syfo.oppfolgingsplan.avro.KOppfolgingsplanLPSNAV
 import no.nav.syfo.personoppgave.*
@@ -90,7 +90,7 @@ fun Connection.createPersonOppgave(
 }
 
 fun Connection.createPersonOppgave(
-    kDialogmotesvar: KDialogmotesvar,
+    dialogmotesvar: Dialogmotesvar,
     type: PersonOppgaveType
 ): Pair<Int, UUID> {
     val uuid = UUID.randomUUID().toString()
@@ -99,9 +99,9 @@ fun Connection.createPersonOppgave(
     use { connection ->
         val personIdList = connection.prepareStatement(queryCreatePersonOppgave).use {
             it.setString(1, uuid)
-            it.setString(2, kDialogmotesvar.dialogmoteUuid)
-            it.setString(3, kDialogmotesvar.personident)
-            it.setString(4, kDialogmotesvar.virksomhetsnummer)
+            it.setString(2, dialogmotesvar.moteuuid.toString())
+            it.setString(3, dialogmotesvar.arbeidstakerIdent.value)
+            it.setString(4, "") // TODO: Virksomhet er ikke i bruk her, skal fjernes
             it.setString(5, type.name)
             it.setTimestamp(6, now)
             it.setTimestamp(7, now)
