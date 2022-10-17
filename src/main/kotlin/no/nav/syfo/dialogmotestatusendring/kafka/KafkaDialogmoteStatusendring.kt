@@ -17,7 +17,7 @@ const val DIALOGMOTE_STATUSENDRING_TOPIC = "teamsykefravr.isdialogmote-dialogmot
 
 val pollDurationInMillis: Long = 1000
 
-fun consumeDialogmotestatusendring( // TODO: vurdere om vi vil ha et objekt så vi slipper å sende database gjennom 7tusen funksjoner
+fun consumeDialogmotestatusendring(
     database: DatabaseInterface,
     applicationState: ApplicationState,
     environment: Environment

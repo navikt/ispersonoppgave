@@ -91,7 +91,6 @@ fun Connection.createPersonOppgave(
 
 fun Connection.createPersonOppgave(
     dialogmotesvar: Dialogmotesvar,
-    type: PersonOppgaveType
 ): Pair<Int, UUID> {
     val uuid = UUID.randomUUID().toString()
     val now = Timestamp.from(Instant.now())
@@ -102,9 +101,9 @@ fun Connection.createPersonOppgave(
             it.setString(2, dialogmotesvar.moteuuid.toString())
             it.setString(3, dialogmotesvar.arbeidstakerIdent.value)
             it.setString(4, "") // TODO: Virksomhet er ikke i bruk her, skal fjernes
-            it.setString(5, type.name)
+            it.setString(5, PersonOppgaveType.DIALOGMOTESVAR.name)
             it.setTimestamp(6, now)
-            it.setTimestamp(7, now)
+            it.setTimestamp(7, Timestamp.from(dialogmotesvar.brevSentAt.toInstant()))
             it.executeQuery().toList { getInt("id") }
         }
 

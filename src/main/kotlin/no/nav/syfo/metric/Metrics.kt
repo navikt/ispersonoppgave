@@ -13,7 +13,6 @@ const val PERSON_OPPGAVE_OPPFOLGINGSPLANLPS_ALREADY_CREATED =
     "${METRICS_NS}_person_oppgave_oppfolgingsplanlps_already_created_count"
 const val PERSON_OPPGAVE_OPPFOLGINGSPLANLPS_NO_BEHOVFORBISTAND =
     "${METRICS_NS}_person_oppgave_oppfolgingsplanlps_no_bistand_count"
-
 val COUNT_PERSON_OPPGAVE_OPPFOLGINGSPLANLPS_CREATED: Counter =
     Counter.builder(PERSON_OPPGAVE_OPPFOLGINGSPLANLPS_CREATED)
         .description("Counts the number of PERSON_OPPGAVE created from a KOppfolgingsplanLPS")
@@ -46,3 +45,9 @@ val COUNT_CALL_TILGANGSKONTROLL_PERSON_FAIL: Counter = Counter.builder(CALL_TILG
 val COUNT_CALL_TILGANGSKONTROLL_PERSON_FORBIDDEN: Counter = Counter.builder(CALL_TILGANGSKONTROLL_PERSON_FORBIDDEN)
     .description("Counts the number of forbidden calls to syfo-tilgangskontroll - person")
     .register(METRICS_REGISTRY)
+
+const val DIALOGMOTESVAR_OPPGAVE_UPDATED = "${METRICS_NS}_dialogmotesvar_oppgave_updated_count"
+val COUNT_DIALOGMOTESVAR_OPPGAVE_UPDATED: Counter =
+    Counter.builder(DIALOGMOTESVAR_OPPGAVE_UPDATED)
+        .description("Counts the number of PERSON_OPPGAVE updated from a KDialogmotesvar")
+        .register(METRICS_REGISTRY)

@@ -2,6 +2,8 @@ package no.nav.syfo.personoppgave
 
 import no.nav.syfo.database.DatabaseInterface
 import no.nav.syfo.database.toList
+import no.nav.syfo.dialogmotestatusendring.domain.DialogmoteStatusendring
+import no.nav.syfo.dialogmotesvar.domain.Dialogmotesvar
 import no.nav.syfo.domain.PersonIdent
 import no.nav.syfo.log
 import no.nav.syfo.oppfolgingsplan.avro.KOppfolgingsplanLPSNAV
@@ -22,10 +24,14 @@ const val queryGetPersonOppgaveListForFnr =
 
 fun DatabaseInterface.getPersonOppgaveList(personIdent: PersonIdent): List<PPersonOppgave> {
     return connection.use { connection ->
-        connection.prepareStatement(queryGetPersonOppgaveListForFnr).use {
-            it.setString(1, personIdent.value)
-            it.executeQuery().toList { toPPersonOppgave() }
-        }
+        connection.getPersonOppgaver(personIdent)
+    }
+}
+
+fun Connection.getPersonOppgaver(personIdent: PersonIdent): List<PPersonOppgave> {
+    return prepareStatement(queryGetPersonOppgaveListForFnr).use {
+        it.setString(1, personIdent.value)
+        it.executeQuery().toList { toPPersonOppgave() }
     }
 }
 
@@ -42,6 +48,22 @@ fun DatabaseInterface.getPersonOppgaveList(uuid: UUID): List<PPersonOppgave> {
             it.setString(1, uuid.toString())
             it.executeQuery().toList { toPPersonOppgave() }
         }
+    }
+}
+
+const val queryGetPersonOppgaverByReferanseUUID =
+    """
+    SELECT *
+    FROM PERSON_OPPGAVE
+    WHERE referanse_uuid = ?
+    """
+
+fun Connection.getPersonOppgaveByReferanseUuid(referanseUuid: UUID): PPersonOppgave? {
+    return prepareStatement(queryGetPersonOppgaverByReferanseUUID).use {
+        it.setString(1, referanseUuid.toString())
+        it.executeQuery().toList {
+            toPPersonOppgave()
+        }.firstOrNull()
     }
 }
 
@@ -130,22 +152,107 @@ fun DatabaseInterface.createPersonOppgave(
     }
 }
 
+fun Connection.createPersonOppgave(
+    dialogmotesvar: Dialogmotesvar,
+    uuid: UUID,
+) {
+    val now = Timestamp.from(Instant.now())
+
+    val personIdList = prepareStatement(queryCreatePersonOppgave).use {
+        it.setString(1, uuid.toString())
+        it.setString(2, dialogmotesvar.moteuuid.toString())
+        it.setString(3, dialogmotesvar.arbeidstakerIdent.value)
+        it.setString(4, "")
+        it.setString(5, PersonOppgaveType.DIALOGMOTESVAR.name)
+        it.setTimestamp(6, now)
+        it.setTimestamp(7, Timestamp.from(dialogmotesvar.svarReceivedAt.toInstant()))
+        it.executeQuery().toList { getInt("id") }
+    }
+
+    if (personIdList.size != 1) {
+        throw SQLException("Creating person failed, no rows affected.")
+    }
+}
+
+const val queryCreateBehandletPersonOppgave =
+    """INSERT INTO PERSON_OPPGAVE (
+        id,
+        uuid,
+        referanse_uuid,
+        fnr,
+        virksomhetsnummer,
+        type,
+        opprettet,    
+        sist_endret, 
+        behandlet_tidspunkt,
+        behandlet_veileder_ident) VALUES (DEFAULT, ?, ?, ?, ?, ?, ?, ?, ?, ?) RETURNING id
+    """
+
+fun Connection.createBehandletPersonoppgave(
+    dialogmotestatus: DialogmoteStatusendring,
+    uuid: UUID,
+) {
+    val now = Timestamp.from(Instant.now())
+    val endringTidspunkt = Timestamp.from(dialogmotestatus.endringTidspunkt.toInstant())
+
+    val personIdList = prepareStatement(queryCreateBehandletPersonOppgave).use {
+        it.setString(1, uuid.toString())
+        it.setString(2, dialogmotestatus.dialogmoteUuid.toString())
+        it.setString(3, dialogmotestatus.personIdent.value)
+        it.setString(4, "")
+        it.setString(5, PersonOppgaveType.DIALOGMOTESVAR.name)
+        it.setTimestamp(6, now)
+        it.setTimestamp(7, endringTidspunkt)
+        it.setTimestamp(8, endringTidspunkt)
+        it.setString(9, dialogmotestatus.veilederIdent)
+        it.executeQuery().toList { getInt("id") }
+    }
+
+    if (personIdList.size != 1) {
+        throw SQLException("Creating person failed, no rows affected.")
+    }
+}
+
+const val querySetUbehandletDialogmotesvarOppgave =
+    """
+    UPDATE PERSON_OPPGAVE
+    SET behandlet_tidspunkt = null, behandlet_veileder_ident = null, sist_endret = ?
+    WHERE referanse_uuid = ?
+    """
+
+fun Connection.updateDialogmotesvarOppgaveSetUbehandlet(
+    // TODO: se på navn
+    dialogmotesvar: Dialogmotesvar,
+) {
+    val behandletOppgaver = prepareStatement(querySetUbehandletDialogmotesvarOppgave).use {
+        it.setTimestamp(1, Timestamp.from(dialogmotesvar.svarReceivedAt.toInstant()))
+        it.setString(2, dialogmotesvar.moteuuid.toString())
+
+        it.executeUpdate()
+    }
+
+    if (behandletOppgaver != 1) {
+        throw SQLException("Updating oppgave failed, no rows affected.")
+    }
+}
+
 const val queryBehandleOppgaveByReferanseUuid =
     """
     UPDATE PERSON_OPPGAVE
-    SET behandlet_tidspunkt = ?, behandlet_veileder_ident = ?
+    SET behandlet_tidspunkt = ?, behandlet_veileder_ident = ?, sist_endret = ?
     WHERE referanse_uuid = ?
     """
 
 fun Connection.behandleOppgave(
-    referanseUuid: UUID,
-    veilederIdent: String
+    statusendring: DialogmoteStatusendring,
 ): Boolean {
     val now = Timestamp.from(Instant.now())
+    val sistEndretTimestamp = Timestamp.from(statusendring.endringTidspunkt.toInstant())
     val behandletOppgaver = this.prepareStatement(queryBehandleOppgaveByReferanseUuid).use {
         it.setTimestamp(1, now)
-        it.setString(2, veilederIdent)
-        it.setString(3, referanseUuid.toString())
+        it.setString(2, statusendring.veilederIdent)
+        it.setTimestamp(3, sistEndretTimestamp)
+        it.setString(4, statusendring.dialogmoteUuid.toString())
         it.executeUpdate()
     }
 

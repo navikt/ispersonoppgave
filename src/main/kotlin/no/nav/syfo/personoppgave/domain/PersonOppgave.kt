@@ -17,7 +17,7 @@ data class PersonOppgave(
     val behandletTidspunkt: LocalDateTime?,
     val behandletVeilederIdent: String?,
     val opprettet: LocalDateTime,
-    val sistEndret: LocalDateTime,
+    val sistEndret: LocalDateTime, // Referansetidspunkt til når hendelsen som sist endret oppgaven skjedde
 )
 
 fun PersonOppgave.toPersonOppgaveVeileder(): PersonOppgaveVeileder {

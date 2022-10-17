@@ -2,6 +2,8 @@ package no.nav.syfo.dialogmotestatusendring.domain
 
 import no.nav.syfo.dialogmote.avro.KDialogmoteStatusEndring
 import no.nav.syfo.domain.PersonIdent
+import no.nav.syfo.personoppgave.domain.PersonOppgave
+import no.nav.syfo.util.toLocalDateTimeOslo
 import java.time.OffsetDateTime
 import java.time.ZoneOffset
 import java.util.*
@@ -35,3 +37,7 @@ data class DialogmoteStatusendring constructor(
         )
     }
 }
+
+infix fun DialogmoteStatusendring.happenedAfter(
+    personOppgave: PersonOppgave,
+) = endringTidspunkt.toLocalDateTimeOslo().isAfter(personOppgave.sistEndret)

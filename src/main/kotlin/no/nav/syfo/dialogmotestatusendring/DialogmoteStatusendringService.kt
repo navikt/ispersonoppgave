@@ -1,10 +1,12 @@
 package no.nav.syfo.dialogmotestatusendring
 
 import no.nav.syfo.dialogmotestatusendring.domain.DialogmoteStatusendring
-import no.nav.syfo.dialogmotestatusendring.domain.DialogmoteStatusendringType
-import no.nav.syfo.dialogmotestatusendring.kafka.*
-import no.nav.syfo.personoppgave.behandleOppgave
+import no.nav.syfo.dialogmotestatusendring.domain.happenedAfter
+import no.nav.syfo.dialogmotestatusendring.kafka.log
+import no.nav.syfo.personoppgave.*
+import no.nav.syfo.personoppgave.domain.toPersonOppgave
 import java.sql.Connection
+import java.util.*
 
 fun processDialogmoteStatusendring(
     connection: Connection,
@@ -12,16 +14,14 @@ fun processDialogmoteStatusendring(
 ) {
     log.info("Received statusendring of type ${statusendring.type} and uuid ${statusendring.dialogmoteUuid}")
 
-    if (statusendring.type != DialogmoteStatusendringType.INNKALT) {
-        val success = connection.behandleOppgave(
-            statusendring.dialogmoteUuid,
-            statusendring.veilederIdent,
-        )
-
-        if (success) {
-            // TODO: add oppgavebehandlet of dialogmotesvar_behandlet to personoppgavehendelse topic
-        } else {
-            log.info("No personoppgave to update for ${statusendring.dialogmoteUuid}")
+    val ppersonOppgave = connection.getPersonOppgaveByReferanseUuid(statusendring.dialogmoteUuid)
+    if (ppersonOppgave == null) {
+        val personoppgaveUuid = UUID.randomUUID()
+        connection.createBehandletPersonoppgave(statusendring, personoppgaveUuid)
+    } else {
+        val personOppgave = ppersonOppgave.toPersonOppgave()
+        if (statusendring happenedAfter personOppgave) {
+            connection.behandleOppgave(statusendring)
         }
     }
 }
