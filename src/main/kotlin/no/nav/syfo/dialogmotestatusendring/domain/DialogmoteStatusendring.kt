@@ -11,6 +11,7 @@ enum class DialogmoteStatusendringType {
     AVLYST,
     FERDIGSTILT,
     NYTT_TID_STED,
+    LUKKET,
 }
 
 data class DialogmoteStatusendring constructor(
