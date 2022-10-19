@@ -36,6 +36,7 @@ fun testEnvironment(
         aivenKeystoreLocation = "keystore",
     ),
     toggleKafkaConsumerStatusendringEnabled = true,
+    toggleKafkaConsumerDialogmotesvarEnabled = true,
 )
 
 fun testAppState() = ApplicationState(

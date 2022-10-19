@@ -34,7 +34,8 @@ data class Environment(
         aivenKeystoreLocation = getEnvVar("KAFKA_KEYSTORE_PATH"),
     ),
 
-    val toggleKafkaConsumerStatusendringEnabled: Boolean = getEnvVar("TOGGLE_KAFKA_STATUSENDRING_CONSUMER_ENABLED").toBoolean()
+    val toggleKafkaConsumerStatusendringEnabled: Boolean = getEnvVar("TOGGLE_KAFKA_STATUSENDRING_CONSUMER_ENABLED").toBoolean(),
+    val toggleKafkaConsumerDialogmotesvarEnabled: Boolean = getEnvVar("TOGGLE_KAFKA_DIALOGMOTESVAR_CONSUMER_ENABLED").toBoolean(),
 ) {
     fun jdbcUrl(): String {
         return "jdbc:postgresql://$ispersonoppgaveDbHost:$ispersonoppgaveDbPort/$ispersonoppgaveDbName"
