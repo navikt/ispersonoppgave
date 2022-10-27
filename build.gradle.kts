@@ -7,7 +7,7 @@ version = "1.0-SNAPSHOT"
 object Versions {
     const val avro = "1.10.0"
     const val confluent = "6.2.2"
-    const val jackson = "2.13.3"
+    const val jackson = "2.13.4"
     const val flyway = "8.5.13"
     const val hikari = "5.0.1"
     const val isdialogmoteSchema = "1.0.5"
@@ -97,9 +97,9 @@ dependencies {
     implementation("io.confluent:kafka-schema-registry:${Versions.confluent}", excludeLog4j)
     constraints {
         implementation("org.yaml:snakeyaml") {
-            because("io.confluent:kafka-schema-registry:${Versions.confluent} -> https://advisory.checkmarx.net/advisory/vulnerability/CVE-2022-25857/")
+            because("io.confluent:kafka-schema-registry:${Versions.confluent} -> https://advisory.checkmarx.net/advisory/vulnerability/CVE-2022-38752/")
             version {
-                require("1.31")
+                require("1.32")
             }
         }
         implementation("org.glassfish:jakarta.el") {
