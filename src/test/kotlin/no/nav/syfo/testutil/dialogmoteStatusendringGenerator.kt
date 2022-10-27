@@ -5,11 +5,11 @@ import no.nav.syfo.dialogmotestatusendring.domain.DialogmoteStatusendringType
 import java.time.OffsetDateTime
 import java.util.*
 
-fun getDialogmotestatusendring(type: DialogmoteStatusendringType, uuid: UUID): DialogmoteStatusendring {
+fun generateDialogmotestatusendring(type: DialogmoteStatusendringType, uuid: UUID, now: OffsetDateTime): DialogmoteStatusendring {
     return DialogmoteStatusendring(
         personIdent = UserConstants.ARBEIDSTAKER_FNR,
         type = type,
-        endringTidspunkt = OffsetDateTime.now(),
+        endringTidspunkt = now,
         dialogmoteUuid = uuid,
         veilederIdent = UserConstants.VEILEDER_IDENT,
     )

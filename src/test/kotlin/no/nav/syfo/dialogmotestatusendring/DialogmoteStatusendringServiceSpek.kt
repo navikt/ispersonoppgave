@@ -1,118 +1,145 @@
 package no.nav.syfo.dialogmotestatusendring
 
-import io.ktor.util.*
+import io.mockk.*
 import no.nav.syfo.dialogmotestatusendring.domain.DialogmoteStatusendringType
-import no.nav.syfo.dialogmotesvar.domain.*
-import no.nav.syfo.personoppgave.domain.PersonOppgaveType
-import no.nav.syfo.testutil.*
-import org.amshove.kluent.shouldBeEqualTo
-import org.amshove.kluent.shouldNotBe
+import no.nav.syfo.personoppgave.*
+import no.nav.syfo.testutil.generateDialogmotestatusendring
+import no.nav.syfo.testutil.generatePersonoppgave
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
+import java.sql.Connection
 import java.time.OffsetDateTime
 import java.util.*
 
-@InternalAPI
 object DialogmoteStatusendringServiceSpek : Spek({
+    val ONE_DAY_AGO = OffsetDateTime.now().minusDays(1)
+    val HAPPENS_NOW = OffsetDateTime.now()
+    val PERSONOPPGAVE_QUERIES_PATH = "no.nav.syfo.personoppgave.PersonOppgaveQueriesKt"
+
     describe("Finish personoppgave when receiving an endring in dialogmotestatus") {
-        val externalMockEnvironment = ExternalMockEnvironment()
-        val database = externalMockEnvironment.database
         val dialogmoteUuid = UUID.randomUUID()
-        val dialogmotesvar = KDialogmotesvar(
-            ident = UserConstants.ARBEIDSTAKER_FNR,
-            svarType = DialogmoteSvartype.KOMMER_IKKE,
-            senderType = SenderType.ARBEIDSTAKER,
-            brevSentAt = OffsetDateTime.now(),
-            svarReceivedAt = OffsetDateTime.now(),
-        ).toDialogmotesvar(dialogmoteUuid)
+        val connection = mockk<Connection>(relaxed = true)
+
+        beforeEachTest {
+            mockkStatic(PERSONOPPGAVE_QUERIES_PATH)
+        }
 
         afterEachTest {
-            database.connection.dropData()
+            clearMocks(connection)
+            unmockkStatic(PERSONOPPGAVE_QUERIES_PATH)
         }
 
-        it("Finish personoppgave when a dialogmote gets a referat") {
-            database.connection.createPersonOppgave(
-                dialogmotesvar = dialogmotesvar,
-                type = PersonOppgaveType.DIALOGMOTESVAR,
-            )
-            val statusendring = getDialogmotestatusendring(DialogmoteStatusendringType.FERDIGSTILT, dialogmoteUuid)
+        describe("Manage statusendring when an oppgave already exists on the dialogmøte") {
 
-            database.connection.use { connection ->
+            it("Finish personoppgave when a dialogmote gets a referat") {
+                val statusendring =
+                    generateDialogmotestatusendring(
+                        DialogmoteStatusendringType.FERDIGSTILT,
+                        dialogmoteUuid,
+                        HAPPENS_NOW,
+                    )
+                val personoppgave = generatePersonoppgave(dialogmoteUuid, ONE_DAY_AGO.toLocalDateTime())
+                every { connection.getPersonOppgaveByReferanseUuid(dialogmoteUuid) } returns personoppgave
+                every {
+                    connection.behandleOppgave(statusendring)
+                } returns true
+
                 processDialogmoteStatusendring(connection, statusendring)
-                connection.commit()
+
+                verify(exactly = 1) { connection.getPersonOppgaveByReferanseUuid(dialogmoteUuid) }
+                verify(exactly = 1) {
+                    connection.behandleOppgave(statusendring)
+                }
+                verify(exactly = 0) { connection.createBehandletPersonoppgave(any(), any()) }
             }
 
-            val oppgaver = database.connection.getPersonOppgaveList(UserConstants.ARBEIDSTAKER_FNR)
-            val dialogmotesvaroppgave = oppgaver[0]
-            oppgaver.size shouldBeEqualTo 1
-            dialogmotesvaroppgave.type shouldBeEqualTo PersonOppgaveType.DIALOGMOTESVAR.name
-            dialogmotesvaroppgave.behandletTidspunkt shouldNotBe null
-        }
+            it("Finish personoppgave when a dialogmote changes place or time") {
+                val statusendring =
+                    generateDialogmotestatusendring(
+                        DialogmoteStatusendringType.NYTT_TID_STED,
+                        dialogmoteUuid,
+                        HAPPENS_NOW,
+                    )
+                val personoppgave = generatePersonoppgave(dialogmoteUuid, ONE_DAY_AGO.toLocalDateTime())
+                every { connection.getPersonOppgaveByReferanseUuid(dialogmoteUuid) } returns personoppgave
+                every {
+                    connection.behandleOppgave(statusendring)
+                } returns true
 
-        it("Finish personoppgave when a dialogmote changes place or time") {
-            database.connection.createPersonOppgave(
-                dialogmotesvar = dialogmotesvar,
-                type = PersonOppgaveType.DIALOGMOTESVAR,
-            )
-            val statusendring = getDialogmotestatusendring(DialogmoteStatusendringType.NYTT_TID_STED, dialogmoteUuid)
-
-            database.connection.use { connection ->
                 processDialogmoteStatusendring(connection, statusendring)
-                connection.commit()
+
+                verify(exactly = 1) { connection.getPersonOppgaveByReferanseUuid(dialogmoteUuid) }
+                verify(exactly = 1) {
+                    connection.behandleOppgave(statusendring)
+                }
+                verify(exactly = 0) { connection.createBehandletPersonoppgave(any(), any()) }
             }
 
-            val oppgaver = database.connection.getPersonOppgaveList(UserConstants.ARBEIDSTAKER_FNR)
-            val dialogmotesvaroppgave = oppgaver[0]
-            oppgaver.size shouldBeEqualTo 1
-            dialogmotesvaroppgave.type shouldBeEqualTo PersonOppgaveType.DIALOGMOTESVAR.name
-            dialogmotesvaroppgave.behandletTidspunkt shouldNotBe null
+            it("Finish personoppgave when a dialogmote is cancelled") {
+                val statusendring =
+                    generateDialogmotestatusendring(DialogmoteStatusendringType.AVLYST, dialogmoteUuid, HAPPENS_NOW)
+                val personoppgave = generatePersonoppgave(dialogmoteUuid, ONE_DAY_AGO.toLocalDateTime())
+                every { connection.getPersonOppgaveByReferanseUuid(dialogmoteUuid) } returns personoppgave
+                every {
+                    connection.behandleOppgave(statusendring)
+                } returns true
+
+                processDialogmoteStatusendring(connection, statusendring)
+
+                verify(exactly = 1) { connection.getPersonOppgaveByReferanseUuid(dialogmoteUuid) }
+                verify(exactly = 1) {
+                    connection.behandleOppgave(statusendring)
+                }
+                verify(exactly = 0) { connection.createBehandletPersonoppgave(any(), any()) }
+            }
         }
 
-        it("Finish personoppgave when a dialogmote is cancelled") {
-            database.connection.createPersonOppgave(
-                dialogmotesvar = dialogmotesvar,
-                type = PersonOppgaveType.DIALOGMOTESVAR,
-            )
-            val statusendring = getDialogmotestatusendring(DialogmoteStatusendringType.AVLYST, dialogmoteUuid)
+        describe("Manage statusendring when an oppgave doesn't exsist") {
+            it("Create finished personoppgave when a dialogmote is created") {
+                val statusendring =
+                    generateDialogmotestatusendring(DialogmoteStatusendringType.INNKALT, dialogmoteUuid, HAPPENS_NOW)
+                every { connection.getPersonOppgaveByReferanseUuid(dialogmoteUuid) } returns null
+                justRun { connection.createBehandletPersonoppgave(statusendring, any()) }
+                every { connection.behandleOppgave(statusendring) } returns true
 
-            database.connection.use { connection ->
                 processDialogmoteStatusendring(connection, statusendring)
-                connection.commit()
+
+                verify(exactly = 1) { connection.getPersonOppgaveByReferanseUuid(dialogmoteUuid) }
+                verify(exactly = 1) { connection.createBehandletPersonoppgave(statusendring, any()) }
+                verify(exactly = 0) { connection.behandleOppgave(any()) }
+            }
+        }
+
+        describe("Manage statusendring when they arrive out of order with møtesvar") {
+            it("Do nothing if a dialogmøte created happened before personoppgave was sist endret") {
+                val statusendring =
+                    generateDialogmotestatusendring(DialogmoteStatusendringType.INNKALT, dialogmoteUuid, ONE_DAY_AGO)
+                val personoppgave = generatePersonoppgave(dialogmoteUuid, HAPPENS_NOW.toLocalDateTime())
+                every { connection.getPersonOppgaveByReferanseUuid(dialogmoteUuid) } returns personoppgave
+
+                processDialogmoteStatusendring(connection, statusendring)
+
+                verify(exactly = 1) { connection.getPersonOppgaveByReferanseUuid(dialogmoteUuid) }
+                verify(exactly = 0) { connection.createBehandletPersonoppgave(any(), any()) }
+                verify(exactly = 0) { connection.behandleOppgave(any()) }
             }
 
-            val oppgaver = database.connection.getPersonOppgaveList(UserConstants.ARBEIDSTAKER_FNR)
-            val dialogmotesvaroppgave = oppgaver[0]
-            oppgaver.size shouldBeEqualTo 1
-            dialogmotesvaroppgave.type shouldBeEqualTo PersonOppgaveType.DIALOGMOTESVAR.name
-            dialogmotesvaroppgave.behandletTidspunkt shouldNotBe null
-        }
+            it("Do nothing if a dialogmøte was moved status happened before personoppgave was sist endret") {
+                val statusendring =
+                    generateDialogmotestatusendring(
+                        DialogmoteStatusendringType.NYTT_TID_STED,
+                        dialogmoteUuid,
+                        ONE_DAY_AGO
+                    )
+                val personoppgave = generatePersonoppgave(dialogmoteUuid, HAPPENS_NOW.toLocalDateTime())
+                every { connection.getPersonOppgaveByReferanseUuid(dialogmoteUuid) } returns personoppgave
 
-        it("Do nothing with personoppgave when a dialogmote is created") {
-            val statusendring = getDialogmotestatusendring(DialogmoteStatusendringType.INNKALT, dialogmoteUuid)
-
-            database.connection.use { connection ->
                 processDialogmoteStatusendring(connection, statusendring)
-                connection.commit()
+
+                verify(exactly = 1) { connection.getPersonOppgaveByReferanseUuid(dialogmoteUuid) }
+                verify(exactly = 0) { connection.createBehandletPersonoppgave(any(), any()) }
+                verify(exactly = 0) { connection.behandleOppgave(any()) }
             }
-
-            val oppgaver = database.connection.getPersonOppgaveList(UserConstants.ARBEIDSTAKER_FNR)
-            oppgaver.size shouldBeEqualTo 0
-        }
-
-        it("Do nothing if there is no personoppgave for dialogmøte") {
-            // The case if statusendring is referat/endring/avlysning, and no negative responses to the innkalling
-            val statusendring = getDialogmotestatusendring(DialogmoteStatusendringType.FERDIGSTILT, dialogmoteUuid)
-
-            database.connection.use { connection ->
-                processDialogmoteStatusendring(connection, statusendring)
-                connection.commit()
-            }
-
-            val oppgaver = database.connection.getPersonOppgaveList(UserConstants.ARBEIDSTAKER_FNR)
-            oppgaver.size shouldBeEqualTo 0
-        }
-
-        it("Add a personoppgavehendelse after a personoppgave has been closed") {
         }
     }
 })
