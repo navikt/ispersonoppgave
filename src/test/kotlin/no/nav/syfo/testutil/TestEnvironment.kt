@@ -37,6 +37,7 @@ fun testEnvironment(
     ),
     toggleKafkaConsumerStatusendringEnabled = true,
     toggleKafkaConsumerDialogmotesvarEnabled = true,
+    electorPath = "electorPath",
 )
 
 fun testAppState() = ApplicationState(
