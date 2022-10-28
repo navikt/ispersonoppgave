@@ -5,9 +5,9 @@ import no.nav.syfo.personoppgave.domain.PersonOppgaveType
 import java.time.LocalDateTime
 import java.util.*
 
-fun generatePersonoppgave(
-    moteuuid: UUID,
-    sistEndret: LocalDateTime
+fun generatePPersonoppgave(
+    moteuuid: UUID = UUID.randomUUID(),
+    sistEndret: LocalDateTime = LocalDateTime.now(),
 ) =
     PPersonOppgave(
         id = 1,
@@ -20,5 +20,7 @@ fun generatePersonoppgave(
         behandletTidspunkt = null,
         behandletVeilederIdent = null,
         opprettet = LocalDateTime.now(),
-        sistEndret = sistEndret
+        sistEndret = sistEndret,
+        publish = false,
+        publishedAt = null,
     )

@@ -77,6 +77,7 @@ fun Connection.createPersonOppgave(
             it.setString(5, type.name)
             it.setTimestamp(6, now)
             it.setTimestamp(7, now)
+            it.setBoolean(8, false)
             it.executeQuery().toList { getInt("id") }
         }
 
