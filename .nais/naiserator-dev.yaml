@@ -84,3 +84,5 @@ spec:
       value: "true"
     - name: TOGGLE_KAFKA_DIALOGMOTESVAR_CONSUMER_ENABLED
       value: "false"
+    - name: PUBLISH_OPPGAVEHENDELSER_ENABLED
+      value: "false"
