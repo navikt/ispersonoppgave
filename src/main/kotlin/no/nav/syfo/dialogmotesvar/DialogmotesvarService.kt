@@ -5,6 +5,7 @@ import no.nav.syfo.dialogmotesvar.domain.*
 import no.nav.syfo.metric.COUNT_DIALOGMOTESVAR_OPPGAVE_UPDATED
 import no.nav.syfo.personoppgave.*
 import no.nav.syfo.personoppgave.domain.*
+import no.nav.syfo.util.toLocalDateTimeOslo
 import java.sql.Connection
 import java.util.*
 
@@ -23,7 +24,13 @@ fun processDialogmotesvar(
     } else {
         val oppgave = pPersonOppgave.toPersonOppgave()
         if (dialogmotesvar happenedAfter oppgave) {
-            connection.updateDialogmotesvarOppgaveSetUbehandlet(dialogmotesvar)
+            val updatedOppgave = oppgave.copy(
+                behandletTidspunkt = null,
+                behandletVeilederIdent = null,
+                sistEndret = dialogmotesvar.svarReceivedAt.toLocalDateTimeOslo(),
+                publish = true,
+            )
+            connection.updatePersonoppgave(updatedOppgave)
             COUNT_DIALOGMOTESVAR_OPPGAVE_UPDATED.increment()
         }
     }

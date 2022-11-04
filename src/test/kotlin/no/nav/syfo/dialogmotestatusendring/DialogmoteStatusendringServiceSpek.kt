@@ -4,7 +4,7 @@ import io.mockk.*
 import no.nav.syfo.dialogmotestatusendring.domain.DialogmoteStatusendringType
 import no.nav.syfo.personoppgave.*
 import no.nav.syfo.testutil.generateDialogmotestatusendring
-import no.nav.syfo.testutil.generatePersonoppgave
+import no.nav.syfo.testutil.generatePPersonoppgave
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
 import java.sql.Connection
@@ -38,7 +38,7 @@ object DialogmoteStatusendringServiceSpek : Spek({
                         dialogmoteUuid,
                         HAPPENS_NOW,
                     )
-                val personoppgave = generatePersonoppgave(dialogmoteUuid, ONE_DAY_AGO.toLocalDateTime())
+                val personoppgave = generatePPersonoppgave(dialogmoteUuid, ONE_DAY_AGO.toLocalDateTime())
                 every { connection.getPersonOppgaveByReferanseUuid(dialogmoteUuid) } returns personoppgave
                 every {
                     connection.behandleOppgave(statusendring)
@@ -60,7 +60,7 @@ object DialogmoteStatusendringServiceSpek : Spek({
                         dialogmoteUuid,
                         HAPPENS_NOW,
                     )
-                val personoppgave = generatePersonoppgave(dialogmoteUuid, ONE_DAY_AGO.toLocalDateTime())
+                val personoppgave = generatePPersonoppgave(dialogmoteUuid, ONE_DAY_AGO.toLocalDateTime())
                 every { connection.getPersonOppgaveByReferanseUuid(dialogmoteUuid) } returns personoppgave
                 every {
                     connection.behandleOppgave(statusendring)
@@ -78,7 +78,7 @@ object DialogmoteStatusendringServiceSpek : Spek({
             it("Finish personoppgave when a dialogmote is cancelled") {
                 val statusendring =
                     generateDialogmotestatusendring(DialogmoteStatusendringType.AVLYST, dialogmoteUuid, HAPPENS_NOW)
-                val personoppgave = generatePersonoppgave(dialogmoteUuid, ONE_DAY_AGO.toLocalDateTime())
+                val personoppgave = generatePPersonoppgave(dialogmoteUuid, ONE_DAY_AGO.toLocalDateTime())
                 every { connection.getPersonOppgaveByReferanseUuid(dialogmoteUuid) } returns personoppgave
                 every {
                     connection.behandleOppgave(statusendring)
@@ -114,7 +114,7 @@ object DialogmoteStatusendringServiceSpek : Spek({
             it("Do nothing if a dialogmøte created happened before personoppgave was sist endret") {
                 val statusendring =
                     generateDialogmotestatusendring(DialogmoteStatusendringType.INNKALT, dialogmoteUuid, ONE_DAY_AGO)
-                val personoppgave = generatePersonoppgave(dialogmoteUuid, HAPPENS_NOW.toLocalDateTime())
+                val personoppgave = generatePPersonoppgave(dialogmoteUuid, HAPPENS_NOW.toLocalDateTime())
                 every { connection.getPersonOppgaveByReferanseUuid(dialogmoteUuid) } returns personoppgave
 
                 processDialogmoteStatusendring(connection, statusendring)
@@ -131,7 +131,7 @@ object DialogmoteStatusendringServiceSpek : Spek({
                         dialogmoteUuid,
                         ONE_DAY_AGO
                     )
-                val personoppgave = generatePersonoppgave(dialogmoteUuid, HAPPENS_NOW.toLocalDateTime())
+                val personoppgave = generatePPersonoppgave(dialogmoteUuid, HAPPENS_NOW.toLocalDateTime())
                 every { connection.getPersonOppgaveByReferanseUuid(dialogmoteUuid) } returns personoppgave
 
                 processDialogmoteStatusendring(connection, statusendring)

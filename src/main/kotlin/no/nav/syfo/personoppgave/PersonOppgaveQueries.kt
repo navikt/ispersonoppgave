@@ -7,12 +7,11 @@ import no.nav.syfo.dialogmotesvar.domain.Dialogmotesvar
 import no.nav.syfo.domain.PersonIdent
 import no.nav.syfo.log
 import no.nav.syfo.oppfolgingsplan.avro.KOppfolgingsplanLPSNAV
-import no.nav.syfo.personoppgave.domain.PPersonOppgave
-import no.nav.syfo.personoppgave.domain.PersonOppgaveType
-import no.nav.syfo.util.convert
-import no.nav.syfo.util.convertNullable
+import no.nav.syfo.personoppgave.domain.*
+import no.nav.syfo.util.*
 import java.sql.*
 import java.time.Instant
+import java.time.OffsetDateTime
 import java.util.*
 
 const val queryGetPersonOppgaveListForFnr =
@@ -121,7 +120,8 @@ const val queryCreatePersonOppgave =
         virksomhetsnummer,
         type,
         opprettet,
-        sist_endret) VALUES (DEFAULT, ?, ?, ?, ?, ?, ?, ?) RETURNING id
+        sist_endret, 
+        publish) VALUES (DEFAULT, ?, ?, ?, ?, ?, ?, ?, ?) RETURNING id
     """
 
 fun DatabaseInterface.createPersonOppgave(
@@ -140,6 +140,7 @@ fun DatabaseInterface.createPersonOppgave(
             it.setString(5, type.name)
             it.setTimestamp(6, now)
             it.setTimestamp(7, now)
+            it.setBoolean(8, true)
             it.executeQuery().toList { getInt("id") }
         }
 
@@ -152,7 +153,7 @@ fun DatabaseInterface.createPersonOppgave(
     }
 }
 
-fun Connection.createPersonOppgave(
+fun Connection.createPersonOppgave( // TODO: send in oppgave instead of dialogmotesvar
     dialogmotesvar: Dialogmotesvar,
     uuid: UUID,
 ) {
@@ -213,20 +214,26 @@ fun Connection.createBehandletPersonoppgave(
     }
 }
 
-const val querySetUbehandletDialogmotesvarOppgave =
+const val queryUpdatePersonoppgave =
     """
     UPDATE PERSON_OPPGAVE
-    SET behandlet_tidspunkt = null, behandlet_veileder_ident = null, sist_endret = ?
-    WHERE referanse_uuid = ?
+    SET behandlet_tidspunkt = ?, behandlet_veileder_ident = ?, sist_endret = ?, publish = ?, published_at = ?
+    WHERE uuid = ?
     """
 
-fun Connection.updateDialogmotesvarOppgaveSetUbehandlet(
-    // TODO: se på navn
-    dialogmotesvar: Dialogmotesvar,
+fun Connection.updatePersonoppgave(
+    personoppgave: PersonOppgave,
 ) {
-    val behandletOppgaver = prepareStatement(querySetUbehandletDialogmotesvarOppgave).use {
-        it.setTimestamp(1, Timestamp.from(dialogmotesvar.svarReceivedAt.toInstant()))
-        it.setString(2, dialogmotesvar.moteuuid.toString())
+    val behandletTidspunkt = personoppgave.behandletTidspunkt?.let { Timestamp.valueOf(it) }
+    val publishedAt = personoppgave.publishedAt?.let { Timestamp.from(it.toInstant()) }
+
+    val behandletOppgaver = prepareStatement(queryUpdatePersonoppgave).use {
+        it.setTimestamp(1, behandletTidspunkt)
+        it.setString(2, personoppgave.behandletVeilederIdent)
+        it.setTimestamp(3, Timestamp.valueOf(personoppgave.sistEndret))
+        it.setBoolean(4, personoppgave.publish)
+        it.setObject(5, publishedAt)
+        it.setString(6, personoppgave.uuid.toString())
 
         it.executeUpdate()
     }
@@ -273,4 +280,6 @@ fun ResultSet.toPPersonOppgave(): PPersonOppgave =
         behandletVeilederIdent = getString("behandlet_veileder_ident"),
         opprettet = convert(getTimestamp("opprettet")),
         sistEndret = convert(getTimestamp("sist_endret")),
+        publish = getBoolean("publish"),
+        publishedAt = getObject("published_at", OffsetDateTime::class.java),
     )

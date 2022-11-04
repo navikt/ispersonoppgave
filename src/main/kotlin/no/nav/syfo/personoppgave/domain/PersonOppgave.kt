@@ -4,6 +4,7 @@ import no.nav.syfo.domain.PersonIdent
 import no.nav.syfo.domain.Virksomhetsnummer
 import no.nav.syfo.personoppgave.api.PersonOppgaveVeileder
 import java.time.LocalDateTime
+import java.time.OffsetDateTime
 import java.util.*
 
 data class PersonOppgave(
@@ -18,6 +19,8 @@ data class PersonOppgave(
     val behandletVeilederIdent: String?,
     val opprettet: LocalDateTime,
     val sistEndret: LocalDateTime, // Referansetidspunkt til når hendelsen som sist endret oppgaven skjedde
+    val publish: Boolean,
+    val publishedAt: OffsetDateTime?,
 )
 
 fun PersonOppgave.toPersonOppgaveVeileder(): PersonOppgaveVeileder {

@@ -12,3 +12,6 @@ fun convertNullable(timestamp: Timestamp?): LocalDateTime? =
 fun OffsetDateTime.toLocalDateTimeOslo(): LocalDateTime = this.atZoneSameInstant(
     ZoneId.of("Europe/Oslo")
 ).toLocalDateTime()
+
+fun LocalDateTime.toOffsetDateTimeUTC(): OffsetDateTime =
+    this.atZone(ZoneId.of("Europe/Oslo")).withZoneSameInstant(ZoneOffset.UTC).toOffsetDateTime()
