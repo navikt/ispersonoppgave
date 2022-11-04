@@ -38,6 +38,8 @@ data class Environment(
     val toggleKafkaConsumerDialogmotesvarEnabled: Boolean = getEnvVar("TOGGLE_KAFKA_DIALOGMOTESVAR_CONSUMER_ENABLED").toBoolean(),
 
     val electorPath: String = getEnvVar("ELECTOR_PATH"),
+
+    val publishOppgavehendelser: Boolean = getEnvVar("PUBLISH_OPPGAVEHENDELSER_ENABLED").toBoolean(),
 ) {
     fun jdbcUrl(): String {
         return "jdbc:postgresql://$ispersonoppgaveDbHost:$ispersonoppgaveDbPort/$ispersonoppgaveDbName"

@@ -7,6 +7,7 @@ import io.ktor.server.engine.*
 import io.ktor.server.netty.*
 import no.nav.syfo.api.apiModule
 import no.nav.syfo.api.authentication.getWellKnown
+import no.nav.syfo.cronjob.cronjobModule
 import no.nav.syfo.database.database
 import no.nav.syfo.database.databaseModule
 import no.nav.syfo.kafka.kafkaAivenProducerConfig
@@ -54,6 +55,12 @@ fun main() {
                 environment = environment,
                 personoppgavehendelseProducer = personoppgavehendelseProducer,
                 wellKnownInternADV2 = wellKnownInternADV2,
+            )
+            cronjobModule(
+                applicationState = applicationState,
+                database = database,
+                environment = environment,
+                personoppgavehendelseProducer = personoppgavehendelseProducer,
             )
         }
     }
