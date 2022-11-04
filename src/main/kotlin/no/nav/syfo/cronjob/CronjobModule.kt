@@ -25,11 +25,11 @@ fun Application.cronjobModule(
     )
 
     val publishOppgavehendelseService = PublishPersonoppgavehendelseService(
-        database = database,
         personoppgavehendelseProducer = personoppgavehendelseProducer,
     )
 
     val publishOppgavehendelseCronjob = PublishOppgavehendelseCronjob(
+        database = database,
         publishOppgavehendelseService = publishOppgavehendelseService,
     )
 

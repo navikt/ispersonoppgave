@@ -3,10 +3,13 @@ package no.nav.syfo.cronjob.oppgavehendelse
 import net.logstash.logback.argument.StructuredArguments
 import no.nav.syfo.cronjob.Cronjob
 import no.nav.syfo.cronjob.CronjobResult
+import no.nav.syfo.database.DatabaseInterface
+import no.nav.syfo.personoppgave.domain.PersonOppgave
 import no.nav.syfo.personoppgavehendelse.PublishPersonoppgavehendelseService
 import org.slf4j.LoggerFactory
 
 class PublishOppgavehendelseCronjob(
+    private val database: DatabaseInterface,
     private val publishOppgavehendelseService: PublishPersonoppgavehendelseService,
 ) : Cronjob {
 
@@ -20,16 +23,23 @@ class PublishOppgavehendelseCronjob(
     fun publishOppgavehendelserJob(): CronjobResult {
         val result = CronjobResult()
 
-        val oppgavehendelserList = publishOppgavehendelseService.getUnpublishedOppgaver()
-        oppgavehendelserList.forEach { oppgavehendelse ->
+        val unpublishedOppgaver: List<PersonOppgave>
+        database.connection.use { connection ->
+            unpublishedOppgaver = publishOppgavehendelseService.getUnpublishedOppgaver(connection)
+        }
+        unpublishedOppgaver.forEach { personOppgave ->
             try {
-                // publishOppgavehendelseService.publish() // TODO: implement this
+                database.connection.use { connection ->
+                    publishOppgavehendelseService.publish(connection, personOppgave)
+                    connection.commit()
+                }
                 result.updated++
             } catch (e: Exception) {
                 log.error("Exception caught while attempting to publish Oppgavehendelser", e)
                 result.failed++
             }
         }
+        // TODO: Kun logg hvis noe har blitt prosessert
         log.info(
             "Completed oppgavehendelser-publishing with result: {}, {}",
             StructuredArguments.keyValue("failed", result.failed),

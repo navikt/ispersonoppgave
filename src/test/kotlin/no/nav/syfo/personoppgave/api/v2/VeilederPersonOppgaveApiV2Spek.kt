@@ -130,7 +130,7 @@ class VeilederPersonOppgaveApiV2Spek : Spek({
                         personOppgave.uuid.shouldNotBeNull()
                         personOppgave.referanseUuid shouldBeEqualTo kOppfolgingsplanLPSNAV.getUuid()
                         personOppgave.fnr shouldBeEqualTo kOppfolgingsplanLPSNAV.getFodselsnummer()
-                        personOppgave.virksomhetsnummer shouldBeEqualTo kOppfolgingsplanLPSNAV.getVirksomhetsnummer()
+                        personOppgave.virksomhetsnummer shouldBeEqualTo ""
                         personOppgave.type shouldBeEqualTo personOppgaveType.name
                         personOppgave.behandletTidspunkt.shouldBeNull()
                         personOppgave.behandletVeilederIdent.shouldBeNull()
@@ -186,7 +186,7 @@ class VeilederPersonOppgaveApiV2Spek : Spek({
                         personOppgaveBehandlet.uuid.shouldNotBeNull()
                         personOppgaveBehandlet.referanseUuid shouldBeEqualTo kOppfolgingsplanLPSNAV.getUuid()
                         personOppgaveBehandlet.fnr shouldBeEqualTo kOppfolgingsplanLPSNAV.getFodselsnummer()
-                        personOppgaveBehandlet.virksomhetsnummer shouldBeEqualTo kOppfolgingsplanLPSNAV.getVirksomhetsnummer()
+                        personOppgaveBehandlet.virksomhetsnummer shouldBeEqualTo ""
                         personOppgaveBehandlet.type shouldBeEqualTo personOppgaveType.name
                         personOppgaveBehandlet.behandletTidspunkt.shouldNotBeNull()
                         personOppgaveBehandlet.behandletVeilederIdent.shouldNotBeNull()
@@ -200,7 +200,7 @@ class VeilederPersonOppgaveApiV2Spek : Spek({
                         personOppgaveUbehandlet.uuid.shouldNotBeNull()
                         personOppgaveUbehandlet.referanseUuid shouldBeEqualTo kOppfolgingsplanLPSNAV2.getUuid()
                         personOppgaveUbehandlet.fnr shouldBeEqualTo kOppfolgingsplanLPSNAV2.getFodselsnummer()
-                        personOppgaveUbehandlet.virksomhetsnummer shouldBeEqualTo kOppfolgingsplanLPSNAV2.getVirksomhetsnummer()
+                        personOppgaveUbehandlet.virksomhetsnummer shouldBeEqualTo ""
                         personOppgaveUbehandlet.type shouldBeEqualTo personOppgaveType.name
                         personOppgaveUbehandlet.behandletTidspunkt.shouldBeNull()
                         personOppgaveUbehandlet.behandletVeilederIdent.shouldBeNull()
@@ -251,7 +251,7 @@ class VeilederPersonOppgaveApiV2Spek : Spek({
                         personOppgave.uuid.shouldNotBeNull()
                         personOppgave.referanseUuid shouldBeEqualTo kOppfolgingsplanLPSNAV.getUuid()
                         personOppgave.fnr shouldBeEqualTo kOppfolgingsplanLPSNAV.getFodselsnummer()
-                        personOppgave.virksomhetsnummer shouldBeEqualTo kOppfolgingsplanLPSNAV.getVirksomhetsnummer()
+                        personOppgave.virksomhetsnummer shouldBeEqualTo ""
                         personOppgave.type shouldBeEqualTo personOppgaveType.name
                         personOppgave.behandletTidspunkt.shouldNotBeNull()
                         personOppgave.behandletVeilederIdent.shouldNotBeNull()

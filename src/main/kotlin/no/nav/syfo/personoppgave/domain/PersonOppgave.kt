@@ -3,16 +3,17 @@ package no.nav.syfo.personoppgave.domain
 import no.nav.syfo.domain.PersonIdent
 import no.nav.syfo.domain.Virksomhetsnummer
 import no.nav.syfo.personoppgave.api.PersonOppgaveVeileder
+import no.nav.syfo.personoppgavehendelse.domain.PersonoppgavehendelseType
 import java.time.LocalDateTime
 import java.time.OffsetDateTime
 import java.util.*
 
 data class PersonOppgave(
-    val id: Int,
+    val id: Int, // TODO: Fjerne denne, siden den er intern i databasen?
     val uuid: UUID,
     val referanseUuid: UUID,
     val personIdent: PersonIdent,
-    val virksomhetsnummer: Virksomhetsnummer,
+    val virksomhetsnummer: Virksomhetsnummer?,
     val type: PersonOppgaveType,
     val oversikthendelseTidspunkt: LocalDateTime?,
     val behandletTidspunkt: LocalDateTime?,
@@ -28,10 +29,29 @@ fun PersonOppgave.toPersonOppgaveVeileder(): PersonOppgaveVeileder {
         uuid = this.uuid.toString(),
         referanseUuid = this.referanseUuid.toString(),
         fnr = this.personIdent.value,
-        virksomhetsnummer = this.virksomhetsnummer.value,
+        virksomhetsnummer = "", // TODO: Virksomhetsnummer skal fjernes, håndter det i frontend
         type = this.type.name,
         behandletTidspunkt = this.behandletTidspunkt,
         behandletVeilederIdent = this.behandletVeilederIdent,
         opprettet = this.opprettet,
     )
+}
+
+infix fun PersonOppgave.hasSameOppgaveTypeAs(other: PersonOppgave): Boolean = type == other.type
+
+fun PersonOppgave.toHendelseType(): PersonoppgavehendelseType {
+    return when (type) {
+        PersonOppgaveType.DIALOGMOTESVAR -> {
+            if (behandletTidspunkt == null)
+                PersonoppgavehendelseType.DIALOGMOTESVAR_MOTTATT
+            else
+                PersonoppgavehendelseType.DIALOGMOTESVAR_BEHANDLET
+        }
+        PersonOppgaveType.OPPFOLGINGSPLANLPS -> {
+            if (behandletTidspunkt == null)
+                PersonoppgavehendelseType.OPPFOLGINGSPLANLPS_BISTAND_MOTTATT
+            else
+                PersonoppgavehendelseType.OPPFOLGINGSPLANLPS_BISTAND_BEHANDLET
+        }
+    }
 }
