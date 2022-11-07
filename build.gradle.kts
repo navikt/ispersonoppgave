@@ -14,7 +14,7 @@ object Versions {
     const val kafka = "2.8.1"
     const val kafkaEmbedded = "2.8.1"
     const val kluent = "1.68"
-    const val ktor = "2.1.1"
+    const val ktor = "2.1.3"
     const val logback = "1.2.11"
     const val logstashEncoder = "7.2"
     const val micrometerRegistry = "1.9.4"
@@ -28,7 +28,7 @@ object Versions {
 }
 
 plugins {
-    kotlin("jvm") version "1.7.0"
+    kotlin("jvm") version "1.7.20"
     id("com.github.johnrengelman.shadow") version "7.1.2"
     id("org.jlleitschuh.gradle.ktlint") version "10.3.0"
 }
