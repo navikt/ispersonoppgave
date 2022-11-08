@@ -1,15 +1,46 @@
 package no.nav.syfo.personoppgavehendelse
 
-import no.nav.syfo.database.DatabaseInterface
-import no.nav.syfo.personoppgave.domain.PersonOppgave
+import no.nav.syfo.personoppgave.*
+import no.nav.syfo.personoppgave.domain.*
+import org.slf4j.LoggerFactory
+import java.sql.Connection
 
 class PublishPersonoppgavehendelseService(
-    private val database: DatabaseInterface,
     private val personoppgavehendelseProducer: PersonoppgavehendelseProducer,
 ) {
-    fun getUnpublishedOppgaver(): List<PersonOppgave> {
-        return emptyList()
+    private val log = LoggerFactory.getLogger(PublishPersonoppgavehendelseService::class.java)
+
+    fun getUnpublishedOppgaver(connection: Connection): List<PersonOppgave> {
+        return connection.getPersonOppgaverByPublish(publish = true).toPersonOppgaver()
     }
 
-    fun publish(personOppgave: PersonOppgave) {}
+    private fun isNewest(connection: Connection, personOppgave: PersonOppgave): Boolean {
+        val personOppgaver = connection.getPersonOppgaver(personOppgave.personIdent).toPersonOppgaver()
+
+        val newestOppgave = personOppgaver
+            .filter { it hasSameOppgaveTypeAs personOppgave }
+            .maxBy { it.sistEndret }
+
+        return personOppgave.uuid == newestOppgave.uuid
+    }
+
+    fun publish(connection: Connection, personOppgave: PersonOppgave) { // TODO: add db to class instead of sending in connections
+        val updatedPersonOppgave: PersonOppgave
+
+        if (isNewest(connection, personOppgave)) {
+            val hendelsetype = personOppgave.toHendelseType()
+            val publishedAt = personoppgavehendelseProducer.sendPersonoppgavehendelse(
+                hendelsetype = hendelsetype,
+                personOppgave = personOppgave,
+            )
+            updatedPersonOppgave = personOppgave.copy(
+                publish = false,
+                publishedAt = publishedAt,
+            )
+        } else {
+            log.info("Do not publish PersonOppgave with uuid ${personOppgave.uuid} because oppgave from later meeting exists")
+            updatedPersonOppgave = personOppgave.copy(publish = false)
+        }
+        connection.updatePersonoppgave(updatedPersonOppgave)
+    }
 }

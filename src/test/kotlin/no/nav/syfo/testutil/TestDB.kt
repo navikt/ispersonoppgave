@@ -3,7 +3,6 @@ package no.nav.syfo.testutil
 import com.opentable.db.postgres.embedded.EmbeddedPostgres
 import no.nav.syfo.database.DatabaseInterface
 import no.nav.syfo.database.toList
-import no.nav.syfo.dialogmotesvar.domain.Dialogmotesvar
 import no.nav.syfo.domain.PersonIdent
 import no.nav.syfo.oppfolgingsplan.avro.KOppfolgingsplanLPSNAV
 import no.nav.syfo.personoppgave.*
@@ -78,33 +77,6 @@ fun Connection.createPersonOppgave(
             it.setTimestamp(6, now)
             it.setTimestamp(7, now)
             it.setBoolean(8, false)
-            it.executeQuery().toList { getInt("id") }
-        }
-
-        if (personIdList.size != 1) {
-            throw SQLException("Creating person failed, no rows affected.")
-        }
-        connection.commit()
-
-        return Pair(personIdList.first(), UUID.fromString(uuid))
-    }
-}
-
-fun Connection.createPersonOppgave(
-    dialogmotesvar: Dialogmotesvar,
-): Pair<Int, UUID> {
-    val uuid = UUID.randomUUID().toString()
-    val now = Timestamp.from(Instant.now())
-
-    use { connection ->
-        val personIdList = connection.prepareStatement(queryCreatePersonOppgave).use {
-            it.setString(1, uuid)
-            it.setString(2, dialogmotesvar.moteuuid.toString())
-            it.setString(3, dialogmotesvar.arbeidstakerIdent.value)
-            it.setString(4, "") // TODO: Virksomhet er ikke i bruk her, skal fjernes
-            it.setString(5, PersonOppgaveType.DIALOGMOTESVAR.name)
-            it.setTimestamp(6, now)
-            it.setTimestamp(7, Timestamp.from(dialogmotesvar.brevSentAt.toInstant()))
             it.executeQuery().toList { getInt("id") }
         }
 

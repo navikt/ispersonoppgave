@@ -1,7 +1,6 @@
 package no.nav.syfo.personoppgave.domain
 
 import no.nav.syfo.domain.PersonIdent
-import no.nav.syfo.domain.Virksomhetsnummer
 import java.time.LocalDateTime
 import java.time.OffsetDateTime
 import java.util.*
@@ -28,7 +27,7 @@ fun PPersonOppgave.toPersonOppgave(): PersonOppgave {
         uuid = this.uuid,
         referanseUuid = this.referanseUuid,
         personIdent = PersonIdent(this.fnr),
-        virksomhetsnummer = Virksomhetsnummer(this.virksomhetsnummer),
+        virksomhetsnummer = null,
         type = PersonOppgaveType.valueOf(this.type),
         oversikthendelseTidspunkt = this.oversikthendelseTidspunkt,
         behandletTidspunkt = this.behandletTidspunkt,
@@ -39,3 +38,5 @@ fun PPersonOppgave.toPersonOppgave(): PersonOppgave {
         publishedAt = this.publishedAt,
     )
 }
+
+fun List<PPersonOppgave>.toPersonOppgaver(): List<PersonOppgave> = map { it.toPersonOppgave() }

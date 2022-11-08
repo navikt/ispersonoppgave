@@ -14,6 +14,7 @@ import java.time.Instant
 import java.time.OffsetDateTime
 import java.util.*
 
+// TODO: flytt get queries over til getPersonOppgaveQueries
 const val queryGetPersonOppgaveListForFnr =
     """
     SELECT *
@@ -140,7 +141,7 @@ fun DatabaseInterface.createPersonOppgave(
             it.setString(5, type.name)
             it.setTimestamp(6, now)
             it.setTimestamp(7, now)
-            it.setBoolean(8, true)
+            it.setBoolean(8, false)
             it.executeQuery().toList { getInt("id") }
         }
 
@@ -167,6 +168,7 @@ fun Connection.createPersonOppgave( // TODO: send in oppgave instead of dialogmo
         it.setString(5, PersonOppgaveType.DIALOGMOTESVAR.name)
         it.setTimestamp(6, now)
         it.setTimestamp(7, Timestamp.from(dialogmotesvar.svarReceivedAt.toInstant()))
+        it.setBoolean(8, true)
         it.executeQuery().toList { getInt("id") }
     }
 

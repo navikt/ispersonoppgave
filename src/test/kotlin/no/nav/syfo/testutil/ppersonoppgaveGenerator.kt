@@ -14,7 +14,7 @@ fun generatePPersonoppgave(
         uuid = UUID.randomUUID(),
         referanseUuid = moteuuid,
         fnr = UserConstants.ARBEIDSTAKER_FNR.value,
-        virksomhetsnummer = UserConstants.VIRKSOMHETSNUMMER.value,
+        virksomhetsnummer = "",
         type = PersonOppgaveType.DIALOGMOTESVAR.name,
         oversikthendelseTidspunkt = null,
         behandletTidspunkt = null,
@@ -24,3 +24,5 @@ fun generatePPersonoppgave(
         publish = false,
         publishedAt = null,
     )
+
+fun generatePPersonoppgaver() = listOf(generatePPersonoppgave())
