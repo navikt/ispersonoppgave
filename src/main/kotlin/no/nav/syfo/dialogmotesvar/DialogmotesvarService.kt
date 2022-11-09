@@ -7,14 +7,16 @@ import no.nav.syfo.personoppgave.*
 import no.nav.syfo.personoppgave.domain.*
 import no.nav.syfo.util.toLocalDateTimeOslo
 import java.sql.Connection
+import java.time.LocalDate
 import java.util.*
 
 fun processDialogmotesvar(
     connection: Connection,
     dialogmotesvar: Dialogmotesvar,
+    cutoffDate: LocalDate,
 ) {
     log.info("Received dialogmotesvar! ${dialogmotesvar.moteuuid}")
-    if (dialogmotesvar.isNotRelevantToVeileder()) return
+    if (isNotProcessable(dialogmotesvar, cutoffDate)) return
 
     val pPersonOppgave = connection.getPersonOppgaveByReferanseUuid(dialogmotesvar.moteuuid)
 
@@ -35,3 +37,9 @@ fun processDialogmotesvar(
         }
     }
 }
+
+fun isProcessable(dialogmotesvar: Dialogmotesvar, cutoffDate: LocalDate): Boolean {
+    return dialogmotesvar.isRelevantToVeileder() && dialogmotesvar happenedAfter cutoffDate
+}
+
+fun isNotProcessable(dialogmotesvar: Dialogmotesvar, cutoffDate: LocalDate) = !isProcessable(dialogmotesvar, cutoffDate)

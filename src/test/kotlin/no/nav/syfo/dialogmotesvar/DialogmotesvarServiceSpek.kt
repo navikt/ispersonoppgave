@@ -8,6 +8,7 @@ import no.nav.syfo.util.toLocalDateTimeOslo
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
 import java.sql.Connection
+import java.time.LocalDate
 import java.time.OffsetDateTime
 import java.util.*
 
@@ -15,6 +16,8 @@ class DialogmotesvarServiceSpek : Spek({
 
     val ONE_DAY_AGO = OffsetDateTime.now().minusDays(1)
     val TEN_DAYS_AGO = OffsetDateTime.now().minusDays(10)
+    val CUTOFF_DAYS_AGO = 100L
+    val CUTOFF_DATE = LocalDate.now().minusDays(CUTOFF_DAYS_AGO)
 
     describe("Manage oppgaver based on dialogmotesvar") {
         val connection = mockk<Connection>(relaxed = true)
@@ -45,8 +48,10 @@ class DialogmotesvarServiceSpek : Spek({
                 processDialogmotesvar(
                     connection = connection,
                     dialogmotesvar = dialogmotesvar,
+                    cutoffDate = CUTOFF_DATE,
                 )
 
+                verify(exactly = 1) { connection.getPersonOppgaveByReferanseUuid(dialogmotesvar.moteuuid) }
                 verify(exactly = 1) { connection.createPersonOppgave(dialogmotesvar, any()) }
                 verify(exactly = 0) { connection.updatePersonoppgave(any()) }
             }
@@ -60,8 +65,10 @@ class DialogmotesvarServiceSpek : Spek({
                 processDialogmotesvar(
                     connection = connection,
                     dialogmotesvar = dialogmotesvar,
+                    cutoffDate = CUTOFF_DATE,
                 )
 
+                verify(exactly = 1) { connection.getPersonOppgaveByReferanseUuid(dialogmotesvar.moteuuid) }
                 verify(exactly = 1) { connection.createPersonOppgave(dialogmotesvar, any()) }
                 verify(exactly = 0) { connection.updatePersonoppgave(any()) }
             }
@@ -74,8 +81,27 @@ class DialogmotesvarServiceSpek : Spek({
                 processDialogmotesvar(
                     connection = connection,
                     dialogmotesvar = dialogmotesvar,
+                    cutoffDate = CUTOFF_DATE,
                 )
 
+                verify(exactly = 0) { connection.getPersonOppgaveByReferanseUuid(any()) }
+                verify(exactly = 0) { connection.createBehandletPersonoppgave(any(), any()) }
+                verify(exactly = 0) { connection.updatePersonoppgave(any()) }
+            }
+
+            it("does not create an oppgave if svar was sent before cutoff date") {
+                val dialogmotesvar = generateDialogmotesvar(
+                    svartype = DialogmoteSvartype.KOMMER_IKKE,
+                    svarReceivedAt = OffsetDateTime.now().minusDays(CUTOFF_DAYS_AGO + 1),
+                )
+
+                processDialogmotesvar(
+                    connection = connection,
+                    dialogmotesvar = dialogmotesvar,
+                    cutoffDate = CUTOFF_DATE,
+                )
+
+                verify(exactly = 0) { connection.getPersonOppgaveByReferanseUuid(any()) }
                 verify(exactly = 0) { connection.createBehandletPersonoppgave(any(), any()) }
                 verify(exactly = 0) { connection.updatePersonoppgave(any()) }
             }
@@ -101,6 +127,7 @@ class DialogmotesvarServiceSpek : Spek({
                 processDialogmotesvar(
                     connection = connection,
                     dialogmotesvar = newDialogmotesvar,
+                    cutoffDate = CUTOFF_DATE,
                 )
 
                 val updatePersonoppgave = generatePersonoppgave().copy(
@@ -112,6 +139,7 @@ class DialogmotesvarServiceSpek : Spek({
                     sistEndret = newDialogmotesvar.svarReceivedAt.toLocalDateTimeOslo(),
                     publish = true,
                 )
+                verify(exactly = 1) { connection.getPersonOppgaveByReferanseUuid(newDialogmotesvar.moteuuid) }
                 verify(exactly = 0) { connection.createBehandletPersonoppgave(any(), any()) }
                 verify(exactly = 1) { connection.updatePersonoppgave(updatePersonoppgave) }
             }
@@ -132,8 +160,10 @@ class DialogmotesvarServiceSpek : Spek({
                 processDialogmotesvar(
                     connection = connection,
                     dialogmotesvar = oldDialogmotesvar,
+                    cutoffDate = CUTOFF_DATE,
                 )
 
+                verify(exactly = 1) { connection.getPersonOppgaveByReferanseUuid(oldDialogmotesvar.moteuuid) }
                 verify(exactly = 0) { connection.createBehandletPersonoppgave(any(), any()) }
                 verify(exactly = 0) { connection.updatePersonoppgave(any()) }
             }

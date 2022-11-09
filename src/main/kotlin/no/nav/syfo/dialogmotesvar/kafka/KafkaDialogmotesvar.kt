@@ -2,15 +2,14 @@ package no.nav.syfo.dialogmotesvar.kafka
 
 import no.nav.syfo.*
 import no.nav.syfo.database.DatabaseInterface
-import no.nav.syfo.dialogmotesvar.domain.KDialogmotesvar
-import no.nav.syfo.dialogmotesvar.domain.toDialogmotesvar
+import no.nav.syfo.dialogmotesvar.domain.*
 import no.nav.syfo.dialogmotesvar.processDialogmotesvar
 import no.nav.syfo.kafka.kafkaAivenConsumerConfig
 import no.nav.syfo.util.configuredJacksonMapper
 import org.apache.kafka.clients.consumer.*
 import org.apache.kafka.common.serialization.Deserializer
 import org.slf4j.LoggerFactory
-import java.time.Duration
+import java.time.*
 import java.util.*
 
 const val DIALOGMOTESVAR_TOPIC = "teamsykefravr.dialogmotesvar"
@@ -32,6 +31,7 @@ fun consumeDialogmotesvar(
         pollAndProcessDialogmotesvar(
             database = database,
             kafkaConsumer = kafkaConsumer,
+            cutoffDate = environment.outdatedDialogmotesvarCutoff,
         )
     }
 }
@@ -52,7 +52,8 @@ class KDialogmotesvarDeserializer : Deserializer<KDialogmotesvar> {
 
 fun pollAndProcessDialogmotesvar(
     database: DatabaseInterface,
-    kafkaConsumer: KafkaConsumer<String, KDialogmotesvar>
+    kafkaConsumer: KafkaConsumer<String, KDialogmotesvar>,
+    cutoffDate: LocalDate,
 ) {
     val records = kafkaConsumer.poll(Duration.ofMillis(pollDurationInMillis))
     if (records.count() > 0) {
@@ -60,6 +61,7 @@ fun pollAndProcessDialogmotesvar(
         processRecords(
             database,
             records,
+            cutoffDate,
         )
 
         kafkaConsumer.commitSync()
@@ -68,7 +70,8 @@ fun pollAndProcessDialogmotesvar(
 
 fun processRecords(
     database: DatabaseInterface,
-    records: ConsumerRecords<String, KDialogmotesvar>
+    records: ConsumerRecords<String, KDialogmotesvar>,
+    cutoffDate: LocalDate,
 ) {
     val (tombstoneRecords, validRecords) = records.partition { it.value() == null }
 
@@ -87,6 +90,7 @@ fun processRecords(
             processDialogmotesvar(
                 connection = connection,
                 dialogmotesvar = dialogmotesvar,
+                cutoffDate = cutoffDate,
             )
         }
         connection.commit()
