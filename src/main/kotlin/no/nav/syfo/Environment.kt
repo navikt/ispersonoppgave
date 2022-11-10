@@ -1,5 +1,7 @@
 package no.nav.syfo
 
+import java.time.LocalDate
+
 data class Environment(
     val applicationThreads: Int = getEnvVar("APPLICATION_THREADS", "1").toInt(),
     val applicationName: String = getEnvVar("APPLICATION_NAME", "ispersonoppgave"),
@@ -40,6 +42,8 @@ data class Environment(
     val electorPath: String = getEnvVar("ELECTOR_PATH"),
 
     val publishOppgavehendelser: Boolean = getEnvVar("PUBLISH_OPPGAVEHENDELSER_ENABLED").toBoolean(),
+
+    val outdatedDialogmotesvarCutoff: LocalDate = LocalDate.parse(getEnvVar("OUTDATED_DIALOGMOTESVAR_CUTOFF")),
 ) {
     fun jdbcUrl(): String {
         return "jdbc:postgresql://$ispersonoppgaveDbHost:$ispersonoppgaveDbPort/$ispersonoppgaveDbName"

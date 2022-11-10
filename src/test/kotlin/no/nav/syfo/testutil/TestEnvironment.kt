@@ -2,6 +2,7 @@ package no.nav.syfo.testutil
 
 import no.nav.syfo.*
 import java.net.ServerSocket
+import java.time.LocalDate
 
 fun testEnvironment(
     kafkaBootstrapServers: String,
@@ -39,6 +40,7 @@ fun testEnvironment(
     toggleKafkaConsumerDialogmotesvarEnabled = true,
     electorPath = "electorPath",
     publishOppgavehendelser = true,
+    outdatedDialogmotesvarCutoff = LocalDate.parse("2022-04-01")
 )
 
 fun testAppState() = ApplicationState(
