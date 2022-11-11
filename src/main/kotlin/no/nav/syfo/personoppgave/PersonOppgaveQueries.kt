@@ -5,10 +5,10 @@ import no.nav.syfo.database.toList
 import no.nav.syfo.dialogmotestatusendring.domain.DialogmoteStatusendring
 import no.nav.syfo.dialogmotesvar.domain.Dialogmotesvar
 import no.nav.syfo.domain.PersonIdent
-import no.nav.syfo.log
 import no.nav.syfo.oppfolgingsplan.avro.KOppfolgingsplanLPSNAV
 import no.nav.syfo.personoppgave.domain.*
-import no.nav.syfo.util.*
+import no.nav.syfo.util.convert
+import no.nav.syfo.util.convertNullable
 import java.sql.*
 import java.time.Instant
 import java.time.OffsetDateTime
@@ -188,7 +188,8 @@ const val queryCreateBehandletPersonOppgave =
         opprettet,    
         sist_endret, 
         behandlet_tidspunkt,
-        behandlet_veileder_ident) VALUES (DEFAULT, ?, ?, ?, ?, ?, ?, ?, ?, ?) RETURNING id
+        behandlet_veileder_ident,
+        publish) VALUES (DEFAULT, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) RETURNING id
     """
 
 fun Connection.createBehandletPersonoppgave(
@@ -208,6 +209,7 @@ fun Connection.createBehandletPersonoppgave(
         it.setTimestamp(7, endringTidspunkt)
         it.setTimestamp(8, endringTidspunkt)
         it.setString(9, dialogmotestatus.veilederIdent)
+        it.setBoolean(10, true)
         it.executeQuery().toList { getInt("id") }
     }
 
@@ -243,30 +245,6 @@ fun Connection.updatePersonoppgave(
     if (behandletOppgaver != 1) {
         throw SQLException("Updating oppgave failed, no rows affected.")
     }
-}
-
-const val queryBehandleOppgaveByReferanseUuid =
-    """
-    UPDATE PERSON_OPPGAVE
-    SET behandlet_tidspunkt = ?, behandlet_veileder_ident = ?, sist_endret = ?
-    WHERE referanse_uuid = ?
-    """
-
-fun Connection.behandleOppgave(
-    statusendring: DialogmoteStatusendring,
-): Boolean {
-    val now = Timestamp.from(Instant.now())
-    val sistEndretTimestamp = Timestamp.from(statusendring.endringTidspunkt.toInstant())
-    val behandletOppgaver = this.prepareStatement(queryBehandleOppgaveByReferanseUuid).use {
-        it.setTimestamp(1, now)
-        it.setString(2, statusendring.veilederIdent)
-        it.setTimestamp(3, sistEndretTimestamp)
-        it.setString(4, statusendring.dialogmoteUuid.toString())
-        it.executeUpdate()
-    }
-
-    log.info("TRACE: BehandletOppgaver: $behandletOppgaver")
-    return behandletOppgaver >= 1
 }
 
 fun ResultSet.toPPersonOppgave(): PPersonOppgave =
