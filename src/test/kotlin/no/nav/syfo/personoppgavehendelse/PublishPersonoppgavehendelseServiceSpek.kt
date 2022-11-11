@@ -3,9 +3,11 @@ package no.nav.syfo.personoppgavehendelse
 import io.mockk.*
 import no.nav.syfo.domain.PersonIdent
 import no.nav.syfo.personoppgave.*
+import no.nav.syfo.personoppgave.domain.PersonOppgave
 import no.nav.syfo.personoppgavehendelse.domain.PersonoppgavehendelseType
 import no.nav.syfo.testutil.*
 import org.amshove.kluent.shouldBeEqualTo
+import org.amshove.kluent.shouldNotBeEqualTo
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
 import java.sql.Connection
@@ -16,7 +18,7 @@ class PublishPersonoppgavehendelseServiceSpek : Spek({
     val ONE_DAY_AGO = OffsetDateTime.now().minusDays(1)
     val TEN_DAYS_AGO = OffsetDateTime.now().minusDays(10)
 
-    describe("Get correct unpublished oppgavehendelser") {
+    describe("Get and publish correct unpublished oppgavehendelser") {
         val connection = mockk<Connection>(relaxed = true)
         val personoppgavehendelseProducer = mockk<PersonoppgavehendelseProducer>()
         val publishPersonoppgavehendelseService = PublishPersonoppgavehendelseService(
@@ -33,7 +35,7 @@ class PublishPersonoppgavehendelseServiceSpek : Spek({
             unmockkStatic("no.nav.syfo.personoppgave.PersonOppgaveQueriesKt")
         }
 
-        describe("getUnpublishedOppgaver") {
+        describe("get unpublished oppgavehendelser") {
             it("get oppgaver with publish true") {
                 val pPersonoppgaver = generatePPersonoppgaver()
                 every { connection.getPersonOppgaverByPublish(publish = true) } returns pPersonoppgaver
@@ -46,8 +48,8 @@ class PublishPersonoppgavehendelseServiceSpek : Spek({
             }
         }
 
-        describe("publish") {
-            it("don't publish oppgave if newer exists") {
+        describe("publish oppgavehendelser") {
+            it("doesn't publish an oppgave if newer exists") {
                 val moteUuid = UUID.randomUUID()
                 val newerMoteUuid = UUID.randomUUID()
                 val pPersonOppgave = generatePPersonoppgave(
@@ -73,12 +75,12 @@ class PublishPersonoppgavehendelseServiceSpek : Spek({
 
                 publishPersonoppgavehendelseService.publish(connection, personoppgave,)
 
-                verify(exactly = 0) { personoppgavehendelseProducer.sendPersonoppgavehendelse(any(), any()) }
+                verify(exactly = 0) { personoppgavehendelseProducer.sendPersonoppgavehendelse(any(), any(), any()) }
                 verify(exactly = 1) { connection.getPersonOppgaver(personoppgave.personIdent) }
                 verify(exactly = 1) { connection.updatePersonoppgave(updatedPersonoppgave) }
             }
 
-            it("publish if newest") {
+            it("publishes an oppgavehendelse if the personoppgave is the newest") {
                 val now = OffsetDateTime.now()
                 val olderMoteUuid = UUID.randomUUID()
                 val moteUuid = UUID.randomUUID()
@@ -100,23 +102,26 @@ class PublishPersonoppgavehendelseServiceSpek : Spek({
                     olderPPersonOppgave,
                     pPersonOppgave,
                 )
-                val updatedPersonOppgave = personOppgave.copy(
-                    publish = false,
-                    publishedAt = now,
-                )
-                every { personoppgavehendelseProducer.sendPersonoppgavehendelse(any(), any()) } returns now
+                justRun { personoppgavehendelseProducer.sendPersonoppgavehendelse(any(), any(), any()) }
                 justRun { connection.updatePersonoppgave(any()) }
 
                 publishPersonoppgavehendelseService.publish(connection, personOppgave)
 
+                verify(exactly = 1) { connection.getPersonOppgaver(personOppgave.personIdent) }
                 verify(exactly = 1) {
                     personoppgavehendelseProducer.sendPersonoppgavehendelse(
                         hendelsetype = PersonoppgavehendelseType.DIALOGMOTESVAR_MOTTATT,
-                        personOppgave = personOppgave,
+                        personIdent = personOppgave.personIdent,
+                        personoppgaveId = personOppgave.uuid,
                     )
                 }
-                verify(exactly = 1) { connection.getPersonOppgaver(personOppgave.personIdent) }
-                verify(exactly = 1) { connection.updatePersonoppgave(updatedPersonOppgave) }
+                val updatedpersonoppgaveSlot = slot<PersonOppgave>()
+                verify(exactly = 1) { connection.updatePersonoppgave(capture(updatedpersonoppgaveSlot)) }
+                val updatedPersonoppgave = updatedpersonoppgaveSlot.captured
+                updatedPersonoppgave.publishedAt shouldNotBeEqualTo null
+                updatedPersonoppgave.publish shouldBeEqualTo false
+                updatedPersonoppgave.referanseUuid shouldBeEqualTo moteUuid
+                updatedPersonoppgave.uuid shouldBeEqualTo personOppgave.uuid
             }
         }
     }

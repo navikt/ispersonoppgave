@@ -85,6 +85,6 @@ spec:
     - name: TOGGLE_KAFKA_DIALOGMOTESVAR_CONSUMER_ENABLED
       value: "true"
     - name: PUBLISH_OPPGAVEHENDELSER_ENABLED
-      value: "false"
+      value: "true"
     - name: OUTDATED_DIALOGMOTESVAR_CUTOFF
       value: "2022-04-01"
