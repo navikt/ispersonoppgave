@@ -4,8 +4,10 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
 import io.ktor.http.*
 import io.ktor.server.testing.*
+import no.nav.syfo.dialogmotesvar.domain.DialogmoteSvartype
 import no.nav.syfo.personoppgavehendelse.domain.*
 import no.nav.syfo.personoppgave.api.PersonOppgaveVeileder
+import no.nav.syfo.personoppgave.createPersonOppgave
 import no.nav.syfo.personoppgave.domain.PersonOppgaveType
 import no.nav.syfo.testutil.*
 import no.nav.syfo.testutil.UserConstants.ARBEIDSTAKER_FNR
@@ -15,6 +17,8 @@ import org.amshove.kluent.*
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
 import java.time.Duration
+import java.util.*
+import kotlin.collections.ArrayList
 
 class VeilederPersonOppgaveApiV2Spek : Spek({
     val objectMapper: ObjectMapper = configuredJacksonMapper()
@@ -266,6 +270,26 @@ class VeilederPersonOppgaveApiV2Spek : Spek({
                     messages.size shouldBeEqualTo 1
                     messages.first().personident shouldBeEqualTo kOppfolgingsplanLPSNAV.getFodselsnummer()
                     messages.first().hendelsetype shouldBeEqualTo PersonoppgavehendelseType.OPPFOLGINGSPLANLPS_BISTAND_BEHANDLET.name
+                }
+
+                it("returns OK on behandle dialogmotesvar") {
+                    val moteUuid = UUID.randomUUID()
+                    val oppgaveUuid = UUID.randomUUID()
+                    val dialogmotesvar = generateDialogmotesvar(moteUuid, DialogmoteSvartype.NYTT_TID_STED)
+
+                    database.connection.use { connection ->
+                        connection.createPersonOppgave(dialogmotesvar, oppgaveUuid)
+                        connection.commit()
+                    }
+
+                    val urlProcess = "$baseUrl/$oppgaveUuid/behandle"
+                    with(
+                        handleRequest(HttpMethod.Post, urlProcess) {
+                            addHeader(HttpHeaders.Authorization, bearerHeader(validToken))
+                        }
+                    ) {
+                        response.status() shouldBeEqualTo HttpStatusCode.OK
+                    }
                 }
             }
         }

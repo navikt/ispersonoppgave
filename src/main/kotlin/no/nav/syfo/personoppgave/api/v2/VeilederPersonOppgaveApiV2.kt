@@ -65,7 +65,7 @@ fun Route.registerVeilederPersonOppgaveApiV2(
                         )
                     ) {
                         val navIdent = getNAVIdentFromToken(token)
-                        personOppgaveService.behandlePersonOppgave(personoppgave, navIdent, callId)
+                        personOppgaveService.behandlePersonOppgave(personoppgave, navIdent)
                         call.respond(HttpStatusCode.OK)
                     } else {
                         val accessDeniedMessage = "Denied Veileder access to PersonOppgave for PersonIdent with Fodselsnummer"
