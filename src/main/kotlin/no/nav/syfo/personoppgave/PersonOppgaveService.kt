@@ -6,7 +6,9 @@ import no.nav.syfo.domain.PersonIdent
 import no.nav.syfo.personoppgave.domain.*
 import no.nav.syfo.personoppgavehendelse.PersonoppgavehendelseProducer
 import no.nav.syfo.personoppgavehendelse.domain.PersonoppgavehendelseType
+import no.nav.syfo.util.toLocalDateTimeOslo
 import org.slf4j.LoggerFactory
+import java.time.OffsetDateTime
 import java.util.*
 
 class PersonOppgaveService(
@@ -32,11 +34,31 @@ class PersonOppgaveService(
         }
     }
 
-    suspend fun behandlePersonOppgave(
+    fun behandlePersonOppgave(
         personoppgave: PersonOppgave,
         veilederIdent: String,
-        callId: String,
     ) {
+        when (personoppgave.type) {
+            PersonOppgaveType.OPPFOLGINGSPLANLPS -> behandleLps(personoppgave, veilederIdent)
+            else -> behandle(personoppgave, veilederIdent)
+        }
+    }
+
+    fun behandle(personOppgave: PersonOppgave, veilederIdent: String) {
+        val now = OffsetDateTime.now().toLocalDateTimeOslo()
+        val updatedOppgave = personOppgave.copy(
+            behandletTidspunkt = now,
+            behandletVeilederIdent = veilederIdent,
+            sistEndret = now,
+            publish = true,
+        )
+        database.connection.use { connection ->
+            connection.updatePersonoppgave(updatedOppgave)
+            connection.commit()
+        }
+    }
+
+    fun behandleLps(personoppgave: PersonOppgave, veilederIdent: String) {
         val personFnr = personoppgave.personIdent
 
         val isOnePersonOppgaveUbehandlet = getPersonOppgaveList(personFnr)
