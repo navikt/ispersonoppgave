@@ -4,6 +4,7 @@ import no.nav.syfo.personoppgave.*
 import no.nav.syfo.personoppgave.domain.*
 import org.slf4j.LoggerFactory
 import java.sql.Connection
+import java.time.OffsetDateTime
 
 class PublishPersonoppgavehendelseService(
     private val personoppgavehendelseProducer: PersonoppgavehendelseProducer,
@@ -29,13 +30,14 @@ class PublishPersonoppgavehendelseService(
 
         if (isNewest(connection, personOppgave)) {
             val hendelsetype = personOppgave.toHendelseType()
-            val publishedAt = personoppgavehendelseProducer.sendPersonoppgavehendelse(
+            personoppgavehendelseProducer.sendPersonoppgavehendelse(
                 hendelsetype = hendelsetype,
-                personOppgave = personOppgave,
+                personIdent = personOppgave.personIdent,
+                personoppgaveId = personOppgave.uuid,
             )
             updatedPersonOppgave = personOppgave.copy(
                 publish = false,
-                publishedAt = publishedAt,
+                publishedAt = OffsetDateTime.now(),
             )
         } else {
             log.info("Do not publish PersonOppgave with uuid ${personOppgave.uuid} because oppgave from later meeting exists")
