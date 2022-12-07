@@ -26,3 +26,6 @@ spec:
     - team: teamsykefravr
       application: ispersonoppgave
       access: write
+    - team: esyfo
+      application: syfomotebehov
+      access: write
