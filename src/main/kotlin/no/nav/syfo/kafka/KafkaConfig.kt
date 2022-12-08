@@ -1,7 +1,5 @@
 package no.nav.syfo.kafka
 
-import io.confluent.kafka.serializers.KafkaAvroDeserializer
-import no.nav.syfo.Environment
 import no.nav.syfo.EnvironmentKafka
 import org.apache.kafka.clients.CommonClientConfigs
 import org.apache.kafka.clients.consumer.ConsumerConfig
@@ -11,25 +9,6 @@ import org.apache.kafka.common.config.SslConfigs
 import org.apache.kafka.common.serialization.StringDeserializer
 import org.apache.kafka.common.serialization.StringSerializer
 import java.util.*
-
-fun kafkaConsumerConfig(
-    env: Environment,
-): Properties {
-    return Properties().apply {
-        this[ConsumerConfig.GROUP_ID_CONFIG] = "${env.applicationName}-consumer"
-        this[ConsumerConfig.AUTO_OFFSET_RESET_CONFIG] = "earliest"
-        this[CommonClientConfigs.RETRIES_CONFIG] = "2"
-        this[CommonClientConfigs.SECURITY_PROTOCOL_CONFIG] = "SASL_SSL"
-        this[SaslConfigs.SASL_MECHANISM] = "PLAIN"
-        this["schema.registry.url"] = env.kafkaSchemaRegistryUrl
-        this["specific.avro.reader"] = true
-        this[ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG] = KafkaAvroDeserializer::class.java.canonicalName
-        this[ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG] = KafkaAvroDeserializer::class.java.canonicalName
-        this[SaslConfigs.SASL_JAAS_CONFIG] = "org.apache.kafka.common.security.plain.PlainLoginModule required " +
-            "username=\"${env.serviceuserUsername}\" password=\"${env.serviceuserPassword}\";"
-        this[CommonClientConfigs.BOOTSTRAP_SERVERS_CONFIG] = env.kafkaBootstrapServers
-    }
-}
 
 fun kafkaAivenConsumerConfig(
     environmentKafka: EnvironmentKafka,

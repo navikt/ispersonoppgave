@@ -3,10 +3,10 @@ package no.nav.syfo.personoppgave.oppfolgingsplanlps
 import no.nav.syfo.database.DatabaseInterface
 import no.nav.syfo.domain.PersonIdent
 import no.nav.syfo.metric.*
-import no.nav.syfo.oppfolgingsplan.avro.KOppfolgingsplanLPSNAV
 import no.nav.syfo.personoppgave.*
 import no.nav.syfo.personoppgave.domain.PPersonOppgave
 import no.nav.syfo.personoppgave.domain.PersonOppgaveType
+import no.nav.syfo.personoppgave.oppfolgingsplanlps.kafka.KOppfolgingsplanLPSNAV
 import no.nav.syfo.personoppgavehendelse.PersonoppgavehendelseProducer
 import no.nav.syfo.personoppgavehendelse.domain.PersonoppgavehendelseType
 import no.nav.syfo.util.callIdArgument
@@ -24,23 +24,23 @@ class OppfolgingsplanLPSService(
         kOppfolgingsplanLPSNAV: KOppfolgingsplanLPSNAV,
         callId: String = ""
     ) {
-        if (kOppfolgingsplanLPSNAV.getBehovForBistandFraNav() == true) {
-            val person: PPersonOppgave? = database.getPersonOppgaveList(PersonIdent(kOppfolgingsplanLPSNAV.getFodselsnummer()))
-                .find { it.referanseUuid == UUID.fromString(kOppfolgingsplanLPSNAV.getUuid()) }
+        if (kOppfolgingsplanLPSNAV.behovForBistandFraNav) {
+            val person: PPersonOppgave? = database.getPersonOppgaveList(PersonIdent(kOppfolgingsplanLPSNAV.fodselsnummer))
+                .find { it.referanseUuid == UUID.fromString(kOppfolgingsplanLPSNAV.uuid) }
             if (person == null) {
-                log.info("Didn't find person with oppgave based on given referanseUuid: ${kOppfolgingsplanLPSNAV.getUuid()} creating new Personoppgave")
+                log.info("Didn't find person with oppgave based on given referanseUuid: ${kOppfolgingsplanLPSNAV.uuid} creating new Personoppgave")
                 val idPair = database.createPersonOppgave(
                     kOppfolgingsplanLPSNAV,
                     PersonOppgaveType.OPPFOLGINGSPLANLPS
                 )
                 COUNT_PERSON_OPPGAVE_OPPFOLGINGSPLANLPS_CREATED.increment()
 
-                val fodselsnummer = PersonIdent(kOppfolgingsplanLPSNAV.getFodselsnummer())
+                val fodselsnummer = PersonIdent(kOppfolgingsplanLPSNAV.fodselsnummer)
                 sendPersonoppgavehendelse(idPair.second, fodselsnummer)
                 database.updatePersonOppgaveOversikthendelse(idPair.first)
                 COUNT_PERSONOPPGAVEHENDELSE_OPPFOLGINGSPLANLPS_BISTAND_MOTTATT_SENT.increment()
             } else {
-                log.error("Already create a PersonOppgave for OppfolgingsplanLPS with UUID {}, {}", kOppfolgingsplanLPSNAV.getUuid(), callIdArgument(callId))
+                log.error("Already create a PersonOppgave for OppfolgingsplanLPS with UUID {}, {}", kOppfolgingsplanLPSNAV.uuid, callIdArgument(callId))
                 COUNT_PERSON_OPPGAVE_OPPFOLGINGSPLANLPS_ALREADY_CREATED.increment()
             }
         } else {

@@ -1,6 +1,6 @@
 package no.nav.syfo.kafka
 
-import no.nav.syfo.oppfolgingsplan.avro.KOppfolgingsplanLPSNAV
+import no.nav.syfo.personoppgave.oppfolgingsplanlps.kafka.KOppfolgingsplanLPSNAV
 import no.nav.syfo.personoppgave.oppfolgingsplanlps.kafka.OPPFOLGINGSPLAN_LPS_NAV_TOPIC
 import no.nav.syfo.testutil.*
 import org.amshove.kluent.shouldBeEqualTo

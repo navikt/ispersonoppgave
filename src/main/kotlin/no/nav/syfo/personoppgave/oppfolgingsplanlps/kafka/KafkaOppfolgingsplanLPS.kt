@@ -3,19 +3,20 @@ package no.nav.syfo.personoppgave.oppfolgingsplanlps.kafka
 import kotlinx.coroutines.delay
 import net.logstash.logback.argument.StructuredArguments
 import no.nav.syfo.*
-import no.nav.syfo.kafka.kafkaConsumerConfig
-import no.nav.syfo.oppfolgingsplan.avro.KOppfolgingsplanLPSNAV
+import no.nav.syfo.kafka.kafkaAivenConsumerConfig
 import no.nav.syfo.personoppgave.oppfolgingsplanlps.OppfolgingsplanLPSService
-import no.nav.syfo.util.callIdArgument
-import no.nav.syfo.util.kafkaCallId
+import no.nav.syfo.util.*
+import org.apache.kafka.clients.consumer.ConsumerConfig
 import org.apache.kafka.clients.consumer.KafkaConsumer
+import org.apache.kafka.common.serialization.Deserializer
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.time.Duration
+import java.util.Properties
 
 private val LOG: Logger = LoggerFactory.getLogger("no.nav.syfo.personoppgave.oppfolgingsplanlps.kafka")
 
-const val OPPFOLGINGSPLAN_LPS_NAV_TOPIC = "aapen-syfo-oppfolgingsplan-lps-nav-v1"
+const val OPPFOLGINGSPLAN_LPS_NAV_TOPIC = "aapen-syfo-oppfolgingsplan-lps-nav-v2"
 
 suspend fun blockingApplicationLogicOppfolgingsplanLPS(
     applicationState: ApplicationState,
@@ -24,23 +25,23 @@ suspend fun blockingApplicationLogicOppfolgingsplanLPS(
 ) {
     LOG.info("Setting up kafka consumer OppfolgingsplanLPS")
 
-    val consumerProperties = kafkaConsumerConfig(env = environment)
-    val kafkaConsumerOppfolgingsplanLPSNAV = KafkaConsumer<String, KOppfolgingsplanLPSNAV>(consumerProperties)
+    val consumerProperties = kafkaConfig(environment.kafka)
+    val kafkaConsumerOppfolgingsplanLPS = KafkaConsumer<String, KOppfolgingsplanLPSNAV>(consumerProperties)
 
-    kafkaConsumerOppfolgingsplanLPSNAV.subscribe(
+    kafkaConsumerOppfolgingsplanLPS.subscribe(
         listOf(OPPFOLGINGSPLAN_LPS_NAV_TOPIC)
     )
 
     while (applicationState.ready) {
-        pollAndProcessKOppfolgingsplanLPSNAV(
-            kafkaConsumerOppfolgingsplanLPSNAV = kafkaConsumerOppfolgingsplanLPSNAV,
+        pollAndProcessKOppfolgingsplanLPS(
+            kafkaConsumerOppfolgingsplanLPSNAV = kafkaConsumerOppfolgingsplanLPS,
             oppfolgingsplanLPSService = oppfolgingsplanLPSService
         )
         delay(100)
     }
 }
 
-fun pollAndProcessKOppfolgingsplanLPSNAV(
+fun pollAndProcessKOppfolgingsplanLPS(
     kafkaConsumerOppfolgingsplanLPSNAV: KafkaConsumer<String, KOppfolgingsplanLPSNAV>,
     oppfolgingsplanLPSService: OppfolgingsplanLPSService
 ) {
@@ -67,4 +68,18 @@ fun pollAndProcessKOppfolgingsplanLPSNAV(
             callId
         )
     }
+}
+
+private fun kafkaConfig(environmentKafka: EnvironmentKafka): Properties {
+    return Properties().apply {
+        putAll(kafkaAivenConsumerConfig(environmentKafka))
+        this[ConsumerConfig.GROUP_ID_CONFIG] = "ispersonoppgave-v1"
+        this[ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG] = KOppfolgingsplanLPSDeserializer::class.java.canonicalName
+    }
+}
+
+class KOppfolgingsplanLPSDeserializer : Deserializer<KOppfolgingsplanLPSNAV> {
+    private val mapper = configuredJacksonMapper()
+    override fun deserialize(topic: String, data: ByteArray): KOppfolgingsplanLPSNAV =
+        mapper.readValue(data, KOppfolgingsplanLPSNAV::class.java)
 }

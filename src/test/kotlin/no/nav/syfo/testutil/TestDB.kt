@@ -4,10 +4,10 @@ import com.opentable.db.postgres.embedded.EmbeddedPostgres
 import no.nav.syfo.database.DatabaseInterface
 import no.nav.syfo.database.toList
 import no.nav.syfo.domain.PersonIdent
-import no.nav.syfo.oppfolgingsplan.avro.KOppfolgingsplanLPSNAV
 import no.nav.syfo.personoppgave.*
 import no.nav.syfo.personoppgave.domain.PPersonOppgave
 import no.nav.syfo.personoppgave.domain.PersonOppgaveType
+import no.nav.syfo.personoppgave.oppfolgingsplanlps.kafka.KOppfolgingsplanLPSNAV
 import org.flywaydb.core.Flyway
 import java.sql.*
 import java.time.Instant
@@ -70,9 +70,9 @@ fun Connection.createPersonOppgave(
     use { connection ->
         val personIdList = connection.prepareStatement(queryCreatePersonOppgave).use {
             it.setString(1, uuid)
-            it.setString(2, kOppfolgingsplanLPSNAV.getUuid())
-            it.setString(3, kOppfolgingsplanLPSNAV.getFodselsnummer())
-            it.setString(4, kOppfolgingsplanLPSNAV.getVirksomhetsnummer())
+            it.setString(2, kOppfolgingsplanLPSNAV.uuid)
+            it.setString(3, kOppfolgingsplanLPSNAV.fodselsnummer)
+            it.setString(4, kOppfolgingsplanLPSNAV.virksomhetsnummer)
             it.setString(5, type.name)
             it.setTimestamp(6, now)
             it.setTimestamp(7, now)

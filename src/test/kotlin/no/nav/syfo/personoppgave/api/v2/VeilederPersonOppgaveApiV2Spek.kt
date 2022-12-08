@@ -132,8 +132,8 @@ class VeilederPersonOppgaveApiV2Spek : Spek({
 
                         val personOppgave = personOppgaveList.first()
                         personOppgave.uuid.shouldNotBeNull()
-                        personOppgave.referanseUuid shouldBeEqualTo kOppfolgingsplanLPSNAV.getUuid()
-                        personOppgave.fnr shouldBeEqualTo kOppfolgingsplanLPSNAV.getFodselsnummer()
+                        personOppgave.referanseUuid shouldBeEqualTo kOppfolgingsplanLPSNAV.uuid
+                        personOppgave.fnr shouldBeEqualTo kOppfolgingsplanLPSNAV.fodselsnummer
                         personOppgave.virksomhetsnummer shouldBeEqualTo ""
                         personOppgave.type shouldBeEqualTo personOppgaveType.name
                         personOppgave.behandletTidspunkt.shouldBeNull()
@@ -188,8 +188,8 @@ class VeilederPersonOppgaveApiV2Spek : Spek({
                         personOppgaveBehandletList.size shouldBeEqualTo 1
                         val personOppgaveBehandlet = personOppgaveBehandletList.first()
                         personOppgaveBehandlet.uuid.shouldNotBeNull()
-                        personOppgaveBehandlet.referanseUuid shouldBeEqualTo kOppfolgingsplanLPSNAV.getUuid()
-                        personOppgaveBehandlet.fnr shouldBeEqualTo kOppfolgingsplanLPSNAV.getFodselsnummer()
+                        personOppgaveBehandlet.referanseUuid shouldBeEqualTo kOppfolgingsplanLPSNAV.uuid
+                        personOppgaveBehandlet.fnr shouldBeEqualTo kOppfolgingsplanLPSNAV.fodselsnummer
                         personOppgaveBehandlet.virksomhetsnummer shouldBeEqualTo ""
                         personOppgaveBehandlet.type shouldBeEqualTo personOppgaveType.name
                         personOppgaveBehandlet.behandletTidspunkt.shouldNotBeNull()
@@ -202,8 +202,8 @@ class VeilederPersonOppgaveApiV2Spek : Spek({
                         personOppgaveUbehandletList.size shouldBeEqualTo 1
                         val personOppgaveUbehandlet = personOppgaveUbehandletList.first()
                         personOppgaveUbehandlet.uuid.shouldNotBeNull()
-                        personOppgaveUbehandlet.referanseUuid shouldBeEqualTo kOppfolgingsplanLPSNAV2.getUuid()
-                        personOppgaveUbehandlet.fnr shouldBeEqualTo kOppfolgingsplanLPSNAV2.getFodselsnummer()
+                        personOppgaveUbehandlet.referanseUuid shouldBeEqualTo kOppfolgingsplanLPSNAV2.uuid
+                        personOppgaveUbehandlet.fnr shouldBeEqualTo kOppfolgingsplanLPSNAV2.fodselsnummer
                         personOppgaveUbehandlet.virksomhetsnummer shouldBeEqualTo ""
                         personOppgaveUbehandlet.type shouldBeEqualTo personOppgaveType.name
                         personOppgaveUbehandlet.behandletTidspunkt.shouldBeNull()
@@ -253,8 +253,8 @@ class VeilederPersonOppgaveApiV2Spek : Spek({
 
                         val personOppgave = personOppgaveList.first()
                         personOppgave.uuid.shouldNotBeNull()
-                        personOppgave.referanseUuid shouldBeEqualTo kOppfolgingsplanLPSNAV.getUuid()
-                        personOppgave.fnr shouldBeEqualTo kOppfolgingsplanLPSNAV.getFodselsnummer()
+                        personOppgave.referanseUuid shouldBeEqualTo kOppfolgingsplanLPSNAV.uuid
+                        personOppgave.fnr shouldBeEqualTo kOppfolgingsplanLPSNAV.fodselsnummer
                         personOppgave.virksomhetsnummer shouldBeEqualTo ""
                         personOppgave.type shouldBeEqualTo personOppgaveType.name
                         personOppgave.behandletTidspunkt.shouldNotBeNull()
@@ -268,7 +268,7 @@ class VeilederPersonOppgaveApiV2Spek : Spek({
                         messages.add(consumedPersonoppgavehendelse)
                     }
                     messages.size shouldBeEqualTo 1
-                    messages.first().personident shouldBeEqualTo kOppfolgingsplanLPSNAV.getFodselsnummer()
+                    messages.first().personident shouldBeEqualTo kOppfolgingsplanLPSNAV.fodselsnummer
                     messages.first().hendelsetype shouldBeEqualTo PersonoppgavehendelseType.OPPFOLGINGSPLANLPS_BISTAND_BEHANDLET.name
                 }
 

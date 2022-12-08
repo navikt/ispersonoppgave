@@ -24,7 +24,6 @@ object Versions {
     const val postgresEmbedded = "0.13.4"
     const val scala = "2.13.9"
     const val spek = "2.0.18"
-    const val syfoOppfolgingsplanSchema = "1.0.2"
 }
 
 plugins {
@@ -40,13 +39,6 @@ repositories {
     maven(url = "https://packages.confluent.io/maven/")
     maven(url = "https://repository.mulesoft.org/nexus/content/repositories/public/")
     maven(url = "https://jitpack.io")
-    maven {
-        url = uri("https://maven.pkg.github.com/navikt/syfoopservice-schema")
-        credentials {
-            username = githubUser
-            password = githubPassword
-        }
-    }
     maven {
         url = uri("https://maven.pkg.github.com/navikt/isdialogmote-schema")
         credentials {
@@ -122,7 +114,6 @@ dependencies {
         }
     }
     implementation("no.nav.syfo.dialogmote.avro:isdialogmote-schema:${Versions.isdialogmoteSchema}")
-    implementation("no.nav.syfo.oppfolgingsplan.avro:syfoopservice-schema:${Versions.syfoOppfolgingsplanSchema}")
     implementation("org.scala-lang:scala-library") {
         version {
             strictly(Versions.scala)
