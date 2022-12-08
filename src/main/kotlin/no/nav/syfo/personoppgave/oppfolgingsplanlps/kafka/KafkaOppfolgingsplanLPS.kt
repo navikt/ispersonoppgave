@@ -16,7 +16,7 @@ import java.util.Properties
 
 private val LOG: Logger = LoggerFactory.getLogger("no.nav.syfo.personoppgave.oppfolgingsplanlps.kafka")
 
-const val OPPFOLGINGSPLAN_LPS_NAV_TOPIC = "aapen-syfo-oppfolgingsplan-lps-nav-v2"
+const val OPPFOLGINGSPLAN_LPS_NAV_TOPIC = "team-esyfo.aapen-syfo-oppfolgingsplan-lps-nav-v2"
 
 suspend fun blockingApplicationLogicOppfolgingsplanLPS(
     applicationState: ApplicationState,
