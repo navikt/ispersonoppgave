@@ -58,7 +58,7 @@ class OppfolgingsplanLPSServiceSpek : Spek({
 
             describe("Receive kOppfolgingsplanLPSNAV") {
                 it("should create a new PPersonOppgave with correct type when behovForBistand=true") {
-                    val kOppfolgingsplanLPSNAV = generateKOppfolgingsplanLPSNAV
+                    val kOppfolgingsplanLPSNAV = generateKOppfolgingsplanLPS
 
                     runBlocking {
                         oppfolgingsplanLPSService.receiveOppfolgingsplanLPS(kOppfolgingsplanLPSNAV)
@@ -85,7 +85,7 @@ class OppfolgingsplanLPSServiceSpek : Spek({
                 }
 
                 it("should not create a new PPersonOppgave with correct type when behovForBistand=false") {
-                    val kOppfolgingsplanLPSNAV = generateKOppfolgingsplanLPSNAVNoBehovforForBistand
+                    val kOppfolgingsplanLPSNAV = generateKOppfolgingsplanLPSNoBehovforForBistand
 
                     runBlocking {
                         oppfolgingsplanLPSService.receiveOppfolgingsplanLPS(kOppfolgingsplanLPSNAV)

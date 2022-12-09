@@ -111,7 +111,7 @@ class VeilederPersonOppgaveApiV2Spek : Spek({
                 }
 
                 it("returns PersonOppgaveList if there is a PersonOppgave with type OppfolgingsplanLPS for PersonIdent") {
-                    val kOppfolgingsplanLPSNAV = generateKOppfolgingsplanLPSNAV
+                    val kOppfolgingsplanLPSNAV = generateKOppfolgingsplanLPS
                     val personOppgaveType = PersonOppgaveType.OPPFOLGINGSPLANLPS
                     database.connection.createPersonOppgave(
                         kOppfolgingsplanLPSNAV,
@@ -145,8 +145,8 @@ class VeilederPersonOppgaveApiV2Spek : Spek({
 
             describe("Process PersonOppgave for PersonIdent") {
                 it("returns OK and does NOT send Personoppgavehendelse if processed 1 of 2 existing PersonOppgave") {
-                    val kOppfolgingsplanLPSNAV = generateKOppfolgingsplanLPSNAV
-                    val kOppfolgingsplanLPSNAV2 = generateKOppfolgingsplanLPSNAV2
+                    val kOppfolgingsplanLPSNAV = generateKOppfolgingsplanLPS
+                    val kOppfolgingsplanLPSNAV2 = generateKOppfolgingsplanLPS2
                     val personOppgaveType = PersonOppgaveType.OPPFOLGINGSPLANLPS
 
                     val uuid = database.connection.createPersonOppgave(
@@ -220,7 +220,7 @@ class VeilederPersonOppgaveApiV2Spek : Spek({
                 }
 
                 it("returns OK and sends Personoppgavehendelse if processed the 1 and only existing PersonOppgave") {
-                    val kOppfolgingsplanLPSNAV = generateKOppfolgingsplanLPSNAV
+                    val kOppfolgingsplanLPSNAV = generateKOppfolgingsplanLPS
                     val personOppgaveType = PersonOppgaveType.OPPFOLGINGSPLANLPS
 
                     val uuid = database.connection.createPersonOppgave(

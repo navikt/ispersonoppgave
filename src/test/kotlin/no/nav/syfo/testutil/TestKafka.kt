@@ -32,14 +32,14 @@ fun Properties.overrideForTest(): Properties = apply {
 
 fun testOppfolgingsplanLPSConsumer(
     externalMockEnvironment: ExternalMockEnvironment,
-): KafkaConsumer<String, KOppfolgingsplanLPSNAV> {
+): KafkaConsumer<String, KOppfolgingsplanLPS> {
     val consumerPropertiesOppfolgingsplanLPS = kafkaAivenConsumerConfig(externalMockEnvironment.environment.kafka)
         .overrideForTest()
         .apply {
             put(ConsumerConfig.GROUP_ID_CONFIG, "ispersonoppgave-v1")
             put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, KOppfolgingsplanLPSDeserializer::class.java.canonicalName)
         }
-    val consumerOppfolgingsplanLPS = KafkaConsumer<String, KOppfolgingsplanLPSNAV>(consumerPropertiesOppfolgingsplanLPS)
+    val consumerOppfolgingsplanLPS = KafkaConsumer<String, KOppfolgingsplanLPS>(consumerPropertiesOppfolgingsplanLPS)
     consumerOppfolgingsplanLPS.subscribe(listOf(OPPFOLGINGSPLAN_LPS_NAV_TOPIC))
     return consumerOppfolgingsplanLPS
 }

@@ -26,7 +26,7 @@ suspend fun blockingApplicationLogicOppfolgingsplanLPS(
     LOG.info("Setting up kafka consumer OppfolgingsplanLPS")
 
     val consumerProperties = kafkaConfig(environment.kafka)
-    val kafkaConsumerOppfolgingsplanLPS = KafkaConsumer<String, KOppfolgingsplanLPSNAV>(consumerProperties)
+    val kafkaConsumerOppfolgingsplanLPS = KafkaConsumer<String, KOppfolgingsplanLPS>(consumerProperties)
 
     kafkaConsumerOppfolgingsplanLPS.subscribe(
         listOf(OPPFOLGINGSPLAN_LPS_NAV_TOPIC)
@@ -42,7 +42,7 @@ suspend fun blockingApplicationLogicOppfolgingsplanLPS(
 }
 
 fun pollAndProcessKOppfolgingsplanLPS(
-    kafkaConsumerOppfolgingsplanLPSNAV: KafkaConsumer<String, KOppfolgingsplanLPSNAV>,
+    kafkaConsumerOppfolgingsplanLPSNAV: KafkaConsumer<String, KOppfolgingsplanLPS>,
     oppfolgingsplanLPSService: OppfolgingsplanLPSService
 ) {
     var logValues = arrayOf(
@@ -56,7 +56,7 @@ fun pollAndProcessKOppfolgingsplanLPS(
 
     kafkaConsumerOppfolgingsplanLPSNAV.poll(Duration.ofMillis(0)).forEach {
         val callId = kafkaCallId()
-        val kOppfolgingsplanLPSNAV: KOppfolgingsplanLPSNAV = it.value()
+        val kOppfolgingsplanLPS: KOppfolgingsplanLPS = it.value()
         logValues = arrayOf(
             StructuredArguments.keyValue("id", it.key()),
             StructuredArguments.keyValue("timestamp", it.timestamp())
@@ -64,7 +64,7 @@ fun pollAndProcessKOppfolgingsplanLPS(
         LOG.info("Received KOppfolgingsplanLPSNAV, ready to process, $logKeys, {}", *logValues, callIdArgument(callId))
 
         oppfolgingsplanLPSService.receiveOppfolgingsplanLPS(
-            kOppfolgingsplanLPSNAV,
+            kOppfolgingsplanLPS,
             callId
         )
     }
@@ -78,8 +78,8 @@ private fun kafkaConfig(environmentKafka: EnvironmentKafka): Properties {
     }
 }
 
-class KOppfolgingsplanLPSDeserializer : Deserializer<KOppfolgingsplanLPSNAV> {
+class KOppfolgingsplanLPSDeserializer : Deserializer<KOppfolgingsplanLPS> {
     private val mapper = configuredJacksonMapper()
-    override fun deserialize(topic: String, data: ByteArray): KOppfolgingsplanLPSNAV =
-        mapper.readValue(data, KOppfolgingsplanLPSNAV::class.java)
+    override fun deserialize(topic: String, data: ByteArray): KOppfolgingsplanLPS =
+        mapper.readValue(data, KOppfolgingsplanLPS::class.java)
 }
