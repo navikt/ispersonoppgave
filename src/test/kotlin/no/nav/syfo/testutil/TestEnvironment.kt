@@ -20,8 +20,6 @@ fun testEnvironment(
     ispersonoppgaveDbName = "ispersonoppgave_dev",
     ispersonoppgaveDbUsername = "username",
     ispersonoppgaveDbPassword = "password",
-    kafkaBootstrapServers = kafkaBootstrapServers,
-    kafkaSchemaRegistryUrl = "http://kafka-schema-registry.tpa.svc.nais.local:8081",
     serviceuserUsername = "",
     serviceuserPassword = "",
     syfotilgangskontrollClientId = syfotilgangskontrollUrl,

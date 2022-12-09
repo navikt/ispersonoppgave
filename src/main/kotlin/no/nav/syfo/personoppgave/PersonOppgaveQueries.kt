@@ -5,8 +5,8 @@ import no.nav.syfo.database.toList
 import no.nav.syfo.dialogmotestatusendring.domain.DialogmoteStatusendring
 import no.nav.syfo.dialogmotesvar.domain.Dialogmotesvar
 import no.nav.syfo.domain.PersonIdent
-import no.nav.syfo.oppfolgingsplan.avro.KOppfolgingsplanLPSNAV
 import no.nav.syfo.personoppgave.domain.*
+import no.nav.syfo.personoppgave.oppfolgingsplanlps.kafka.KOppfolgingsplanLPS
 import no.nav.syfo.util.convert
 import no.nav.syfo.util.convertNullable
 import java.sql.*
@@ -126,7 +126,7 @@ const val queryCreatePersonOppgave =
     """
 
 fun DatabaseInterface.createPersonOppgave(
-    kOppfolgingsplanLPSNAV: KOppfolgingsplanLPSNAV,
+    kOppfolgingsplanLPS: KOppfolgingsplanLPS,
     type: PersonOppgaveType
 ): Pair<Int, UUID> {
     val uuid = UUID.randomUUID().toString()
@@ -135,9 +135,9 @@ fun DatabaseInterface.createPersonOppgave(
     connection.use { connection ->
         val personIdList = connection.prepareStatement(queryCreatePersonOppgave).use {
             it.setString(1, uuid)
-            it.setString(2, kOppfolgingsplanLPSNAV.getUuid())
-            it.setString(3, kOppfolgingsplanLPSNAV.getFodselsnummer())
-            it.setString(4, kOppfolgingsplanLPSNAV.getVirksomhetsnummer())
+            it.setString(2, kOppfolgingsplanLPS.uuid)
+            it.setString(3, kOppfolgingsplanLPS.fodselsnummer)
+            it.setString(4, kOppfolgingsplanLPS.virksomhetsnummer)
             it.setString(5, type.name)
             it.setTimestamp(6, now)
             it.setTimestamp(7, now)

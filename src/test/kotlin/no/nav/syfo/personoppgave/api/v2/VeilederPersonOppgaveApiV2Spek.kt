@@ -111,10 +111,10 @@ class VeilederPersonOppgaveApiV2Spek : Spek({
                 }
 
                 it("returns PersonOppgaveList if there is a PersonOppgave with type OppfolgingsplanLPS for PersonIdent") {
-                    val kOppfolgingsplanLPSNAV = generateKOppfolgingsplanLPSNAV
+                    val kOppfolgingsplanLPS = generateKOppfolgingsplanLPS
                     val personOppgaveType = PersonOppgaveType.OPPFOLGINGSPLANLPS
                     database.connection.createPersonOppgave(
-                        kOppfolgingsplanLPSNAV,
+                        kOppfolgingsplanLPS,
                         personOppgaveType
                     )
 
@@ -132,8 +132,8 @@ class VeilederPersonOppgaveApiV2Spek : Spek({
 
                         val personOppgave = personOppgaveList.first()
                         personOppgave.uuid.shouldNotBeNull()
-                        personOppgave.referanseUuid shouldBeEqualTo kOppfolgingsplanLPSNAV.getUuid()
-                        personOppgave.fnr shouldBeEqualTo kOppfolgingsplanLPSNAV.getFodselsnummer()
+                        personOppgave.referanseUuid shouldBeEqualTo kOppfolgingsplanLPS.uuid
+                        personOppgave.fnr shouldBeEqualTo kOppfolgingsplanLPS.fodselsnummer
                         personOppgave.virksomhetsnummer shouldBeEqualTo ""
                         personOppgave.type shouldBeEqualTo personOppgaveType.name
                         personOppgave.behandletTidspunkt.shouldBeNull()
@@ -145,17 +145,17 @@ class VeilederPersonOppgaveApiV2Spek : Spek({
 
             describe("Process PersonOppgave for PersonIdent") {
                 it("returns OK and does NOT send Personoppgavehendelse if processed 1 of 2 existing PersonOppgave") {
-                    val kOppfolgingsplanLPSNAV = generateKOppfolgingsplanLPSNAV
-                    val kOppfolgingsplanLPSNAV2 = generateKOppfolgingsplanLPSNAV2
+                    val kOppfolgingsplanLPS = generateKOppfolgingsplanLPS
+                    val kOppfolgingsplanLPS2 = generateKOppfolgingsplanLPS2
                     val personOppgaveType = PersonOppgaveType.OPPFOLGINGSPLANLPS
 
                     val uuid = database.connection.createPersonOppgave(
-                        kOppfolgingsplanLPSNAV,
+                        kOppfolgingsplanLPS,
                         personOppgaveType
                     ).second
 
                     database.connection.createPersonOppgave(
-                        kOppfolgingsplanLPSNAV2,
+                        kOppfolgingsplanLPS2,
                         personOppgaveType
                     ).second
 
@@ -188,8 +188,8 @@ class VeilederPersonOppgaveApiV2Spek : Spek({
                         personOppgaveBehandletList.size shouldBeEqualTo 1
                         val personOppgaveBehandlet = personOppgaveBehandletList.first()
                         personOppgaveBehandlet.uuid.shouldNotBeNull()
-                        personOppgaveBehandlet.referanseUuid shouldBeEqualTo kOppfolgingsplanLPSNAV.getUuid()
-                        personOppgaveBehandlet.fnr shouldBeEqualTo kOppfolgingsplanLPSNAV.getFodselsnummer()
+                        personOppgaveBehandlet.referanseUuid shouldBeEqualTo kOppfolgingsplanLPS.uuid
+                        personOppgaveBehandlet.fnr shouldBeEqualTo kOppfolgingsplanLPS.fodselsnummer
                         personOppgaveBehandlet.virksomhetsnummer shouldBeEqualTo ""
                         personOppgaveBehandlet.type shouldBeEqualTo personOppgaveType.name
                         personOppgaveBehandlet.behandletTidspunkt.shouldNotBeNull()
@@ -202,8 +202,8 @@ class VeilederPersonOppgaveApiV2Spek : Spek({
                         personOppgaveUbehandletList.size shouldBeEqualTo 1
                         val personOppgaveUbehandlet = personOppgaveUbehandletList.first()
                         personOppgaveUbehandlet.uuid.shouldNotBeNull()
-                        personOppgaveUbehandlet.referanseUuid shouldBeEqualTo kOppfolgingsplanLPSNAV2.getUuid()
-                        personOppgaveUbehandlet.fnr shouldBeEqualTo kOppfolgingsplanLPSNAV2.getFodselsnummer()
+                        personOppgaveUbehandlet.referanseUuid shouldBeEqualTo kOppfolgingsplanLPS2.uuid
+                        personOppgaveUbehandlet.fnr shouldBeEqualTo kOppfolgingsplanLPS2.fodselsnummer
                         personOppgaveUbehandlet.virksomhetsnummer shouldBeEqualTo ""
                         personOppgaveUbehandlet.type shouldBeEqualTo personOppgaveType.name
                         personOppgaveUbehandlet.behandletTidspunkt.shouldBeNull()
@@ -220,11 +220,11 @@ class VeilederPersonOppgaveApiV2Spek : Spek({
                 }
 
                 it("returns OK and sends Personoppgavehendelse if processed the 1 and only existing PersonOppgave") {
-                    val kOppfolgingsplanLPSNAV = generateKOppfolgingsplanLPSNAV
+                    val kOppfolgingsplanLPS = generateKOppfolgingsplanLPS
                     val personOppgaveType = PersonOppgaveType.OPPFOLGINGSPLANLPS
 
                     val uuid = database.connection.createPersonOppgave(
-                        kOppfolgingsplanLPSNAV,
+                        kOppfolgingsplanLPS,
                         personOppgaveType
                     ).second
 
@@ -253,8 +253,8 @@ class VeilederPersonOppgaveApiV2Spek : Spek({
 
                         val personOppgave = personOppgaveList.first()
                         personOppgave.uuid.shouldNotBeNull()
-                        personOppgave.referanseUuid shouldBeEqualTo kOppfolgingsplanLPSNAV.getUuid()
-                        personOppgave.fnr shouldBeEqualTo kOppfolgingsplanLPSNAV.getFodselsnummer()
+                        personOppgave.referanseUuid shouldBeEqualTo kOppfolgingsplanLPS.uuid
+                        personOppgave.fnr shouldBeEqualTo kOppfolgingsplanLPS.fodselsnummer
                         personOppgave.virksomhetsnummer shouldBeEqualTo ""
                         personOppgave.type shouldBeEqualTo personOppgaveType.name
                         personOppgave.behandletTidspunkt.shouldNotBeNull()
@@ -268,7 +268,7 @@ class VeilederPersonOppgaveApiV2Spek : Spek({
                         messages.add(consumedPersonoppgavehendelse)
                     }
                     messages.size shouldBeEqualTo 1
-                    messages.first().personident shouldBeEqualTo kOppfolgingsplanLPSNAV.getFodselsnummer()
+                    messages.first().personident shouldBeEqualTo kOppfolgingsplanLPS.fodselsnummer
                     messages.first().hendelsetype shouldBeEqualTo PersonoppgavehendelseType.OPPFOLGINGSPLANLPS_BISTAND_BEHANDLET.name
                 }
 

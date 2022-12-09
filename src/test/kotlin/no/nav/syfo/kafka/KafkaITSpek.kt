@@ -1,6 +1,6 @@
 package no.nav.syfo.kafka
 
-import no.nav.syfo.oppfolgingsplan.avro.KOppfolgingsplanLPSNAV
+import no.nav.syfo.personoppgave.oppfolgingsplanlps.kafka.KOppfolgingsplanLPS
 import no.nav.syfo.personoppgave.oppfolgingsplanlps.kafka.OPPFOLGINGSPLAN_LPS_NAV_TOPIC
 import no.nav.syfo.testutil.*
 import org.amshove.kluent.shouldBeEqualTo
@@ -28,7 +28,7 @@ class KafkaITSpek : Spek({
 
     describe("Produce and consume messages from topic") {
         it("Topic $OPPFOLGINGSPLAN_LPS_NAV_TOPIC") {
-            val messages: ArrayList<KOppfolgingsplanLPSNAV> = arrayListOf()
+            val messages: ArrayList<KOppfolgingsplanLPS> = arrayListOf()
             consumerOppfolgingsplanLPS.poll(Duration.ofMillis(5000)).forEach {
                 if (it != null) {
                     val consumedOppfolgingsplanLPSNAV = it.value()

@@ -56,21 +56,21 @@ class OppfolgingsplanLPSServiceSpek : Spek({
                 externalMockEnvironment.stopExternalMocks()
             }
 
-            describe("Receive kOppfolgingsplanLPSNAV") {
+            describe("Receive kOppfolgingsplanLPS") {
                 it("should create a new PPersonOppgave with correct type when behovForBistand=true") {
-                    val kOppfolgingsplanLPSNAV = generateKOppfolgingsplanLPSNAV
+                    val kOppfolgingsplanLPS = generateKOppfolgingsplanLPS
 
                     runBlocking {
-                        oppfolgingsplanLPSService.receiveOppfolgingsplanLPS(kOppfolgingsplanLPSNAV)
+                        oppfolgingsplanLPSService.receiveOppfolgingsplanLPS(kOppfolgingsplanLPS)
                     }
 
                     val personListe = database.connection.getPersonOppgaveList(ARBEIDSTAKER_FNR)
 
                     personListe.size shouldBe 1
-                    personListe[0].fnr shouldBeEqualTo kOppfolgingsplanLPSNAV.getFodselsnummer()
-                    personListe[0].virksomhetsnummer shouldBeEqualTo kOppfolgingsplanLPSNAV.getVirksomhetsnummer()
+                    personListe[0].fnr shouldBeEqualTo kOppfolgingsplanLPS.fodselsnummer
+                    personListe[0].virksomhetsnummer shouldBeEqualTo kOppfolgingsplanLPS.virksomhetsnummer
                     personListe[0].type shouldBeEqualTo PersonOppgaveType.OPPFOLGINGSPLANLPS.name
-                    personListe[0].referanseUuid shouldBeEqualTo UUID.fromString(kOppfolgingsplanLPSNAV.getUuid())
+                    personListe[0].referanseUuid shouldBeEqualTo UUID.fromString(kOppfolgingsplanLPS.uuid)
                     personListe[0].oversikthendelseTidspunkt.shouldNotBeNull()
 
                     val messages: ArrayList<KPersonoppgavehendelse> = arrayListOf()
@@ -80,15 +80,15 @@ class OppfolgingsplanLPSServiceSpek : Spek({
                     }
 
                     messages.size shouldBeEqualTo 1
-                    messages.first().personident shouldBeEqualTo kOppfolgingsplanLPSNAV.getFodselsnummer()
+                    messages.first().personident shouldBeEqualTo kOppfolgingsplanLPS.fodselsnummer
                     messages.first().hendelsetype shouldBeEqualTo PersonoppgavehendelseType.OPPFOLGINGSPLANLPS_BISTAND_MOTTATT.name
                 }
 
                 it("should not create a new PPersonOppgave with correct type when behovForBistand=false") {
-                    val kOppfolgingsplanLPSNAV = generateKOppfolgingsplanLPSNAVNoBehovforForBistand
+                    val kOppfolgingsplanLPS = generateKOppfolgingsplanLPSNoBehovforForBistand
 
                     runBlocking {
-                        oppfolgingsplanLPSService.receiveOppfolgingsplanLPS(kOppfolgingsplanLPSNAV)
+                        oppfolgingsplanLPSService.receiveOppfolgingsplanLPS(kOppfolgingsplanLPS)
                     }
 
                     val personListe = database.connection.getPersonOppgaveList(ARBEIDSTAKER_FNR)
