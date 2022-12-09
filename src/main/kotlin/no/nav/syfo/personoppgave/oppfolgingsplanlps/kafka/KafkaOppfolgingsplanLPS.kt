@@ -61,7 +61,7 @@ fun pollAndProcessKOppfolgingsplanLPS(
             StructuredArguments.keyValue("id", it.key()),
             StructuredArguments.keyValue("timestamp", it.timestamp())
         )
-        LOG.info("Received KOppfolgingsplanLPSNAV, ready to process, $logKeys, {}", *logValues, callIdArgument(callId))
+        LOG.info("Received KOppfolgingsplanLPS, ready to process, $logKeys, {}", *logValues, callIdArgument(callId))
 
         oppfolgingsplanLPSService.receiveOppfolgingsplanLPS(
             kOppfolgingsplanLPS,

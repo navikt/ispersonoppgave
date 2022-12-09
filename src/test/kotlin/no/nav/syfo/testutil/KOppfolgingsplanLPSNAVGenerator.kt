@@ -7,16 +7,6 @@ import no.nav.syfo.testutil.UserConstants.VIRKSOMHETSNUMMER
 import java.time.LocalDate
 import java.util.*
 
-fun generateKOppfolgingsplanLPSNAV(personIdent: PersonIdent): KOppfolgingsplanLPS {
-    return KOppfolgingsplanLPS(
-        UUID.randomUUID().toString(),
-        personIdent.value,
-        VIRKSOMHETSNUMMER.value,
-        true,
-        LocalDate.now().toEpochDay().toInt()
-    )
-}
-
 val generateKOppfolgingsplanLPS =
     KOppfolgingsplanLPS(
         UUID.randomUUID().toString(),
