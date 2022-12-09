@@ -1,6 +1,5 @@
 package no.nav.syfo.personoppgave.oppfolgingsplanlps.kafka
 
-import kotlinx.coroutines.delay
 import net.logstash.logback.argument.StructuredArguments
 import no.nav.syfo.*
 import no.nav.syfo.kafka.kafkaAivenConsumerConfig
@@ -37,7 +36,6 @@ suspend fun blockingApplicationLogicOppfolgingsplanLPS(
             kafkaConsumerOppfolgingsplanLPSNAV = kafkaConsumerOppfolgingsplanLPS,
             oppfolgingsplanLPSService = oppfolgingsplanLPSService
         )
-        delay(100)
     }
 }
 
@@ -54,19 +52,23 @@ fun pollAndProcessKOppfolgingsplanLPS(
         "{}"
     }
 
-    kafkaConsumerOppfolgingsplanLPSNAV.poll(Duration.ofMillis(0)).forEach {
-        val callId = kafkaCallId()
-        val kOppfolgingsplanLPS: KOppfolgingsplanLPS = it.value()
-        logValues = arrayOf(
-            StructuredArguments.keyValue("id", it.key()),
-            StructuredArguments.keyValue("timestamp", it.timestamp())
-        )
-        LOG.info("Received KOppfolgingsplanLPS, ready to process, $logKeys, {}", *logValues, callIdArgument(callId))
+    val records = kafkaConsumerOppfolgingsplanLPSNAV.poll(Duration.ofMillis(1000))
+    if (records.count() > 0) {
+        records.forEach {
+            val callId = kafkaCallId()
+            val kOppfolgingsplanLPS: KOppfolgingsplanLPS = it.value()
+            logValues = arrayOf(
+                StructuredArguments.keyValue("id", it.key()),
+                StructuredArguments.keyValue("timestamp", it.timestamp())
+            )
+            LOG.info("Received KOppfolgingsplanLPS, ready to process, $logKeys, {}", *logValues, callIdArgument(callId))
 
-        oppfolgingsplanLPSService.receiveOppfolgingsplanLPS(
-            kOppfolgingsplanLPS,
-            callId
-        )
+            oppfolgingsplanLPSService.receiveOppfolgingsplanLPS(
+                kOppfolgingsplanLPS,
+                callId
+            )
+        }
+        kafkaConsumerOppfolgingsplanLPSNAV.commitSync()
     }
 }
 
