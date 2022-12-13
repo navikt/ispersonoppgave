@@ -7,6 +7,7 @@ import no.nav.syfo.database.DatabaseInterface
 import no.nav.syfo.dialogmote.avro.KDialogmoteStatusEndring
 import no.nav.syfo.dialogmotestatusendring.domain.DialogmoteStatusendring
 import no.nav.syfo.dialogmotestatusendring.processDialogmoteStatusendring
+import no.nav.syfo.dialogmotestatusendring.storeDialogmoteStatusendring
 import no.nav.syfo.kafka.kafkaAivenConsumerConfig
 import org.apache.kafka.clients.consumer.*
 import org.slf4j.LoggerFactory
@@ -29,7 +30,7 @@ fun consumeDialogmotestatusendring(
     )
 
     while (applicationState.ready) {
-        pollAndProcessDialogmoteendringstatus(
+        pollAndProcessDialogmoteStatusendring(
             database = database,
             kafkaConsumer = kafkaConsumer,
         )
@@ -49,7 +50,7 @@ private fun kafkaConfig(environmentKafka: EnvironmentKafka): Properties {
     }
 }
 
-fun pollAndProcessDialogmoteendringstatus(
+fun pollAndProcessDialogmoteStatusendring(
     database: DatabaseInterface,
     kafkaConsumer: KafkaConsumer<String, KDialogmoteStatusEndring>
 ) {
@@ -83,6 +84,10 @@ fun processRecords(
             log.info("Received statusendring with key : ${record.key()} of type ${record.value().getStatusEndringType()}")
 
             val statusendring = DialogmoteStatusendring.create(record.value())
+            storeDialogmoteStatusendring(
+                connection = connection,
+                statusendring = statusendring,
+            )
             processDialogmoteStatusendring(
                 connection = connection,
                 statusendring = statusendring,
