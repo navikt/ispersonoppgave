@@ -4,8 +4,7 @@ import no.nav.syfo.dialogmote.avro.KDialogmoteStatusEndring
 import no.nav.syfo.domain.PersonIdent
 import no.nav.syfo.personoppgave.domain.PersonOppgave
 import no.nav.syfo.util.toLocalDateTimeOslo
-import java.time.OffsetDateTime
-import java.time.ZoneOffset
+import java.time.*
 import java.util.*
 
 enum class DialogmoteStatusendringType {
@@ -17,6 +16,7 @@ enum class DialogmoteStatusendringType {
 }
 
 data class DialogmoteStatusendring constructor(
+    val uuid: UUID,
     val personIdent: PersonIdent,
     val type: DialogmoteStatusendringType,
     val endringTidspunkt: OffsetDateTime,
@@ -26,11 +26,12 @@ data class DialogmoteStatusendring constructor(
 
     companion object {
         fun create(kDialogmoteStatusEndring: KDialogmoteStatusEndring) = DialogmoteStatusendring(
+            uuid = UUID.randomUUID(),
             personIdent = PersonIdent(kDialogmoteStatusEndring.getPersonIdent()),
             type = DialogmoteStatusendringType.valueOf(kDialogmoteStatusEndring.getStatusEndringType()),
             endringTidspunkt = OffsetDateTime.ofInstant(
                 kDialogmoteStatusEndring.getStatusEndringTidspunkt(),
-                ZoneOffset.UTC
+                ZoneId.of("Europe/Oslo").rules.getOffset(kDialogmoteStatusEndring.getStatusEndringTidspunkt())
             ),
             dialogmoteUuid = UUID.fromString(kDialogmoteStatusEndring.getDialogmoteUuid()),
             veilederIdent = kDialogmoteStatusEndring.getNavIdent(),

@@ -23,6 +23,8 @@ class IdenthendelseService(
             val activeIdent = identhendelse.getActivePersonident()
             if (activeIdent != null) {
                 val inactiveIdenter = identhendelse.getInactivePersonidenter()
+                // TODO: update dialogmotesvar with ident changes
+                // TODO: update statusendring with ident changes
                 val personOppgaveWithOldIdentList = inactiveIdenter.flatMap { personident ->
                     database.getPersonOppgaveList(personident)
                 }

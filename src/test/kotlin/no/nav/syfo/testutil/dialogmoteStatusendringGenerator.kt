@@ -7,6 +7,7 @@ import java.util.*
 
 fun generateDialogmotestatusendring(type: DialogmoteStatusendringType, uuid: UUID, now: OffsetDateTime): DialogmoteStatusendring {
     return DialogmoteStatusendring(
+        uuid = UUID.randomUUID(),
         personIdent = UserConstants.ARBEIDSTAKER_FNR,
         type = type,
         endringTidspunkt = now,

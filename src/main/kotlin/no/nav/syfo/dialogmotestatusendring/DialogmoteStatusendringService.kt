@@ -32,3 +32,10 @@ fun processDialogmoteStatusendring(
         }
     }
 }
+
+fun storeDialogmoteStatusendring(
+    connection: Connection,
+    statusendring: DialogmoteStatusendring,
+) {
+    connection.createDialogmoteStatusendring(statusendring)
+}
