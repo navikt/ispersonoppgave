@@ -9,10 +9,19 @@ fun generateDialogmotesvar(
     svartype: DialogmoteSvartype = DialogmoteSvartype.KOMMER,
     svarReceivedAt: OffsetDateTime = OffsetDateTime.now(),
 ) = Dialogmotesvar(
+    uuid = UUID.randomUUID(),
     moteuuid = moteuuid,
     arbeidstakerIdent = UserConstants.ARBEIDSTAKER_FNR,
     svarType = svartype,
     senderType = SenderType.ARBEIDSTAKER,
     brevSentAt = OffsetDateTime.now(),
     svarReceivedAt = svarReceivedAt,
+)
+
+fun generateKDialogmotesvar() = KDialogmotesvar(
+    ident = UserConstants.ARBEIDSTAKER_FNR,
+    svarType = DialogmoteSvartype.KOMMER,
+    senderType = SenderType.ARBEIDSTAKER,
+    brevSentAt = OffsetDateTime.now(),
+    svarReceivedAt = OffsetDateTime.now(),
 )

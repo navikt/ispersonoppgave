@@ -8,6 +8,7 @@ import java.time.OffsetDateTime
 import java.util.*
 
 data class Dialogmotesvar(
+    val uuid: UUID,
     val moteuuid: UUID,
     val arbeidstakerIdent: PersonIdent,
     val svarType: DialogmoteSvartype,

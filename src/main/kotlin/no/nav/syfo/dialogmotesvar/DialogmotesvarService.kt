@@ -37,6 +37,12 @@ fun processDialogmotesvar(
         }
     }
 }
+fun storeDialogmotesvar(
+    connection: Connection,
+    dialogmotesvar: Dialogmotesvar,
+) {
+    connection.createMotesvar(dialogmotesvar)
+}
 
 fun isProcessable(dialogmotesvar: Dialogmotesvar, cutoffDate: LocalDate): Boolean {
     return dialogmotesvar.isRelevantToVeileder() && dialogmotesvar happenedAfter cutoffDate

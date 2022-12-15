@@ -4,6 +4,7 @@ import no.nav.syfo.*
 import no.nav.syfo.database.DatabaseInterface
 import no.nav.syfo.dialogmotesvar.domain.*
 import no.nav.syfo.dialogmotesvar.processDialogmotesvar
+import no.nav.syfo.dialogmotesvar.storeDialogmotesvar
 import no.nav.syfo.kafka.kafkaAivenConsumerConfig
 import no.nav.syfo.util.configuredJacksonMapper
 import org.apache.kafka.clients.consumer.*
@@ -87,6 +88,10 @@ fun processRecords(
             log.info("Received dialogmotesvar with key/moteuuid : $moteUuid of svar type ${kDialogmotesvar.svarType}")
 
             val dialogmotesvar = kDialogmotesvar.toDialogmotesvar(moteUuid)
+            storeDialogmotesvar(
+                connection = connection,
+                dialogmotesvar = dialogmotesvar,
+            )
             processDialogmotesvar(
                 connection = connection,
                 dialogmotesvar = dialogmotesvar,

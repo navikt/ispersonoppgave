@@ -13,6 +13,7 @@ data class KDialogmotesvar(
 )
 
 fun KDialogmotesvar.toDialogmotesvar(moteuuid: UUID): Dialogmotesvar = Dialogmotesvar(
+    uuid = UUID.randomUUID(),
     moteuuid = moteuuid,
     arbeidstakerIdent = this.ident,
     svarType = this.svarType,
