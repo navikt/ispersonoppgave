@@ -84,3 +84,5 @@ spec:
       value: "true"
     - name: OUTDATED_DIALOGMOTESVAR_CUTOFF
       value: "2022-04-01"
+    - name: TOGGLE_KAFKA_IDENTHENDELSE_CONSUMER_ENABLED
+      value: "false"
