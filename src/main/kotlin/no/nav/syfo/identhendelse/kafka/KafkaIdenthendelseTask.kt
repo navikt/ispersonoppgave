@@ -1,8 +1,8 @@
 package no.nav.syfo.identhendelse.kafka
 
+import kotlinx.coroutines.runBlocking
 import no.nav.syfo.ApplicationState
 import no.nav.syfo.Environment
-import no.nav.syfo.launchBackgroundTask
 import org.apache.avro.generic.GenericRecord
 import org.apache.kafka.clients.consumer.KafkaConsumer
 
@@ -13,16 +13,14 @@ fun consumeIdenthendelse(
     environment: Environment,
     kafkaIdenthendelseConsumerService: IdenthendelseConsumerService,
 ) {
-    launchBackgroundTask(
-        applicationState = applicationState,
-    ) {
-        val kafkaConfig = kafkaIdenthendelseConsumerConfig(environment.kafka)
-        val kafkaConsumer = KafkaConsumer<String, GenericRecord>(kafkaConfig)
+    val kafkaConfig = kafkaIdenthendelseConsumerConfig(environment.kafka)
+    val kafkaConsumer = KafkaConsumer<String, GenericRecord>(kafkaConfig)
 
-        kafkaConsumer.subscribe(
-            listOf(PDL_AKTOR_TOPIC)
-        )
-        while (applicationState.ready) {
+    kafkaConsumer.subscribe(
+        listOf(PDL_AKTOR_TOPIC)
+    )
+    while (applicationState.ready) {
+        runBlocking {
             kafkaIdenthendelseConsumerService.pollAndProcessRecords(
                 kafkaConsumer = kafkaConsumer,
             )
