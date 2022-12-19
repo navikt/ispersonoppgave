@@ -15,6 +15,8 @@ const val NAV_CONSUMER_ID = "Nav-Consumer-Id"
 
 const val NAV_CALL_ID = "Nav-Call-Id"
 const val NAV_CALL_ID_HEADER = "Nav-Call-Id"
+const val TEMA_HEADER = "Tema"
+const val ALLE_TEMA_HEADERVERDI = "GEN"
 
 fun PipelineContext<out Unit, ApplicationCall>.getCallId(): String {
     return this.call.getCallId()

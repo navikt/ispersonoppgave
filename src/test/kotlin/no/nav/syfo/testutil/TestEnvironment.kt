@@ -8,6 +8,7 @@ fun testEnvironment(
     kafkaBootstrapServers: String,
     azureTokenEndpoint: String = "azureTokenEndpoint",
     syfotilgangskontrollUrl: String = "tilgangskontroll",
+    pdlUrl: String? = null,
 ) = Environment(
     applicationThreads = 1,
     applicationName = "ispersonoppgave",
@@ -20,6 +21,8 @@ fun testEnvironment(
     ispersonoppgaveDbName = "ispersonoppgave_dev",
     ispersonoppgaveDbUsername = "username",
     ispersonoppgaveDbPassword = "password",
+    pdlClientId = "pdlClientId",
+    pdlUrl = pdlUrl ?: "http://pdl",
     serviceuserUsername = "",
     serviceuserPassword = "",
     syfotilgangskontrollClientId = syfotilgangskontrollUrl,
