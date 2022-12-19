@@ -36,6 +36,7 @@ fun testEnvironment(
     ),
     toggleKafkaConsumerStatusendringEnabled = true,
     toggleKafkaConsumerDialogmotesvarEnabled = true,
+    toggleKafkaConsumerIdenthendelseEnabled = true,
     electorPath = "electorPath",
     publishOppgavehendelser = true,
     outdatedDialogmotesvarCutoff = LocalDate.parse("2022-04-01")

@@ -2,6 +2,7 @@ package no.nav.syfo.testutil
 
 import no.nav.common.KafkaEnvironment
 import no.nav.syfo.Environment
+import no.nav.syfo.identhendelse.kafka.PDL_AKTOR_TOPIC
 import no.nav.syfo.kafka.*
 import no.nav.syfo.personoppgave.oppfolgingsplanlps.kafka.*
 import no.nav.syfo.personoppgavehendelse.*
@@ -18,6 +19,7 @@ fun testKafka(
     withSchemaRegistry: Boolean = false,
     topicNames: List<String> = listOf(
         OPPFOLGINGSPLAN_LPS_NAV_TOPIC,
+        PDL_AKTOR_TOPIC,
     )
 ) = KafkaEnvironment(
     autoStart = autoStart,
