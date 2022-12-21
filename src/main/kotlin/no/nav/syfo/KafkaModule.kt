@@ -1,8 +1,10 @@
 package no.nav.syfo
 
+import no.nav.syfo.client.pdl.PdlClient
 import no.nav.syfo.database.DatabaseInterface
 import no.nav.syfo.dialogmotestatusendring.kafka.consumeDialogmotestatusendring
 import no.nav.syfo.dialogmotesvar.kafka.consumeDialogmotesvar
+import no.nav.syfo.identhendelse.IdenthendelseService
 import no.nav.syfo.identhendelse.kafka.IdenthendelseConsumerService
 import no.nav.syfo.identhendelse.kafka.consumeIdenthendelse
 import no.nav.syfo.personoppgave.oppfolgingsplanlps.OppfolgingsplanLPSService
@@ -14,6 +16,7 @@ fun launchKafkaTasks(
     database: DatabaseInterface,
     environment: Environment,
     personoppgavehendelseProducer: PersonoppgavehendelseProducer,
+    pdlClient: PdlClient,
 ) {
     val oppfolgingsplanLPSService = OppfolgingsplanLPSService(
         database,
@@ -53,7 +56,13 @@ fun launchKafkaTasks(
     if (environment.toggleKafkaConsumerIdenthendelseEnabled) {
         launchBackgroundTask(applicationState) {
             log.info("Launch background task for Identhendelse from PDL-aktor")
-            val kafkaIdenthendelseConsumerService = IdenthendelseConsumerService()
+            val identhendelseService = IdenthendelseService(
+                database = database,
+                pdlClient = pdlClient,
+            )
+            val kafkaIdenthendelseConsumerService = IdenthendelseConsumerService(
+                identhendelseService = identhendelseService,
+            )
             consumeIdenthendelse(
                 applicationState = applicationState,
                 environment = environment,

@@ -88,6 +88,7 @@ fun main() {
             database = database,
             environment = environment,
             personoppgavehendelseProducer = personoppgavehendelseProducer,
+            pdlClient = pdlClient,
         )
     }
 
