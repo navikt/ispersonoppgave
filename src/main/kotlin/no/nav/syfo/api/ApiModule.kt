@@ -15,6 +15,7 @@ import no.nav.syfo.personoppgavehendelse.PersonoppgavehendelseProducer
 
 fun Application.apiModule(
     applicationState: ApplicationState,
+    azureAdV2Client: AzureAdV2Client,
     database: DatabaseInterface,
     environment: Environment,
     personoppgavehendelseProducer: PersonoppgavehendelseProducer,
@@ -37,11 +38,6 @@ fun Application.apiModule(
     val personOppgaveService = PersonOppgaveService(
         database = database,
         personoppgavehendelseProducer = personoppgavehendelseProducer,
-    )
-    val azureAdV2Client = AzureAdV2Client(
-        azureAppClientId = environment.azureAppClientId,
-        azureAppClientSecret = environment.azureAppClientSecret,
-        azureTokenEndpoint = environment.azureTokenEndpoint,
     )
     val veilederTilgangskontrollClient = VeilederTilgangskontrollClient(
         azureAdV2Client = azureAdV2Client,

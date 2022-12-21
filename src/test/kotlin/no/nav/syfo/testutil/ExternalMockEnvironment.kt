@@ -14,18 +14,21 @@ class ExternalMockEnvironment(
         withSchemaRegistry = withSchemaRegistry,
     )
 
-    val azureAdV2Mock = AzureAdV2Mock()
-    val tilgangskontrollMock = VeilederTilgangskontrollMock()
+    private val azureAdV2Mock = AzureAdV2Mock()
+    private val tilgangskontrollMock = VeilederTilgangskontrollMock()
+    private val pdlMock = PdlMock()
 
     val externalApplicationMockMap = hashMapOf(
         azureAdV2Mock.name to azureAdV2Mock.server,
-        tilgangskontrollMock.name to tilgangskontrollMock.server
+        tilgangskontrollMock.name to tilgangskontrollMock.server,
+        pdlMock.name to pdlMock.server,
     )
 
     val environment = testEnvironment(
         kafkaBootstrapServers = embeddedEnvironment.brokersURL,
         azureTokenEndpoint = azureAdV2Mock.url,
-        syfotilgangskontrollUrl = tilgangskontrollMock.url
+        syfotilgangskontrollUrl = tilgangskontrollMock.url,
+        pdlUrl = pdlMock.url,
     )
 
     val wellKnownInternADV2Mock = wellKnownInternADV2Mock()
