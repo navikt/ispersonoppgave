@@ -14,7 +14,7 @@ object Versions {
     const val kafka = "2.8.1"
     const val kafkaEmbedded = "2.8.1"
     const val kluent = "1.68"
-    const val ktor = "2.1.3"
+    const val ktor = "2.2.2"
     const val logback = "1.2.11"
     const val logstashEncoder = "7.2"
     const val micrometerRegistry = "1.9.4"
@@ -91,7 +91,7 @@ dependencies {
         implementation("org.yaml:snakeyaml") {
             because("io.confluent:kafka-schema-registry:${Versions.confluent} -> https://advisory.checkmarx.net/advisory/vulnerability/CVE-2022-38752/")
             version {
-                require("1.32")
+                require("1.33")
             }
         }
         implementation("org.glassfish:jakarta.el") {
@@ -103,7 +103,7 @@ dependencies {
         implementation("com.google.protobuf:protobuf-java") {
             because("io.confluent:kafka-schema-registry:${Versions.confluent} -> https://www.cve.org/CVERecord?id=CVE-2021-22569")
             version {
-                require("3.19.2")
+                require("3.21.7")
             }
         }
         implementation("com.google.code.gson:gson") {
