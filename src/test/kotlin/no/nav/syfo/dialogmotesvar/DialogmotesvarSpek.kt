@@ -61,7 +61,7 @@ class DialogmotesvarSpek : Spek({
                     cutoffDate = LocalDate.now().minusDays(20),
                 )
 
-                val allPMotesvar = database.connection.getMotesvar(
+                val allPMotesvar = database.connection.getDialogmotesvar(
                     moteUuid = moteUuid,
                 )
                 allPMotesvar.size shouldBeEqualTo 1

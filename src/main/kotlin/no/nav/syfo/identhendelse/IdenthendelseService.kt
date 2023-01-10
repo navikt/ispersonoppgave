@@ -4,10 +4,9 @@ import kotlinx.coroutines.runBlocking
 import no.nav.syfo.client.pdl.PdlClient
 import no.nav.syfo.database.DatabaseInterface
 import no.nav.syfo.domain.PersonIdent
-import no.nav.syfo.identhendelse.database.updatePersonOppgave
+import no.nav.syfo.identhendelse.database.*
 import no.nav.syfo.identhendelse.kafka.COUNT_KAFKA_CONSUMER_PDL_AKTOR_UPDATES
 import no.nav.syfo.identhendelse.kafka.KafkaIdenthendelseDTO
-import no.nav.syfo.personoppgave.getPersonOppgaveList
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
@@ -23,22 +22,32 @@ class IdenthendelseService(
             val activeIdent = identhendelse.getActivePersonident()
             if (activeIdent != null) {
                 val inactiveIdenter = identhendelse.getInactivePersonidenter()
-                // TODO: update dialogmotesvar with ident changes
-                // TODO: update statusendring with ident changes
-                val personOppgaveWithOldIdentList = inactiveIdenter.flatMap { personident ->
-                    database.getPersonOppgaveList(personident)
-                }
-
-                if (personOppgaveWithOldIdentList.isNotEmpty()) {
-                    checkThatPdlIsUpdated(activeIdent)
-                    val numberOfUpdatedIdenter = database.updatePersonOppgave(activeIdent, personOppgaveWithOldIdentList)
-                    log.info("Identhendelse: Updated $numberOfUpdatedIdenter personoppgaver based on Identhendelse from PDL")
-                    COUNT_KAFKA_CONSUMER_PDL_AKTOR_UPDATES.increment(numberOfUpdatedIdenter.toDouble())
+                val numberOfUpdatedRows = updateAllTables(activeIdent = activeIdent, inactiveIdenter = inactiveIdenter)
+                if (numberOfUpdatedRows > 0) {
+                    log.info("Identhendelse: Updated $numberOfUpdatedRows rows based on Identhendelse from PDL")
+                    COUNT_KAFKA_CONSUMER_PDL_AKTOR_UPDATES.increment(numberOfUpdatedRows.toDouble())
                 }
             } else {
                 log.warn("Mangler gyldig ident fra PDL")
             }
         }
+    }
+
+    private fun updateAllTables(activeIdent: PersonIdent, inactiveIdenter: List<PersonIdent>): Int {
+        var numberOfUpdatedIdenter = 0
+        val inactiveIdenterCount = database.getIdentCount(inactiveIdenter)
+
+        if (inactiveIdenterCount > 0) {
+            checkThatPdlIsUpdated(activeIdent)
+            database.connection.use { connection ->
+                numberOfUpdatedIdenter += connection.updateMotesvar(activeIdent, inactiveIdenter)
+                numberOfUpdatedIdenter += connection.updateDialogmoteStatusendring(activeIdent, inactiveIdenter)
+                numberOfUpdatedIdenter = connection.updatePersonOppgave(activeIdent, inactiveIdenter)
+                connection.commit()
+            }
+        }
+
+        return numberOfUpdatedIdenter
     }
 
     // Erfaringer fra andre team tilsier at vi burde dobbeltsjekke at ting har blitt oppdatert i PDL før vi gjør endringer

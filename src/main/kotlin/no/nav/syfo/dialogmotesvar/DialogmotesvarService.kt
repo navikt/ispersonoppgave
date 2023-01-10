@@ -41,7 +41,7 @@ fun storeDialogmotesvar(
     connection: Connection,
     dialogmotesvar: Dialogmotesvar,
 ) {
-    connection.createMotesvar(dialogmotesvar)
+    connection.createDialogmotesvar(dialogmotesvar)
 }
 
 fun isProcessable(dialogmotesvar: Dialogmotesvar, cutoffDate: LocalDate): Boolean {

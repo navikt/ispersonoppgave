@@ -2,7 +2,7 @@ package no.nav.syfo.dialogmotesvar.domain
 
 import java.time.OffsetDateTime
 
-data class PMotesvar(
+data class PDialogmotesvar(
     val id: Int,
     val uuid: String,
     val moteUuid: String,
