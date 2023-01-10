@@ -3,11 +3,16 @@ package no.nav.syfo.testutil
 import com.opentable.db.postgres.embedded.EmbeddedPostgres
 import no.nav.syfo.database.DatabaseInterface
 import no.nav.syfo.database.toList
+import no.nav.syfo.dialogmotestatusendring.domain.PDialogmoteStatusendring
+import no.nav.syfo.dialogmotestatusendring.toPDialogmoteStatusendring
+import no.nav.syfo.dialogmotesvar.domain.PDialogmotesvar
+import no.nav.syfo.dialogmotesvar.toPDialogmotesvar
 import no.nav.syfo.domain.PersonIdent
-import no.nav.syfo.personoppgave.*
-import no.nav.syfo.personoppgave.domain.PPersonOppgave
-import no.nav.syfo.personoppgave.domain.PersonOppgaveType
+import no.nav.syfo.personoppgave.domain.*
 import no.nav.syfo.personoppgave.oppfolgingsplanlps.kafka.KOppfolgingsplanLPS
+import no.nav.syfo.personoppgave.queryGetPersonOppgaveListForFnr
+import no.nav.syfo.personoppgave.toPPersonOppgave
+import no.nav.syfo.util.toOffsetDateTimeUTC
 import org.flywaydb.core.Flyway
 import java.sql.*
 import java.time.Instant
@@ -60,6 +65,33 @@ fun Connection.getPersonOppgaveList(fodselnummer: PersonIdent): List<PPersonOppg
     }
 }
 
+fun Connection.getAllPersonoppgaver(): List<PPersonOppgave> {
+    val query = "SELECT * FROM person_oppgave"
+    return use { connection ->
+        connection.prepareStatement(query).use {
+            it.executeQuery().toList { toPPersonOppgave() }
+        }
+    }
+}
+
+fun Connection.getAllMotesvar(): List<PDialogmotesvar> {
+    val query = "SELECT * FROM motesvar"
+    return use { connection ->
+        connection.prepareStatement(query).use {
+            it.executeQuery().toList { toPDialogmotesvar() }
+        }
+    }
+}
+
+fun Connection.getAllDialogmoteStatusendring(): List<PDialogmoteStatusendring> {
+    val query = "SELECT * FROM dialogmote_statusendring"
+    return use { connection ->
+        connection.prepareStatement(query).use {
+            it.executeQuery().toList { toPDialogmoteStatusendring() }
+        }
+    }
+}
+
 fun Connection.createPersonOppgave(
     kOppfolgingsplanLPS: KOppfolgingsplanLPS,
     type: PersonOppgaveType
@@ -88,3 +120,36 @@ fun Connection.createPersonOppgave(
         return Pair(personIdList.first(), UUID.fromString(uuid))
     }
 }
+
+fun Connection.createPersonOppgave(
+    personoppgave: PersonOppgave,
+) {
+    val personIdList = prepareStatement(queryCreatePersonOppgave).use {
+        it.setString(1, personoppgave.uuid.toString())
+        it.setString(2, personoppgave.referanseUuid.toString())
+        it.setString(3, personoppgave.personIdent.value)
+        it.setString(4, personoppgave.virksomhetsnummer?.value ?: "")
+        it.setString(5, personoppgave.type.name)
+        it.setObject(6, personoppgave.opprettet.toOffsetDateTimeUTC())
+        it.setObject(7, personoppgave.sistEndret.toOffsetDateTimeUTC())
+        it.setBoolean(8, personoppgave.publish)
+        it.executeQuery().toList { getInt("id") }
+    }
+
+    if (personIdList.size != 1) {
+        throw SQLException("Creating person failed, no rows affected.")
+    }
+}
+
+const val queryCreatePersonOppgave =
+    """INSERT INTO PERSON_OPPGAVE (
+        id,
+        uuid,
+        referanse_uuid,
+        fnr,
+        virksomhetsnummer,
+        type,
+        opprettet,
+        sist_endret, 
+        publish) VALUES (DEFAULT, ?, ?, ?, ?, ?, ?, ?, ?) RETURNING id
+    """

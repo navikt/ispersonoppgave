@@ -2,12 +2,12 @@ package no.nav.syfo.dialogmotesvar
 
 import no.nav.syfo.database.toList
 import no.nav.syfo.dialogmotesvar.domain.Dialogmotesvar
-import no.nav.syfo.dialogmotesvar.domain.PMotesvar
+import no.nav.syfo.dialogmotesvar.domain.PDialogmotesvar
 import java.sql.*
 import java.time.OffsetDateTime
 import java.util.*
 
-const val queryCreateMotesvar =
+const val queryCreateDialogmotesvar =
     """INSERT INTO motesvar (
         id,
         uuid,
@@ -21,12 +21,12 @@ const val queryCreateMotesvar =
         updated_at) VALUES (DEFAULT, ?, ?, ?, ?, ?, ?, ?, ?, ?) RETURNING id
     """
 
-fun Connection.createMotesvar(
+fun Connection.createDialogmotesvar(
     dialogmotesvar: Dialogmotesvar,
 ) {
     val now = OffsetDateTime.now()
 
-    val motesvarIDs = prepareStatement(queryCreateMotesvar).use {
+    val motesvarIDs = prepareStatement(queryCreateDialogmotesvar).use {
         it.setString(1, dialogmotesvar.uuid.toString())
         it.setString(2, dialogmotesvar.moteuuid.toString())
         it.setString(3, dialogmotesvar.arbeidstakerIdent.value)
@@ -40,26 +40,26 @@ fun Connection.createMotesvar(
     }
 
     if (motesvarIDs.size != 1) {
-        throw SQLException("Creating motesvar failed, no rows affected.")
+        throw SQLException("Creating dialogmotesvar failed, no rows affected.")
     }
 }
 
-const val queryGetMotesvar =
+const val queryGetDialogmotesvar =
     """
         SELECT *
         FROM motesvar
         WHERE mote_uuid = ?
     """
 
-fun Connection.getMotesvar(
+fun Connection.getDialogmotesvar(
     moteUuid: UUID,
-) = prepareStatement(queryGetMotesvar).use {
+) = prepareStatement(queryGetDialogmotesvar).use {
     it.setString(1, moteUuid.toString())
-    it.executeQuery().toList { toPMotesvar() }
+    it.executeQuery().toList { toPDialogmotesvar() }
 }
 
-fun ResultSet.toPMotesvar(): PMotesvar =
-    PMotesvar(
+fun ResultSet.toPDialogmotesvar(): PDialogmotesvar =
+    PDialogmotesvar(
         id = getInt("id"),
         uuid = getString("uuid"),
         moteUuid = getString("mote_uuid"),

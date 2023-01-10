@@ -18,7 +18,7 @@ data class PPersonOppgave(
     val opprettet: LocalDateTime,
     val sistEndret: LocalDateTime,
     val publish: Boolean,
-    val publishedAt: OffsetDateTime?, // TODO: is this needed?
+    val publishedAt: OffsetDateTime?,
 )
 
 fun PPersonOppgave.toPersonOppgave(): PersonOppgave {
