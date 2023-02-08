@@ -5,12 +5,15 @@ import kotlinx.coroutines.runBlocking
 import no.nav.syfo.client.azuread.v2.AzureAdV2Client
 import no.nav.syfo.client.pdl.PdlClient
 import no.nav.syfo.dialogmotestatusendring.createDialogmoteStatusendring
+import no.nav.syfo.dialogmotestatusendring.getDialogmoteStatusendring
 import no.nav.syfo.dialogmotesvar.createDialogmotesvar
+import no.nav.syfo.dialogmotesvar.getDialogmotesvar
 import no.nav.syfo.personoppgave.domain.PersonOppgaveType
 import no.nav.syfo.personoppgave.getPersonOppgaveList
 import no.nav.syfo.testutil.*
 import org.amshove.kluent.internal.assertFailsWith
 import org.amshove.kluent.shouldBeEqualTo
+import org.amshove.kluent.shouldBeGreaterThan
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
 
@@ -78,7 +81,6 @@ object IdenthendelseServiceSpek : Spek({
                     allPersonoppgaver.filter { it.fnr == personOppgaveNewIdent.personIdent.value }.size shouldBeEqualTo 2
                 }
 
-                // TODO: En egen test for at alle tabeller endres?
                 it("Skal oppdatere gamle identer i dialogmøtesvar når person har fått ny ident") {
                     val kafkaIdenthendelseDTO =
                         generateKafkaIdenthendelseDTO(hasOldPersonident = true)
@@ -95,6 +97,8 @@ object IdenthendelseServiceSpek : Spek({
                         it.createDialogmotesvar(dialogmotesvarOtherIdent)
                         it.commit()
                     }
+                    val oldDialogmotesvar = database.connection.getDialogmotesvar(dialogmotesvarOldIdent.moteuuid)
+                    val oldIdentUpdatedAt = oldDialogmotesvar.first().updatedAt
 
                     runBlocking {
                         identhendelseService.handleIdenthendelse(kafkaIdenthendelseDTO)
@@ -104,6 +108,7 @@ object IdenthendelseServiceSpek : Spek({
                     allMotesvar.size shouldBeEqualTo 3
                     allMotesvar.filter { it.arbeidstakerIdent == dialogmotesvarOldIdent.arbeidstakerIdent.value }.size shouldBeEqualTo 0
                     allMotesvar.filter { it.arbeidstakerIdent == dialogmotesvarNewIdent.arbeidstakerIdent.value }.size shouldBeEqualTo 2
+                    allMotesvar.first().updatedAt shouldBeGreaterThan oldIdentUpdatedAt
                 }
 
                 it("Skal oppdatere statusendring når person har fått ny ident") {
@@ -123,6 +128,9 @@ object IdenthendelseServiceSpek : Spek({
                         it.commit()
                     }
 
+                    val oldDialogmoteStatusendring = database.connection.getDialogmoteStatusendring(dialogmotestatusendringOldIdent.dialogmoteUuid)
+                    val oldIdentUpdatedAt = oldDialogmoteStatusendring.first().updatedAt
+
                     runBlocking {
                         identhendelseService.handleIdenthendelse(kafkaIdenthendelseDTO)
                     }
@@ -131,6 +139,7 @@ object IdenthendelseServiceSpek : Spek({
                     allDialogmotestatusendring.size shouldBeEqualTo 3
                     allDialogmotestatusendring.filter { it.arbeidstakerIdent == dialogmotestatusendringOldIdent.personIdent.value }.size shouldBeEqualTo 0
                     allDialogmotestatusendring.filter { it.arbeidstakerIdent == dialogmotestatusendringNewIdent.personIdent.value }.size shouldBeEqualTo 2
+                    allDialogmotestatusendring.first().updatedAt shouldBeGreaterThan oldIdentUpdatedAt
                 }
             }
 

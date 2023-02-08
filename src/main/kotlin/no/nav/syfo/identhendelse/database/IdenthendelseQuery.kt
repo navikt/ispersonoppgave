@@ -5,6 +5,7 @@ import no.nav.syfo.database.toList
 import no.nav.syfo.domain.PersonIdent
 import java.sql.Connection
 import java.sql.PreparedStatement
+import java.time.OffsetDateTime
 
 const val queryUpdatePersonOppgave =
     """
@@ -18,18 +19,24 @@ fun Connection.updatePersonOppgave(
     inactiveIdenter: List<PersonIdent>,
     commit: Boolean = false,
 ): Int {
-    return this.updateIdent(
-        query = queryUpdatePersonOppgave,
-        nyPersonident = nyPersonident,
-        inactiveIdenter = inactiveIdenter,
-        commit = commit,
-    )
+    var updatedRows = 0
+    this.prepareStatement(queryUpdatePersonOppgave).use {
+        inactiveIdenter.forEach { inactiveIdent ->
+            it.setString(1, nyPersonident.value)
+            it.setString(2, inactiveIdent.value)
+            updatedRows += it.executeUpdate()
+        }
+    }
+    if (commit) {
+        this.commit()
+    }
+    return updatedRows
 }
 
 const val queryUpdateMotesvar =
     """
         UPDATE motesvar
-        SET arbeidstaker_ident = ?
+        SET arbeidstaker_ident = ?, updated_at = ?
         WHERE arbeidstaker_ident = ?
     """
 
@@ -49,7 +56,7 @@ fun Connection.updateMotesvar(
 const val queryUpdateStatusendring =
     """
         UPDATE dialogmote_statusendring
-        SET arbeidstaker_ident = ?
+        SET arbeidstaker_ident = ?, updated_at = ?
         WHERE arbeidstaker_ident = ?
     """
 
@@ -73,10 +80,12 @@ private fun Connection.updateIdent(
     commit: Boolean = false,
 ): Int {
     var updatedRows = 0
+    val now = OffsetDateTime.now()
     this.prepareStatement(query).use {
         inactiveIdenter.forEach { inactiveIdent ->
             it.setString(1, nyPersonident.value)
-            it.setString(2, inactiveIdent.value)
+            it.setObject(2, now)
+            it.setString(3, inactiveIdent.value)
             updatedRows += it.executeUpdate()
         }
     }
