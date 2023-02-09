@@ -21,6 +21,9 @@ fun consumeIdenthendelse(
     )
     while (applicationState.ready) {
         runBlocking {
+            if (kafkaConsumer.subscription().isEmpty()) {
+                kafkaConsumer.subscribe(listOf(PDL_AKTOR_TOPIC))
+            }
             kafkaIdenthendelseConsumerService.pollAndProcessRecords(
                 kafkaConsumer = kafkaConsumer,
             )

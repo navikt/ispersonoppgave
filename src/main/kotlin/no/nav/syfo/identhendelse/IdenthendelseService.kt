@@ -53,8 +53,8 @@ class IdenthendelseService(
     // Erfaringer fra andre team tilsier at vi burde dobbeltsjekke at ting har blitt oppdatert i PDL før vi gjør endringer
     private fun checkThatPdlIsUpdated(nyIdent: PersonIdent) {
         runBlocking {
-            val pdlIdenter = pdlClient.getPdlIdenter(nyIdent)?.hentIdenter
-            if (nyIdent.value != pdlIdenter?.aktivIdent || pdlIdenter.identer.any { it.ident == nyIdent.value && it.historisk }) {
+            val pdlIdenter = pdlClient.getPdlIdenter(nyIdent)?.hentIdenter ?: throw RuntimeException("Fant ingen identer fra PDL")
+            if (nyIdent.value != pdlIdenter.aktivIdent && pdlIdenter.identhendelseIsNotHistorisk(nyIdent.value)) {
                 throw IllegalStateException("Ny ident er ikke aktiv ident i PDL")
             }
         }
