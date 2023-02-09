@@ -53,21 +53,19 @@ fun launchKafkaTasks(
         }
     }
 
-    if (environment.toggleKafkaConsumerIdenthendelseEnabled) {
-        launchBackgroundTask(applicationState) {
-            log.info("Launch background task for Identhendelse from PDL-aktor")
-            val identhendelseService = IdenthendelseService(
-                database = database,
-                pdlClient = pdlClient,
-            )
-            val kafkaIdenthendelseConsumerService = IdenthendelseConsumerService(
-                identhendelseService = identhendelseService,
-            )
-            consumeIdenthendelse(
-                applicationState = applicationState,
-                environment = environment,
-                kafkaIdenthendelseConsumerService = kafkaIdenthendelseConsumerService,
-            )
-        }
+    launchBackgroundTask(applicationState) {
+        log.info("Launch background task for Identhendelse from PDL-aktor")
+        val identhendelseService = IdenthendelseService(
+            database = database,
+            pdlClient = pdlClient,
+        )
+        val kafkaIdenthendelseConsumerService = IdenthendelseConsumerService(
+            identhendelseService = identhendelseService,
+        )
+        consumeIdenthendelse(
+            applicationState = applicationState,
+            environment = environment,
+            kafkaIdenthendelseConsumerService = kafkaIdenthendelseConsumerService,
+        )
     }
 }
