@@ -1,0 +1,3 @@
+CREATE INDEX ix_motesvar_arbeidstaker_ident ON motesvar(arbeidstaker_ident);
+
+CREATE INDEX ix_dialogmote_statusendring_arbeidstaker_ident ON dialogmote_statusendring(arbeidstaker_ident);
