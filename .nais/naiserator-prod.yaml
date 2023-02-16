@@ -54,6 +54,7 @@ spec:
         - host: "syfo-tilgangskontroll.prod-fss-pub.nais.io"
   azure:
     application:
+      allowAllUsers: true
       enabled: true
       tenant: nav.no
       claims:
