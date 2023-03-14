@@ -17,9 +17,6 @@ data class Dialogmotesvar(
     val svarReceivedAt: OffsetDateTime,
 )
 
-fun Dialogmotesvar.isRelevantToVeileder() =
-    svarType == DialogmoteSvartype.KOMMER_IKKE || svarType == DialogmoteSvartype.NYTT_TID_STED
-
 infix fun Dialogmotesvar.happenedAfter(
     date: LocalDate,
 ) = LocalDate.from(svarReceivedAt).isAfter(date)

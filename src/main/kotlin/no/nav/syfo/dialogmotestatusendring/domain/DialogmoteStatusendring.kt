@@ -42,3 +42,8 @@ data class DialogmoteStatusendring constructor(
 infix fun DialogmoteStatusendring.happenedAfter(
     personOppgave: PersonOppgave,
 ) = endringTidspunkt.toLocalDateTimeOslo().isAfter(personOppgave.sistEndret)
+
+fun DialogmoteStatusendring.didFinishDialogmote() =
+    type == DialogmoteStatusendringType.AVLYST ||
+        type == DialogmoteStatusendringType.FERDIGSTILT ||
+        type == DialogmoteStatusendringType.LUKKET

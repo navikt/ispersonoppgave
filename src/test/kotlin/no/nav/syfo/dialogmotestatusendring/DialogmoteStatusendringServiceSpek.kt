@@ -161,6 +161,24 @@ object DialogmoteStatusendringServiceSpek : Spek({
                 verify(exactly = 0) { connection.createBehandletPersonoppgave(any(), any()) }
                 verify(exactly = 0) { connection.updatePersonoppgave(any()) }
             }
+
+            it("Close oppgave if a dialogmøte was finished even if it happened before personoppgave was sist endret") {
+                val statusendring =
+                    generateDialogmotestatusendring(
+                        DialogmoteStatusendringType.AVLYST,
+                        dialogmoteUuid,
+                        ONE_DAY_AGO
+                    )
+                val personoppgave = generatePPersonoppgave(dialogmoteUuid, HAPPENS_NOW.toLocalDateTime())
+                every { connection.getPersonOppgaveByReferanseUuid(dialogmoteUuid) } returns personoppgave
+                justRun { connection.updatePersonoppgave(any()) }
+
+                processDialogmoteStatusendring(connection, statusendring)
+
+                verify(exactly = 1) { connection.getPersonOppgaveByReferanseUuid(dialogmoteUuid) }
+                verify(exactly = 0) { connection.createBehandletPersonoppgave(any(), any()) }
+                verify(exactly = 1) { connection.updatePersonoppgave(any()) }
+            }
         }
     }
 })

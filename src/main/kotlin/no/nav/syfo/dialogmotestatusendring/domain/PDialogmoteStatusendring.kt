@@ -13,3 +13,10 @@ data class PDialogmoteStatusendring(
     val createdAt: OffsetDateTime,
     val updatedAt: OffsetDateTime,
 )
+
+fun PDialogmoteStatusendring.didFinishDialogmote(): Boolean {
+    return when (DialogmoteStatusendringType.valueOf(type)) {
+        DialogmoteStatusendringType.FERDIGSTILT, DialogmoteStatusendringType.AVLYST, DialogmoteStatusendringType.LUKKET -> true
+        else -> false
+    }
+}
