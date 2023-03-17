@@ -1,10 +1,12 @@
 package no.nav.syfo.dialogmotesvar
 
+import no.nav.syfo.dialogmotestatusendring.domain.didFinishDialogmote
+import no.nav.syfo.dialogmotestatusendring.getDialogmoteStatusendring
 import no.nav.syfo.dialogmotestatusendring.kafka.log
 import no.nav.syfo.dialogmotesvar.domain.*
 import no.nav.syfo.metric.COUNT_DIALOGMOTESVAR_OPPGAVE_UPDATED
 import no.nav.syfo.personoppgave.*
-import no.nav.syfo.personoppgave.domain.*
+import no.nav.syfo.personoppgave.domain.toPersonOppgave
 import no.nav.syfo.util.toLocalDateTimeOslo
 import java.sql.Connection
 import java.time.LocalDate
@@ -16,7 +18,7 @@ fun processDialogmotesvar(
     cutoffDate: LocalDate,
 ) {
     log.info("Received dialogmotesvar! ${dialogmotesvar.moteuuid}")
-    if (isNotProcessable(dialogmotesvar, cutoffDate)) return
+    if (isIrrelevantDialogmotesvar(connection, dialogmotesvar, cutoffDate)) return
 
     val pPersonOppgave = connection.getPersonOppgaveByReferanseUuid(dialogmotesvar.moteuuid)
 
@@ -37,6 +39,7 @@ fun processDialogmotesvar(
         }
     }
 }
+
 fun storeDialogmotesvar(
     connection: Connection,
     dialogmotesvar: Dialogmotesvar,
@@ -44,8 +47,19 @@ fun storeDialogmotesvar(
     connection.createDialogmotesvar(dialogmotesvar)
 }
 
-fun isProcessable(dialogmotesvar: Dialogmotesvar, cutoffDate: LocalDate): Boolean {
-    return dialogmotesvar.isRelevantToVeileder() && dialogmotesvar happenedAfter cutoffDate
+fun isDialogmoteClosed(connection: Connection, dialogmotesvar: Dialogmotesvar): Boolean {
+    val dialogmoteStatusendring = connection.getDialogmoteStatusendring(dialogmotesvar.moteuuid)
+    val latestStatusEndring = dialogmoteStatusendring.maxByOrNull { it.endringTidspunkt }
+
+    return latestStatusEndring != null && latestStatusEndring.didFinishDialogmote()
 }
 
-fun isNotProcessable(dialogmotesvar: Dialogmotesvar, cutoffDate: LocalDate) = !isProcessable(dialogmotesvar, cutoffDate)
+fun isIrrelevantDialogmotesvar(
+    connection: Connection,
+    dialogmotesvar: Dialogmotesvar,
+    cutoffDate: LocalDate
+): Boolean {
+    return dialogmotesvar.svarType == DialogmoteSvartype.KOMMER ||
+        !(dialogmotesvar happenedAfter cutoffDate) ||
+        isDialogmoteClosed(connection, dialogmotesvar)
+}

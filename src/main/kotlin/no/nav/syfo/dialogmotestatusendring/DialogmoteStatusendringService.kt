@@ -1,7 +1,6 @@
 package no.nav.syfo.dialogmotestatusendring
 
-import no.nav.syfo.dialogmotestatusendring.domain.DialogmoteStatusendring
-import no.nav.syfo.dialogmotestatusendring.domain.happenedAfter
+import no.nav.syfo.dialogmotestatusendring.domain.*
 import no.nav.syfo.dialogmotestatusendring.kafka.log
 import no.nav.syfo.personoppgave.*
 import no.nav.syfo.personoppgave.domain.toPersonOppgave
@@ -21,7 +20,7 @@ fun processDialogmoteStatusendring(
         connection.createBehandletPersonoppgave(statusendring, personoppgaveUuid)
     } else {
         val personOppgave = ppersonOppgave.toPersonOppgave()
-        if (statusendring happenedAfter personOppgave) {
+        if (statusendring happenedAfter personOppgave || statusendring.didFinishDialogmote()) {
             val updatedOppgave = personOppgave.copy(
                 behandletTidspunkt = statusendring.endringTidspunkt.toLocalDateTimeOslo(),
                 behandletVeilederIdent = statusendring.veilederIdent,

@@ -1,6 +1,8 @@
 package no.nav.syfo.dialogmotesvar
 
 import io.mockk.*
+import no.nav.syfo.dialogmotestatusendring.domain.DialogmoteStatusendringType
+import no.nav.syfo.dialogmotestatusendring.getDialogmoteStatusendring
 import no.nav.syfo.dialogmotesvar.domain.DialogmoteSvartype
 import no.nav.syfo.personoppgave.*
 import no.nav.syfo.testutil.*
@@ -24,6 +26,7 @@ class DialogmotesvarServiceSpek : Spek({
 
         beforeEachTest {
             mockkStatic("no.nav.syfo.personoppgave.PersonOppgaveQueriesKt")
+            mockkStatic("no.nav.syfo.dialogmotestatusendring.DialogmoteStatusendringQueriesKt")
         }
 
         afterEachTest {
@@ -121,7 +124,12 @@ class DialogmotesvarServiceSpek : Spek({
                     sistEndret = TEN_DAYS_AGO.toLocalDateTimeOslo(),
                     opprettet = TEN_DAYS_AGO.toLocalDateTime(),
                 )
+                val pDialogmoteStatusendring = generatePDialogmotestatusendring(
+                    type = DialogmoteStatusendringType.NYTT_TID_STED,
+                    uuid = moteuuid,
+                )
                 every { connection.getPersonOppgaveByReferanseUuid(moteuuid) } returns pPersonoppgave
+                every { connection.getDialogmoteStatusendring(moteuuid) } returns mutableListOf(pDialogmoteStatusendring)
                 justRun { connection.updatePersonoppgave(any()) }
 
                 processDialogmotesvar(
@@ -140,17 +148,23 @@ class DialogmotesvarServiceSpek : Spek({
                     publish = true,
                 )
                 verify(exactly = 1) { connection.getPersonOppgaveByReferanseUuid(newDialogmotesvar.moteuuid) }
+                verify(exactly = 1) { connection.getDialogmoteStatusendring(newDialogmotesvar.moteuuid) }
                 verify(exactly = 0) { connection.createBehandletPersonoppgave(any(), any()) }
                 verify(exactly = 1) { connection.updatePersonoppgave(updatePersonoppgave) }
             }
 
-            it("ignores relevant møtesvar for veileder if it happened before the oppgave was sist endret") {
+            it("ignores møtesvar for veileder if it happened before the oppgave was sist endret") {
                 val moteuuid = UUID.randomUUID()
                 val ppersonoppgave = generatePPersonoppgave().copy(
                     referanseUuid = moteuuid,
                     sistEndret = ONE_DAY_AGO.toLocalDateTime(),
                 )
+                val pDialogmoteStatusendring = generatePDialogmotestatusendring(
+                    type = DialogmoteStatusendringType.NYTT_TID_STED,
+                    uuid = moteuuid,
+                )
                 every { connection.getPersonOppgaveByReferanseUuid(moteuuid) } returns ppersonoppgave
+                every { connection.getDialogmoteStatusendring(moteuuid) } returns mutableListOf(pDialogmoteStatusendring)
                 val oldDialogmotesvar = generateDialogmotesvar(
                     moteuuid = moteuuid,
                     svartype = DialogmoteSvartype.NYTT_TID_STED,
@@ -164,6 +178,33 @@ class DialogmotesvarServiceSpek : Spek({
                 )
 
                 verify(exactly = 1) { connection.getPersonOppgaveByReferanseUuid(oldDialogmotesvar.moteuuid) }
+                verify(exactly = 1) { connection.getDialogmoteStatusendring(oldDialogmotesvar.moteuuid) }
+                verify(exactly = 0) { connection.createBehandletPersonoppgave(any(), any()) }
+                verify(exactly = 0) { connection.updatePersonoppgave(any()) }
+            }
+
+            it("ignores møtesvar for veileder if current mote is not active") {
+                val moteuuid = UUID.randomUUID()
+                val newDialogmotesvar = generateDialogmotesvar(
+                    moteuuid = moteuuid,
+                    svartype = DialogmoteSvartype.NYTT_TID_STED,
+                    svarReceivedAt = OffsetDateTime.from(ONE_DAY_AGO),
+                )
+                val pDialogmoteStatusendring = generatePDialogmotestatusendring(
+                    type = DialogmoteStatusendringType.AVLYST,
+                    uuid = moteuuid,
+                )
+                every { connection.getDialogmoteStatusendring(moteuuid) } returns mutableListOf(pDialogmoteStatusendring)
+                justRun { connection.updatePersonoppgave(any()) }
+
+                processDialogmotesvar(
+                    connection = connection,
+                    dialogmotesvar = newDialogmotesvar,
+                    cutoffDate = CUTOFF_DATE,
+                )
+
+                verify(exactly = 0) { connection.getPersonOppgaveByReferanseUuid(newDialogmotesvar.moteuuid) }
+                verify(exactly = 1) { connection.getDialogmoteStatusendring(newDialogmotesvar.moteuuid) }
                 verify(exactly = 0) { connection.createBehandletPersonoppgave(any(), any()) }
                 verify(exactly = 0) { connection.updatePersonoppgave(any()) }
             }
