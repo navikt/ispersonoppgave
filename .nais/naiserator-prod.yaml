@@ -77,12 +77,6 @@ spec:
       value: "prod-fss.teamsykefravr.syfo-tilgangskontroll"
     - name: SYFOTILGANGSKONTROLL_URL
       value: "https://syfo-tilgangskontroll.prod-fss-pub.nais.io"
-    - name: TOGGLE_KAFKA_STATUSENDRING_CONSUMER_ENABLED
-      value: "true"
-    - name: TOGGLE_KAFKA_DIALOGMOTESVAR_CONSUMER_ENABLED
-      value: "true"
-    - name: PUBLISH_OPPGAVEHENDELSER_ENABLED
-      value: "true"
     - name: OUTDATED_DIALOGMOTESVAR_CUTOFF
       value: "2022-04-01"
     - name: PDL_CLIENT_ID
