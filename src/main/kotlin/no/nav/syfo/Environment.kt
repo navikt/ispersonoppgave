@@ -36,12 +36,7 @@ data class Environment(
         aivenKeystoreLocation = getEnvVar("KAFKA_KEYSTORE_PATH"),
     ),
 
-    val toggleKafkaConsumerStatusendringEnabled: Boolean = getEnvVar("TOGGLE_KAFKA_STATUSENDRING_CONSUMER_ENABLED").toBoolean(),
-    val toggleKafkaConsumerDialogmotesvarEnabled: Boolean = getEnvVar("TOGGLE_KAFKA_DIALOGMOTESVAR_CONSUMER_ENABLED").toBoolean(),
-
     val electorPath: String = getEnvVar("ELECTOR_PATH"),
-
-    val publishOppgavehendelser: Boolean = getEnvVar("PUBLISH_OPPGAVEHENDELSER_ENABLED").toBoolean(),
 
     val outdatedDialogmotesvarCutoff: LocalDate = LocalDate.parse(getEnvVar("OUTDATED_DIALOGMOTESVAR_CUTOFF")),
 ) {

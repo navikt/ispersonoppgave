@@ -33,11 +33,9 @@ fun Application.cronjobModule(
         publishOppgavehendelseService = publishOppgavehendelseService,
     )
 
-    if (environment.publishOppgavehendelser) {
-        launchBackgroundTask(
-            applicationState = applicationState,
-        ) {
-            cronjobRunner.start(cronjob = publishOppgavehendelseCronjob)
-        }
+    launchBackgroundTask(
+        applicationState = applicationState,
+    ) {
+        cronjobRunner.start(cronjob = publishOppgavehendelseCronjob)
     }
 }

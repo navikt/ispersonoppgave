@@ -37,10 +37,7 @@ fun testEnvironment(
         aivenTruststoreLocation = "truststore",
         aivenKeystoreLocation = "keystore",
     ),
-    toggleKafkaConsumerStatusendringEnabled = true,
-    toggleKafkaConsumerDialogmotesvarEnabled = true,
     electorPath = "electorPath",
-    publishOppgavehendelser = true,
     outdatedDialogmotesvarCutoff = LocalDate.parse("2022-04-01")
 )
 

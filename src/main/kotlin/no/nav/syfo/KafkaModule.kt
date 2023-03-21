@@ -31,26 +31,22 @@ fun launchKafkaTasks(
             oppfolgingsplanLPSService = oppfolgingsplanLPSService,
         )
     }
-    if (environment.toggleKafkaConsumerStatusendringEnabled) {
-        launchBackgroundTask(applicationState) {
-            log.info("Launch launchBackgroundTask for Dialogmøtestatusendringer")
-            consumeDialogmotestatusendring(
-                database = database,
-                applicationState = applicationState,
-                environment = environment,
-            )
-        }
+    launchBackgroundTask(applicationState) {
+        log.info("Launch launchBackgroundTask for Dialogmøtestatusendringer")
+        consumeDialogmotestatusendring(
+            database = database,
+            applicationState = applicationState,
+            environment = environment,
+        )
     }
 
-    if (environment.toggleKafkaConsumerDialogmotesvarEnabled) {
-        launchBackgroundTask(applicationState) {
-            log.info("Launch background task for dialogmotesvar")
-            consumeDialogmotesvar(
-                database = database,
-                applicationState = applicationState,
-                environment = environment,
-            )
-        }
+    launchBackgroundTask(applicationState) {
+        log.info("Launch background task for dialogmotesvar")
+        consumeDialogmotesvar(
+            database = database,
+            applicationState = applicationState,
+            environment = environment,
+        )
     }
 
     launchBackgroundTask(applicationState) {
