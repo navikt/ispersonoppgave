@@ -41,7 +41,6 @@ spec:
     enabled: true
     path: /prometheus
   ingresses:
-    - "https://ispersonoppgave.dev.intern.nav.no"
     - "https://ispersonoppgave.intern.dev.nav.no"
   accessPolicy:
     inbound:
