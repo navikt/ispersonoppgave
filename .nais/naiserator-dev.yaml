@@ -50,8 +50,8 @@ spec:
           cluster: dev-fss
     outbound:
       external:
-        - host: "kafka-schema-registry.nais-q.adeo.no"
         - host: "syfo-tilgangskontroll.dev-fss-pub.nais.io"
+        - host: "pdl-api.dev-fss-pub.nais.io"
   azure:
     application:
       allowAllUsers: true
