@@ -14,7 +14,6 @@ fun Application.cronjobModule(
     environment: Environment,
     personoppgavehendelseProducer: PersonoppgavehendelseProducer,
 ) {
-
     val leaderPodClient = LeaderPodClient(
         environment = environment,
     )

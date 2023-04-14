@@ -7,29 +7,29 @@ version = "1.0-SNAPSHOT"
 object Versions {
     const val avro = "1.10.0"
     const val confluent = "6.2.2"
-    const val jackson = "2.13.4"
+    const val jacksonDataType = "2.14.2"
     const val flyway = "8.5.13"
     const val hikari = "5.0.1"
     const val isdialogmoteSchema = "1.0.5"
     const val kafka = "2.8.1"
     const val kafkaEmbedded = "2.8.1"
-    const val kluent = "1.68"
-    const val ktor = "2.2.2"
-    const val logback = "1.2.11"
+    const val kluent = "1.72"
+    const val ktor = "2.2.4"
+    const val logback = "1.4.5"
     const val logstashEncoder = "7.2"
-    const val micrometerRegistry = "1.9.4"
-    const val mockk = "1.12.4"
-    const val nimbusjosejwt = "9.25.3"
+    const val micrometerRegistry = "1.10.3"
+    const val mockk = "1.13.3"
+    const val nimbusjosejwt = "9.30"
     const val postgres = "42.5.1"
     val postgresEmbedded = if (Os.isFamily(Os.FAMILY_MAC)) "1.0.0" else "0.13.4"
     const val scala = "2.13.9"
-    const val spek = "2.0.18"
+    const val spek = "2.0.19"
 }
 
 plugins {
     kotlin("jvm") version "1.8.20"
     id("com.github.johnrengelman.shadow") version "8.1.1"
-    id("org.jlleitschuh.gradle.ktlint") version "10.3.0"
+    id("org.jlleitschuh.gradle.ktlint") version "11.3.1"
 }
 
 val githubUser: String by project
@@ -71,7 +71,7 @@ dependencies {
     implementation("io.micrometer:micrometer-registry-prometheus:${Versions.micrometerRegistry}")
 
     // (De-)serialization
-    implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:${Versions.jackson}")
+    implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:${Versions.jacksonDataType}")
 
     // Database
     implementation("org.postgresql:postgresql:${Versions.postgres}")
