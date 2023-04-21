@@ -4,6 +4,7 @@ import io.mockk.*
 import no.nav.syfo.domain.PersonIdent
 import no.nav.syfo.personoppgave.*
 import no.nav.syfo.personoppgave.domain.PersonOppgave
+import no.nav.syfo.personoppgave.domain.PersonOppgaveType
 import no.nav.syfo.personoppgavehendelse.domain.PersonoppgavehendelseType
 import no.nav.syfo.testutil.*
 import org.amshove.kluent.shouldBeEqualTo
@@ -53,7 +54,7 @@ class PublishPersonoppgavehendelseServiceSpek : Spek({
                 val moteUuid = UUID.randomUUID()
                 val newerMoteUuid = UUID.randomUUID()
                 val pPersonOppgave = generatePPersonoppgave(
-                    moteuuid = moteUuid,
+                    referanseUuid = moteUuid,
                     sistEndret = TEN_DAYS_AGO.toLocalDateTime(),
                 )
                 val personoppgave = generatePersonoppgave().copy(
@@ -63,7 +64,7 @@ class PublishPersonoppgavehendelseServiceSpek : Spek({
                     publish = true,
                 )
                 val newerPOppgave = generatePPersonoppgave(
-                    moteuuid = newerMoteUuid,
+                    referanseUuid = newerMoteUuid,
                     sistEndret = ONE_DAY_AGO.toLocalDateTime(),
                 )
                 every { connection.getPersonOppgaver(any()) } returns listOf(
@@ -85,11 +86,11 @@ class PublishPersonoppgavehendelseServiceSpek : Spek({
                 val olderMoteUuid = UUID.randomUUID()
                 val moteUuid = UUID.randomUUID()
                 val olderPPersonOppgave = generatePPersonoppgave(
-                    moteuuid = olderMoteUuid,
+                    referanseUuid = olderMoteUuid,
                     sistEndret = TEN_DAYS_AGO.toLocalDateTime(),
                 )
                 val pPersonOppgave = generatePPersonoppgave(
-                    moteuuid = moteUuid,
+                    referanseUuid = moteUuid,
                     sistEndret = ONE_DAY_AGO.toLocalDateTime(),
                 )
                 val personOppgave = generatePersonoppgave().copy(
@@ -121,6 +122,41 @@ class PublishPersonoppgavehendelseServiceSpek : Spek({
                 updatedPersonoppgave.publishedAt shouldNotBeEqualTo null
                 updatedPersonoppgave.publish shouldBeEqualTo false
                 updatedPersonoppgave.referanseUuid shouldBeEqualTo moteUuid
+                updatedPersonoppgave.uuid shouldBeEqualTo personOppgave.uuid
+            }
+
+            it("publishes an meldingFraBehandler oppgavehendelse") {
+                val pPersonOppgave = generatePPersonoppgave().copy(
+                    type = PersonOppgaveType.BEHANDLERDIALOG_SVAR.name,
+                    publish = true,
+                )
+                val personOppgave = generatePersonoppgave().copy(
+                    uuid = pPersonOppgave.uuid,
+                    sistEndret = pPersonOppgave.sistEndret,
+                    referanseUuid = pPersonOppgave.referanseUuid,
+                    type = PersonOppgaveType.valueOf(pPersonOppgave.type),
+                )
+                every { connection.getPersonOppgaver(PersonIdent(pPersonOppgave.fnr)) } returns listOf(
+                    pPersonOppgave,
+                )
+                justRun { personoppgavehendelseProducer.sendPersonoppgavehendelse(any(), any(), any()) }
+                justRun { connection.updatePersonoppgave(any()) }
+
+                publishPersonoppgavehendelseService.publish(connection, personOppgave)
+
+                verify(exactly = 1) { connection.getPersonOppgaver(personOppgave.personIdent) }
+                verify(exactly = 1) {
+                    personoppgavehendelseProducer.sendPersonoppgavehendelse(
+                        hendelsetype = PersonoppgavehendelseType.BEHANDLERDIALOG_SVAR_MOTTATT,
+                        personIdent = personOppgave.personIdent,
+                        personoppgaveId = personOppgave.uuid,
+                    )
+                }
+                val updatedpersonoppgaveSlot = slot<PersonOppgave>()
+                verify(exactly = 1) { connection.updatePersonoppgave(capture(updatedpersonoppgaveSlot)) }
+                val updatedPersonoppgave = updatedpersonoppgaveSlot.captured
+                updatedPersonoppgave.publishedAt shouldNotBeEqualTo null
+                updatedPersonoppgave.publish shouldBeEqualTo false
                 updatedPersonoppgave.uuid shouldBeEqualTo personOppgave.uuid
             }
         }

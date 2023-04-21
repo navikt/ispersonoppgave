@@ -53,5 +53,9 @@ fun PersonOppgave.toHendelseType(): PersonoppgavehendelseType {
             else
                 PersonoppgavehendelseType.OPPFOLGINGSPLANLPS_BISTAND_BEHANDLET
         }
+        PersonOppgaveType.BEHANDLERDIALOG_SVAR -> {
+            if (behandletTidspunkt == null) PersonoppgavehendelseType.BEHANDLERDIALOG_SVAR_MOTTATT
+            else PersonoppgavehendelseType.BEHANDLERDIALOG_SVAR_BEHANDLET
+        }
     }
 }

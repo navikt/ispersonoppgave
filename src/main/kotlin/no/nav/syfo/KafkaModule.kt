@@ -7,6 +7,7 @@ import no.nav.syfo.dialogmotesvar.kafka.consumeDialogmotesvar
 import no.nav.syfo.identhendelse.IdenthendelseService
 import no.nav.syfo.identhendelse.kafka.IdenthendelseConsumerService
 import no.nav.syfo.identhendelse.kafka.consumeIdenthendelse
+import no.nav.syfo.meldingfrabehandler.kafka.consumeMeldingFraBehandler
 import no.nav.syfo.personoppgave.oppfolgingsplanlps.OppfolgingsplanLPSService
 import no.nav.syfo.personoppgave.oppfolgingsplanlps.kafka.blockingApplicationLogicOppfolgingsplanLPS
 import no.nav.syfo.personoppgavehendelse.PersonoppgavehendelseProducer
@@ -43,6 +44,15 @@ fun launchKafkaTasks(
     launchBackgroundTask(applicationState) {
         log.info("Launch background task for dialogmotesvar")
         consumeDialogmotesvar(
+            database = database,
+            applicationState = applicationState,
+            environment = environment,
+        )
+    }
+
+    launchBackgroundTask(applicationState) {
+        log.info("Launch background task for meldingFraBehandler")
+        consumeMeldingFraBehandler(
             database = database,
             applicationState = applicationState,
             environment = environment,

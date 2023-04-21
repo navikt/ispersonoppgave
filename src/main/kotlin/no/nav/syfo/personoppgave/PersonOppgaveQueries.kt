@@ -5,6 +5,7 @@ import no.nav.syfo.database.toList
 import no.nav.syfo.dialogmotestatusendring.domain.DialogmoteStatusendring
 import no.nav.syfo.dialogmotesvar.domain.Dialogmotesvar
 import no.nav.syfo.domain.PersonIdent
+import no.nav.syfo.meldingfrabehandler.domain.MeldingFraBehandler
 import no.nav.syfo.personoppgave.domain.*
 import no.nav.syfo.personoppgave.oppfolgingsplanlps.kafka.KOppfolgingsplanLPS
 import no.nav.syfo.util.convert
@@ -174,6 +175,28 @@ fun Connection.createPersonOppgave( // TODO: send in oppgave instead of dialogmo
 
     if (personIdList.size != 1) {
         throw SQLException("Creating person failed, no rows affected.")
+    }
+}
+
+fun Connection.createPersonOppgave(
+    meldingFraBehandler: MeldingFraBehandler,
+) {
+    val now = Timestamp.from(Instant.now())
+
+    val personIdList = prepareStatement(queryCreatePersonOppgave).use {
+        it.setString(1, UUID.randomUUID().toString())
+        it.setString(2, meldingFraBehandler.referanseUuid.toString())
+        it.setString(3, meldingFraBehandler.personIdent.value)
+        it.setString(4, "")
+        it.setString(5, PersonOppgaveType.BEHANDLERDIALOG_SVAR.name)
+        it.setTimestamp(6, now)
+        it.setTimestamp(7, Timestamp.from(meldingFraBehandler.tidspunkt.toInstant())) // TODO: Burde denne være now?
+        it.setBoolean(8, true)
+        it.executeQuery().toList { getInt("id") }
+    }
+
+    if (personIdList.size != 1) {
+        throw SQLException("Creating personopppgave failed, no rows affected.")
     }
 }
 

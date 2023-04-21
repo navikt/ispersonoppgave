@@ -51,3 +51,10 @@ val COUNT_DIALOGMOTESVAR_OPPGAVE_UPDATED: Counter =
     Counter.builder(DIALOGMOTESVAR_OPPGAVE_UPDATED)
         .description("Counts the number of PERSON_OPPGAVE updated from a KDialogmotesvar")
         .register(METRICS_REGISTRY)
+
+const val PERSONOPPGAVEHENDELSE_DIALOGMELDING_SVAR_MOTTAT =
+    "${METRICS_NS}_personoppgavehendelse_dialogmelding_svar_mottat_count"
+val COUNT_PERSONOPPGAVEHENDELSE_DIALOGMELDING_SVAR_MOTTAT: Counter =
+    Counter.builder(PERSONOPPGAVEHENDELSE_DIALOGMELDING_SVAR_MOTTAT)
+        .description("Counts the number of personoppgavehendelse with PersonoppgavehendelseType DIALOGMELDING_MOTTAT created from a KMeldingFraBehandler")
+        .register(METRICS_REGISTRY)
