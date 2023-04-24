@@ -6,13 +6,13 @@ import java.time.LocalDateTime
 import java.util.*
 
 fun generatePPersonoppgave(
-    moteuuid: UUID = UUID.randomUUID(),
+    referanseUuid: UUID = UUID.randomUUID(),
     sistEndret: LocalDateTime = LocalDateTime.now(),
 ) =
     PPersonOppgave(
         id = 1,
         uuid = UUID.randomUUID(),
-        referanseUuid = moteuuid,
+        referanseUuid = referanseUuid,
         fnr = UserConstants.ARBEIDSTAKER_FNR.value,
         virksomhetsnummer = "",
         type = PersonOppgaveType.DIALOGMOTESVAR.name,
