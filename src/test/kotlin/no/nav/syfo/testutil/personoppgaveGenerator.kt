@@ -5,13 +5,15 @@ import no.nav.syfo.personoppgave.domain.PersonOppgaveType
 import java.time.LocalDateTime
 import java.util.*
 
-fun generatePersonoppgave() = PersonOppgave(
+fun generatePersonoppgave(
+    type: PersonOppgaveType = PersonOppgaveType.DIALOGMOTESVAR
+) = PersonOppgave(
     id = 1,
     uuid = UUID.randomUUID(),
     referanseUuid = UUID.randomUUID(),
     personIdent = UserConstants.ARBEIDSTAKER_FNR,
     virksomhetsnummer = null,
-    type = PersonOppgaveType.DIALOGMOTESVAR,
+    type = type,
     oversikthendelseTidspunkt = null,
     behandletTidspunkt = null,
     behandletVeilederIdent = null,

@@ -44,13 +44,34 @@ class PersonOppgaveService(
         }
     }
 
-    fun behandle(personOppgave: PersonOppgave, veilederIdent: String) {
-        val now = OffsetDateTime.now().toLocalDateTimeOslo()
-        val updatedOppgave = personOppgave.copy(
-            behandletTidspunkt = now,
-            behandletVeilederIdent = veilederIdent,
-            sistEndret = now,
-            publish = true,
+    fun behandlePersonOppgaver(
+        personoppgaver: List<PersonOppgave>,
+        veilederIdent: String,
+    ) {
+        val updatedPersonOppgaver = personoppgaver.map {
+            it.update(veilederIdent)
+        }
+        val updatedRows = database.updatePersonoppgaver(
+            personoppgaver = updatedPersonOppgaver,
+        )
+        LOG.info("Updated $updatedRows personoppgaver for personoppgavetype ${personoppgaver.first().type.name}")
+    }
+
+    fun getUbehandledePersonOppgaver(
+        personIdent: PersonIdent,
+        personOppgaveType: PersonOppgaveType,
+    ): List<PersonOppgave> {
+        return database.getUbehandledePersonOppgaver(
+            personIdent = personIdent,
+            personOppgaveType = personOppgaveType,
+        ).map {
+            it.toPersonOppgave()
+        }
+    }
+
+    private fun behandle(personOppgave: PersonOppgave, veilederIdent: String) {
+        val updatedOppgave = personOppgave.update(
+            veilederIdent = veilederIdent,
         )
         database.connection.use { connection ->
             connection.updatePersonoppgave(updatedOppgave)
@@ -58,7 +79,7 @@ class PersonOppgaveService(
         }
     }
 
-    fun behandleLps(personoppgave: PersonOppgave, veilederIdent: String) {
+    private fun behandleLps(personoppgave: PersonOppgave, veilederIdent: String) {
         val personFnr = personoppgave.personIdent
 
         val isOnePersonOppgaveUbehandlet = getPersonOppgaveList(personFnr)
@@ -86,6 +107,16 @@ class PersonOppgaveService(
         database.updatePersonOppgaveBehandlet(
             personoppgave.uuid,
             veilederIdent
+        )
+    }
+
+    private fun PersonOppgave.update(veilederIdent: String): PersonOppgave {
+        val now = OffsetDateTime.now().toLocalDateTimeOslo()
+        return this.copy(
+            behandletTidspunkt = now,
+            behandletVeilederIdent = veilederIdent,
+            sistEndret = now,
+            publish = true,
         )
     }
 

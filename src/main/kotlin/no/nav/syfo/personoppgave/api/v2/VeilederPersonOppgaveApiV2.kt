@@ -2,6 +2,7 @@ package no.nav.syfo.personoppgave.api.v2
 
 import io.ktor.server.application.*
 import io.ktor.http.*
+import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import no.nav.syfo.auth.getNAVIdentFromToken
@@ -74,6 +75,38 @@ fun Route.registerVeilederPersonOppgaveApiV2(
                     }
                 }
             } ?: throw IllegalArgumentException("Error while processing of PersonOppgave for PersonIdent for navIdent: No PersonOppgave was found for uuid")
+        }
+
+        post("/behandle") {
+            val callId = getCallId()
+            val token = getBearerHeader()
+                ?: throw IllegalArgumentException("Error while processing of PersonOppgave for PersonIdent for navIdent: No Authorization header supplied")
+
+            val requestDTO = call.receive<BehandlePersonoppgaveRequestDTO>()
+            val personIdent = PersonIdent(requestDTO.personIdent)
+
+            if (veilederTilgangskontrollClient.hasAccessWithOBO(
+                    personIdent = personIdent,
+                    token = token,
+                    callId = callId,
+                )
+            ) {
+                val personoppgaver = personOppgaveService.getUbehandledePersonOppgaver(
+                    personIdent = personIdent,
+                    personOppgaveType = requestDTO.personOppgaveType,
+                )
+                if (personoppgaver.isEmpty()) {
+                    call.respond(HttpStatusCode.Conflict)
+                } else {
+                    val navIdent = getNAVIdentFromToken(token)
+                    personOppgaveService.behandlePersonOppgaver(personoppgaver, navIdent)
+                    call.respond(HttpStatusCode.OK)
+                }
+            } else {
+                val accessDeniedMessage = "Denied Veileder access to PersonOppgave for PersonIdent with Fodselsnummer"
+                log.warn("$accessDeniedMessage, {}", callIdArgument(callId))
+                call.respond(HttpStatusCode.Forbidden, accessDeniedMessage)
+            }
         }
     }
 }
