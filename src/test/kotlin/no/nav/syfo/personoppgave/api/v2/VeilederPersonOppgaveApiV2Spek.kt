@@ -5,10 +5,13 @@ import com.fasterxml.jackson.module.kotlin.readValue
 import io.ktor.http.*
 import io.ktor.server.testing.*
 import no.nav.syfo.dialogmotesvar.domain.DialogmoteSvartype
+import no.nav.syfo.domain.PersonIdent
 import no.nav.syfo.personoppgavehendelse.domain.*
 import no.nav.syfo.personoppgave.api.PersonOppgaveVeileder
 import no.nav.syfo.personoppgave.createPersonOppgave
 import no.nav.syfo.personoppgave.domain.PersonOppgaveType
+import no.nav.syfo.personoppgave.getPersonOppgaveList
+import no.nav.syfo.personoppgave.updatePersonoppgave
 import no.nav.syfo.testutil.*
 import no.nav.syfo.testutil.UserConstants.ARBEIDSTAKER_FNR
 import no.nav.syfo.testutil.UserConstants.VEILEDER_IDENT
@@ -17,6 +20,7 @@ import org.amshove.kluent.*
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
 import java.time.Duration
+import java.time.LocalDateTime
 import java.util.*
 import kotlin.collections.ArrayList
 
@@ -289,6 +293,142 @@ class VeilederPersonOppgaveApiV2Spek : Spek({
                         }
                     ) {
                         response.status() shouldBeEqualTo HttpStatusCode.OK
+                    }
+                }
+            }
+
+            describe("Process several personoppgaver") {
+                val url = "$baseUrl/behandle"
+                val personoppgaveBehandlerdialog = generatePersonoppgave(
+                    type = PersonOppgaveType.BEHANDLERDIALOG_SVAR,
+                )
+                val requestDTO = BehandlePersonoppgaveRequestDTO(
+                    personIdent = personoppgaveBehandlerdialog.personIdent.value,
+                    personOppgaveType = personoppgaveBehandlerdialog.type,
+                )
+                describe("Happy path") {
+                    it("Will behandle several personoppgaver") {
+                        database.connection.use {
+                            it.createPersonOppgave(personoppgaveBehandlerdialog)
+                            it.createPersonOppgave(
+                                personoppgaveBehandlerdialog.copy(
+                                    uuid = UUID.randomUUID(),
+                                    referanseUuid = UUID.randomUUID()
+                                )
+                            )
+                            it.commit()
+                        }
+
+                        with(
+                            handleRequest(HttpMethod.Post, url) {
+                                addHeader(HttpHeaders.ContentType, ContentType.Application.Json.toString())
+                                addHeader(HttpHeaders.Authorization, bearerHeader(validToken))
+                                setBody(objectMapper.writeValueAsString(requestDTO))
+                            }
+                        ) {
+                            response.status() shouldBeEqualTo HttpStatusCode.OK
+
+                            val personoppgaver = database.getPersonOppgaveList(
+                                personIdent = PersonIdent(requestDTO.personIdent),
+                            )
+                            personoppgaver.size shouldBeEqualTo 2
+                            personoppgaver.all {
+                                it.behandletVeilederIdent == VEILEDER_IDENT && it.behandletTidspunkt != null
+                            } shouldBeEqualTo true
+                        }
+                    }
+
+                    it("Will only behandle personoppgaver with correct type") {
+                        val personoppgaveDialogmotesvar = generatePersonoppgave()
+                        database.connection.use {
+                            it.createPersonOppgave(personoppgaveBehandlerdialog)
+                            it.createPersonOppgave(
+                                personoppgaveBehandlerdialog.copy(
+                                    uuid = UUID.randomUUID(),
+                                    referanseUuid = UUID.randomUUID()
+                                )
+                            )
+                            it.createPersonOppgave(personoppgaveDialogmotesvar)
+                            it.commit()
+                        }
+
+                        with(
+                            handleRequest(HttpMethod.Post, url) {
+                                addHeader(HttpHeaders.ContentType, ContentType.Application.Json.toString())
+                                addHeader(HttpHeaders.Authorization, bearerHeader(validToken))
+                                setBody(objectMapper.writeValueAsString(requestDTO))
+                            }
+                        ) {
+                            response.status() shouldBeEqualTo HttpStatusCode.OK
+
+                            val personoppgaver = database.getPersonOppgaveList(
+                                personIdent = PersonIdent(requestDTO.personIdent),
+                            )
+                            val personoppgaverBehandlerdialog = personoppgaver.filter {
+                                it.type == PersonOppgaveType.BEHANDLERDIALOG_SVAR.name
+                            }
+                            personoppgaver.size shouldBeEqualTo 3
+                            personoppgaverBehandlerdialog.size shouldBeEqualTo 2
+                            personoppgaverBehandlerdialog.all {
+                                it.behandletVeilederIdent == VEILEDER_IDENT && it.behandletTidspunkt != null
+                            } shouldBeEqualTo true
+                            personoppgaver.first {
+                                it.type != PersonOppgaveType.BEHANDLERDIALOG_SVAR.name
+                            }.behandletVeilederIdent shouldBeEqualTo null
+                        }
+                    }
+
+                    it("Will only behandle ubehandlede personoppgaver") {
+                        val alreadyBehandletPersonOppgave = personoppgaveBehandlerdialog.copy(
+                            uuid = UUID.randomUUID(),
+                            referanseUuid = UUID.randomUUID(),
+                            behandletVeilederIdent = VEILEDER_IDENT,
+                            behandletTidspunkt = LocalDateTime.now(),
+                            publish = true,
+                        )
+                        database.connection.use {
+                            it.createPersonOppgave(personoppgaveBehandlerdialog)
+                            it.createPersonOppgave(alreadyBehandletPersonOppgave)
+                            it.updatePersonoppgave(alreadyBehandletPersonOppgave)
+                            it.commit()
+                        }
+
+                        with(
+                            handleRequest(HttpMethod.Post, url) {
+                                addHeader(HttpHeaders.ContentType, ContentType.Application.Json.toString())
+                                addHeader(HttpHeaders.Authorization, bearerHeader(validToken))
+                                setBody(objectMapper.writeValueAsString(requestDTO))
+                            }
+                        ) {
+                            response.status() shouldBeEqualTo HttpStatusCode.OK
+
+                            val personoppgaver = database.getPersonOppgaveList(
+                                personIdent = PersonIdent(requestDTO.personIdent),
+                            )
+                            val alreadyBehandletPersonoppgaveTidspunkt = personoppgaver.first {
+                                it.uuid == alreadyBehandletPersonOppgave.uuid
+                            }.behandletTidspunkt
+                            val newlyBehandletPersonoppgaveTidspunkt = personoppgaver.first {
+                                it.uuid == personoppgaveBehandlerdialog.uuid
+                            }.behandletTidspunkt
+
+                            personoppgaver.size shouldBeEqualTo 2
+                            alreadyBehandletPersonoppgaveTidspunkt!! shouldBeBefore newlyBehandletPersonoppgaveTidspunkt!!
+                        }
+                    }
+                }
+
+                describe("Unhappy path") {
+                    it("Will not behandle when no ubehandlede personoppgaver for person") {
+                        with(
+                            handleRequest(HttpMethod.Post, url) {
+                                addHeader(HttpHeaders.ContentType, ContentType.Application.Json.toString())
+                                addHeader(HttpHeaders.Authorization, bearerHeader(validToken))
+                                setBody(objectMapper.writeValueAsString(requestDTO))
+                            }
+                        ) {
+                            response.status() shouldBeEqualTo HttpStatusCode.Conflict
+                        }
                     }
                 }
             }

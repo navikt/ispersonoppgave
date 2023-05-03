@@ -270,6 +270,33 @@ fun Connection.updatePersonoppgave(
     }
 }
 
+fun DatabaseInterface.updatePersonoppgaver(
+    personoppgaver: List<PersonOppgave>,
+): Int {
+    var updatedRows = 0
+    this.connection.use { connection ->
+        connection.prepareStatement(queryUpdatePersonoppgave).use {
+            personoppgaver.forEach { personoppgave ->
+                val behandletTidspunkt = personoppgave.behandletTidspunkt?.let { Timestamp.valueOf(it) }
+                val publishedAt = personoppgave.publishedAt?.let { Timestamp.from(it.toInstant()) }
+                it.setTimestamp(1, behandletTidspunkt)
+                it.setString(2, personoppgave.behandletVeilederIdent)
+                it.setTimestamp(3, Timestamp.valueOf(personoppgave.sistEndret))
+                it.setBoolean(4, personoppgave.publish)
+                it.setObject(5, publishedAt)
+                it.setString(6, personoppgave.uuid.toString())
+                updatedRows += it.executeUpdate()
+            }
+            if (updatedRows < 1) {
+                throw SQLException("Updating oppgave failed, no rows affected.")
+            }
+        }
+        connection.commit()
+    }
+
+    return updatedRows
+}
+
 fun ResultSet.toPPersonOppgave(): PPersonOppgave =
     PPersonOppgave(
         id = getInt("id"),
