@@ -50,8 +50,9 @@ spec:
           cluster: prod-gcp
     outbound:
       external:
-        - host: "syfo-tilgangskontroll.prod-fss-pub.nais.io"
         - host: "pdl-api.prod-fss-pub.nais.io"
+      rules:
+        - application: syfo-tilgangskontroll
   azure:
     application:
       allowAllUsers: true
@@ -74,9 +75,9 @@ spec:
     - name: KTOR_ENV
       value: production
     - name: SYFOTILGANGSKONTROLL_CLIENT_ID
-      value: "prod-fss.teamsykefravr.syfo-tilgangskontroll"
+      value: "prod-gcp.teamsykefravr.syfo-tilgangskontroll"
     - name: SYFOTILGANGSKONTROLL_URL
-      value: "https://syfo-tilgangskontroll.prod-fss-pub.nais.io"
+      value: "http://syfo-tilgangskontroll"
     - name: OUTDATED_DIALOGMOTESVAR_CUTOFF
       value: "2022-04-01"
     - name: PDL_CLIENT_ID
