@@ -10,7 +10,7 @@ import org.apache.kafka.common.serialization.StringDeserializer
 import org.apache.kafka.common.serialization.StringSerializer
 import java.util.*
 
-fun kafkaAivenConsumerConfig(
+inline fun <reified Deserializer> kafkaAivenConsumerConfig(
     environmentKafka: EnvironmentKafka,
 ): Properties {
     return Properties().apply {
@@ -20,6 +20,8 @@ fun kafkaAivenConsumerConfig(
         this[ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG] = "false" // we commit manually if db persistence is successful
         this[ConsumerConfig.MAX_POLL_RECORDS_CONFIG] = "1000"
         this[ConsumerConfig.MAX_PARTITION_FETCH_BYTES_CONFIG] = "" + (10 * 1024 * 1024)
+        this[ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG] = Deserializer::class.java.canonicalName
+        this[ConsumerConfig.GROUP_ID_CONFIG] = "ispersonoppgave-v1"
     }
 }
 
@@ -38,7 +40,7 @@ fun kafkaAivenProducerConfig(
     }
 }
 
-private fun commonKafkaAivenConfig(
+fun commonKafkaAivenConfig(
     environmentKafka: EnvironmentKafka,
 ) = Properties().apply {
     this[SaslConfigs.SASL_MECHANISM] = "PLAIN"

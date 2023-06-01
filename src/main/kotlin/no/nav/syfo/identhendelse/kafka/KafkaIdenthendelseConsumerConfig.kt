@@ -11,9 +11,7 @@ fun kafkaIdenthendelseConsumerConfig(
     environmentKafka: EnvironmentKafka,
 ): Properties {
     return Properties().apply {
-        putAll(kafkaAivenConsumerConfig(environmentKafka))
-        this[ConsumerConfig.GROUP_ID_CONFIG] = "ispersonoppgave-v1"
-        this[ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG] = KafkaAvroDeserializer::class.java.canonicalName
+        putAll(kafkaAivenConsumerConfig<KafkaAvroDeserializer>(environmentKafka))
         this[ConsumerConfig.MAX_POLL_RECORDS_CONFIG] = "1"
 
         this[KafkaAvroDeserializerConfig.SCHEMA_REGISTRY_URL_CONFIG] = environmentKafka.aivenSchemaRegistryUrl

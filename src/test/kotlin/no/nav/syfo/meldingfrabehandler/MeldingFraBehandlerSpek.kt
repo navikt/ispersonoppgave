@@ -4,7 +4,7 @@ import io.ktor.server.testing.*
 import io.mockk.every
 import io.mockk.mockk
 import no.nav.syfo.meldingfrabehandler.domain.KMeldingFraBehandler
-import no.nav.syfo.meldingfrabehandler.kafka.pollAndProcessMeldingFraBehandler
+import no.nav.syfo.meldingfrabehandler.kafka.KafkaMeldingFraBehandler
 import no.nav.syfo.personoppgave.domain.PersonOppgaveType
 import no.nav.syfo.personoppgave.getPersonOppgaveByReferanseUuid
 import no.nav.syfo.testutil.*
@@ -25,6 +25,7 @@ class MeldingFraBehandlerSpek : Spek({
             val externalMockEnvironment = ExternalMockEnvironment()
             val database = externalMockEnvironment.database
             val kafkaMeldingFraBehandlerConsumer = mockk<KafkaConsumer<String, KMeldingFraBehandler>>()
+            val kafkaMeldingFraBehandler = KafkaMeldingFraBehandler(database = database)
 
             beforeEachTest {
                 every { kafkaMeldingFraBehandlerConsumer.commitSync() } returns Unit
@@ -50,8 +51,7 @@ class MeldingFraBehandlerSpek : Spek({
                     mockKafkaMeldingFraBehandler = kafkaMeldingFraBehandlerConsumer,
                 )
 
-                pollAndProcessMeldingFraBehandler(
-                    database = database,
+                kafkaMeldingFraBehandler.pollAndProcessRecords(
                     kafkaConsumer = kafkaMeldingFraBehandlerConsumer,
                 )
 

@@ -2,81 +2,70 @@ package no.nav.syfo.personoppgave.oppfolgingsplanlps.kafka
 
 import net.logstash.logback.argument.StructuredArguments
 import no.nav.syfo.*
-import no.nav.syfo.kafka.kafkaAivenConsumerConfig
+import no.nav.syfo.kafka.*
 import no.nav.syfo.personoppgave.oppfolgingsplanlps.OppfolgingsplanLPSService
 import no.nav.syfo.util.*
-import org.apache.kafka.clients.consumer.ConsumerConfig
 import org.apache.kafka.clients.consumer.KafkaConsumer
 import org.apache.kafka.common.serialization.Deserializer
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.time.Duration
-import java.util.Properties
 
 private val LOG: Logger = LoggerFactory.getLogger("no.nav.syfo.personoppgave.oppfolgingsplanlps.kafka")
 
 const val OPPFOLGINGSPLAN_LPS_NAV_TOPIC = "team-esyfo.aapen-syfo-oppfolgingsplan-lps-nav-v2"
 
-suspend fun blockingApplicationLogicOppfolgingsplanLPS(
+fun launchKafkaTaskOppfolgingsplanLPS(
     applicationState: ApplicationState,
     environment: Environment,
-    oppfolgingsplanLPSService: OppfolgingsplanLPSService
+    oppfolgingsplanLPSService: OppfolgingsplanLPSService,
 ) {
-    LOG.info("Setting up kafka consumer OppfolgingsplanLPS")
-
-    val consumerProperties = kafkaConfig(environment.kafka)
-    val kafkaConsumerOppfolgingsplanLPS = KafkaConsumer<String, KOppfolgingsplanLPS>(consumerProperties)
-
-    kafkaConsumerOppfolgingsplanLPS.subscribe(
-        listOf(OPPFOLGINGSPLAN_LPS_NAV_TOPIC)
+    val kafkaOppfolgingsplanLPS = KafkaOppfolgingsplanLPS(oppfolgingsplanLPSService = oppfolgingsplanLPSService)
+    val consumerProperties = kafkaAivenConsumerConfig<KOppfolgingsplanLPSDeserializer>(environment.kafka)
+    launchKafkaTask(
+        applicationState = applicationState,
+        kafkaConsumerService = kafkaOppfolgingsplanLPS,
+        consumerProperties = consumerProperties,
+        topic = OPPFOLGINGSPLAN_LPS_NAV_TOPIC,
     )
+}
 
-    while (applicationState.ready) {
-        pollAndProcessKOppfolgingsplanLPS(
-            kafkaConsumerOppfolgingsplanLPSNAV = kafkaConsumerOppfolgingsplanLPS,
-            oppfolgingsplanLPSService = oppfolgingsplanLPSService
+class KafkaOppfolgingsplanLPS(private val oppfolgingsplanLPSService: OppfolgingsplanLPSService) :
+    KafkaConsumerService<KOppfolgingsplanLPS> {
+    override val pollDurationInMillis: Long = 1000
+
+    override fun pollAndProcessRecords(kafkaConsumer: KafkaConsumer<String, KOppfolgingsplanLPS>) {
+        var logValues = arrayOf(
+            StructuredArguments.keyValue("id", "missing"),
+            StructuredArguments.keyValue("timestamp", "missing")
         )
-    }
-}
 
-fun pollAndProcessKOppfolgingsplanLPS(
-    kafkaConsumerOppfolgingsplanLPSNAV: KafkaConsumer<String, KOppfolgingsplanLPS>,
-    oppfolgingsplanLPSService: OppfolgingsplanLPSService
-) {
-    var logValues = arrayOf(
-        StructuredArguments.keyValue("id", "missing"),
-        StructuredArguments.keyValue("timestamp", "missing")
-    )
-
-    val logKeys = logValues.joinToString(prefix = "(", postfix = ")", separator = ",") {
-        "{}"
-    }
-
-    val records = kafkaConsumerOppfolgingsplanLPSNAV.poll(Duration.ofMillis(1000))
-    if (records.count() > 0) {
-        records.forEach {
-            val callId = kafkaCallId()
-            val kOppfolgingsplanLPS: KOppfolgingsplanLPS = it.value()
-            logValues = arrayOf(
-                StructuredArguments.keyValue("id", it.key()),
-                StructuredArguments.keyValue("timestamp", it.timestamp())
-            )
-            LOG.info("Received KOppfolgingsplanLPS, ready to process, $logKeys, {}", *logValues, callIdArgument(callId))
-
-            oppfolgingsplanLPSService.receiveOppfolgingsplanLPS(
-                kOppfolgingsplanLPS,
-                callId
-            )
+        val logKeys = logValues.joinToString(prefix = "(", postfix = ")", separator = ",") {
+            "{}"
         }
-        kafkaConsumerOppfolgingsplanLPSNAV.commitSync()
-    }
-}
 
-private fun kafkaConfig(environmentKafka: EnvironmentKafka): Properties {
-    return Properties().apply {
-        putAll(kafkaAivenConsumerConfig(environmentKafka))
-        this[ConsumerConfig.GROUP_ID_CONFIG] = "ispersonoppgave-v1"
-        this[ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG] = KOppfolgingsplanLPSDeserializer::class.java.canonicalName
+        val records = kafkaConsumer.poll(Duration.ofMillis(1000))
+        if (records.count() > 0) {
+            records.forEach {
+                val callId = kafkaCallId()
+                val kOppfolgingsplanLPS: KOppfolgingsplanLPS = it.value()
+                logValues = arrayOf(
+                    StructuredArguments.keyValue("id", it.key()),
+                    StructuredArguments.keyValue("timestamp", it.timestamp())
+                )
+                LOG.info(
+                    "Received KOppfolgingsplanLPS, ready to process, $logKeys, {}",
+                    *logValues,
+                    callIdArgument(callId)
+                )
+
+                oppfolgingsplanLPSService.receiveOppfolgingsplanLPS(
+                    kOppfolgingsplanLPS,
+                    callId
+                )
+            }
+            kafkaConsumer.commitSync()
+        }
     }
 }
 

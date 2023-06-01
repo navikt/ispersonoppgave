@@ -2,14 +2,14 @@ package no.nav.syfo
 
 import no.nav.syfo.client.pdl.PdlClient
 import no.nav.syfo.database.DatabaseInterface
-import no.nav.syfo.dialogmotestatusendring.kafka.consumeDialogmotestatusendring
-import no.nav.syfo.dialogmotesvar.kafka.consumeDialogmotesvar
+import no.nav.syfo.dialogmotestatusendring.kafka.launchKafkaTaskDialogmotestatusendring
+import no.nav.syfo.dialogmotesvar.kafka.launchKafkaTaskDialogmotesvar
 import no.nav.syfo.identhendelse.IdenthendelseService
 import no.nav.syfo.identhendelse.kafka.IdenthendelseConsumerService
-import no.nav.syfo.identhendelse.kafka.consumeIdenthendelse
-import no.nav.syfo.meldingfrabehandler.kafka.consumeMeldingFraBehandler
+import no.nav.syfo.identhendelse.kafka.launchKafkaTaskIdenthendelse
+import no.nav.syfo.meldingfrabehandler.kafka.launchKafkaTaskMeldingFraBehandler
 import no.nav.syfo.personoppgave.oppfolgingsplanlps.OppfolgingsplanLPSService
-import no.nav.syfo.personoppgave.oppfolgingsplanlps.kafka.blockingApplicationLogicOppfolgingsplanLPS
+import no.nav.syfo.personoppgave.oppfolgingsplanlps.kafka.launchKafkaTaskOppfolgingsplanLPS
 import no.nav.syfo.personoppgavehendelse.PersonoppgavehendelseProducer
 
 fun launchKafkaTasks(
@@ -24,54 +24,39 @@ fun launchKafkaTasks(
         personoppgavehendelseProducer,
     )
 
-    launchBackgroundTask(applicationState) {
-        log.info("Launch launchBackgroundTask for oppfolginsplanLPS")
-        blockingApplicationLogicOppfolgingsplanLPS(
-            applicationState = applicationState,
-            environment = environment,
-            oppfolgingsplanLPSService = oppfolgingsplanLPSService,
-        )
-    }
-    launchBackgroundTask(applicationState) {
-        log.info("Launch launchBackgroundTask for Dialogmøtestatusendringer")
-        consumeDialogmotestatusendring(
-            database = database,
-            applicationState = applicationState,
-            environment = environment,
-        )
-    }
+    launchKafkaTaskOppfolgingsplanLPS(
+        applicationState = applicationState,
+        environment = environment,
+        oppfolgingsplanLPSService = oppfolgingsplanLPSService,
+    )
+    launchKafkaTaskDialogmotestatusendring(
+        database = database,
+        applicationState = applicationState,
+        environment = environment,
+    )
 
-    launchBackgroundTask(applicationState) {
-        log.info("Launch background task for dialogmotesvar")
-        consumeDialogmotesvar(
-            database = database,
-            applicationState = applicationState,
-            environment = environment,
-        )
-    }
+    launchKafkaTaskDialogmotesvar(
+        database = database,
+        applicationState = applicationState,
+        environment = environment,
+    )
 
-    launchBackgroundTask(applicationState) {
-        log.info("Launch background task for meldingFraBehandler")
-        consumeMeldingFraBehandler(
-            database = database,
-            applicationState = applicationState,
-            environment = environment,
-        )
-    }
+    launchKafkaTaskMeldingFraBehandler(
+        database = database,
+        applicationState = applicationState,
+        environment = environment,
+    )
 
-    launchBackgroundTask(applicationState) {
-        log.info("Launch background task for Identhendelse from PDL-aktor")
-        val identhendelseService = IdenthendelseService(
-            database = database,
-            pdlClient = pdlClient,
-        )
-        val kafkaIdenthendelseConsumerService = IdenthendelseConsumerService(
-            identhendelseService = identhendelseService,
-        )
-        consumeIdenthendelse(
-            applicationState = applicationState,
-            environment = environment,
-            kafkaIdenthendelseConsumerService = kafkaIdenthendelseConsumerService,
-        )
-    }
+    val identhendelseService = IdenthendelseService(
+        database = database,
+        pdlClient = pdlClient,
+    )
+    val kafkaIdenthendelseConsumerService = IdenthendelseConsumerService(
+        identhendelseService = identhendelseService,
+    )
+    launchKafkaTaskIdenthendelse(
+        applicationState = applicationState,
+        environment = environment,
+        kafkaIdenthendelseConsumerService = kafkaIdenthendelseConsumerService,
+    )
 }
