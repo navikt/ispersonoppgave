@@ -8,10 +8,10 @@ import no.nav.syfo.personoppgave.oppfolgingsplanlps.kafka.*
 import no.nav.syfo.personoppgavehendelse.*
 import no.nav.syfo.personoppgavehendelse.domain.KPersonoppgavehendelse
 import org.apache.kafka.clients.CommonClientConfigs
-import org.apache.kafka.clients.consumer.ConsumerConfig
 import org.apache.kafka.clients.consumer.KafkaConsumer
 import org.apache.kafka.clients.producer.KafkaProducer
 import org.apache.kafka.common.config.SaslConfigs
+import org.apache.kafka.common.serialization.StringDeserializer
 import java.util.*
 
 fun testKafka(
@@ -20,7 +20,7 @@ fun testKafka(
     topicNames: List<String> = listOf(
         OPPFOLGINGSPLAN_LPS_NAV_TOPIC,
         PDL_AKTOR_TOPIC,
-    )
+    ),
 ) = KafkaEnvironment(
     autoStart = autoStart,
     withSchemaRegistry = withSchemaRegistry,
@@ -35,12 +35,9 @@ fun Properties.overrideForTest(): Properties = apply {
 fun testOppfolgingsplanLPSConsumer(
     externalMockEnvironment: ExternalMockEnvironment,
 ): KafkaConsumer<String, KOppfolgingsplanLPS> {
-    val consumerPropertiesOppfolgingsplanLPS = kafkaAivenConsumerConfig(externalMockEnvironment.environment.kafka)
-        .overrideForTest()
-        .apply {
-            put(ConsumerConfig.GROUP_ID_CONFIG, "ispersonoppgave-v1")
-            put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, KOppfolgingsplanLPSDeserializer::class.java.canonicalName)
-        }
+    val consumerPropertiesOppfolgingsplanLPS =
+        kafkaAivenConsumerConfig<KOppfolgingsplanLPSDeserializer>(externalMockEnvironment.environment.kafka)
+            .overrideForTest()
     val consumerOppfolgingsplanLPS = KafkaConsumer<String, KOppfolgingsplanLPS>(consumerPropertiesOppfolgingsplanLPS)
     consumerOppfolgingsplanLPS.subscribe(listOf(OPPFOLGINGSPLAN_LPS_NAV_TOPIC))
     return consumerOppfolgingsplanLPS
@@ -59,13 +56,10 @@ fun testPersonoppgavehendelseProducer(
 fun testPersonoppgavehendelseConsumer(
     environment: Environment,
 ): KafkaConsumer<String, String> {
-    val consumerPropertiesPersonoppgavehendelse = kafkaAivenConsumerConfig(environment.kafka)
+    val consumerPropertiesPersonoppgavehendelse = kafkaAivenConsumerConfig<StringDeserializer>(environment.kafka)
         .overrideForTest()
         .apply {
-            put(ConsumerConfig.GROUP_ID_CONFIG, "ispersonoppgave-v1")
             put("specific.avro.reader", false)
-            put("key.deserializer", "org.apache.kafka.common.serialization.StringDeserializer")
-            put("value.deserializer", "org.apache.kafka.common.serialization.StringDeserializer")
         }
     val consumerpersonoppgavehendelse = KafkaConsumer<String, String>(consumerPropertiesPersonoppgavehendelse)
     consumerpersonoppgavehendelse.subscribe(listOf(PERSONOPPGAVEHENDELSE_TOPIC))

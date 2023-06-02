@@ -5,7 +5,7 @@ import io.mockk.every
 import io.mockk.mockk
 import no.nav.syfo.dialogmote.avro.KDialogmoteStatusEndring
 import no.nav.syfo.dialogmotestatusendring.domain.DialogmoteStatusendringType
-import no.nav.syfo.dialogmotestatusendring.kafka.pollAndProcessDialogmoteStatusendring
+import no.nav.syfo.dialogmotestatusendring.kafka.KafkaDialogmoteStatusendring
 import no.nav.syfo.testutil.*
 import org.amshove.kluent.shouldBeEqualTo
 import org.apache.kafka.clients.consumer.*
@@ -25,10 +25,11 @@ class DialogmoteStatusendringSpek : Spek({
 
             val externalMockEnvironment = ExternalMockEnvironment()
             val database = externalMockEnvironment.database
-            val kafkaDialogmoteStatusendring = mockk<KafkaConsumer<String, KDialogmoteStatusEndring>>()
+            val kafkaConsumer = mockk<KafkaConsumer<String, KDialogmoteStatusEndring>>()
+            val kafkaDialogmoteStatusendring = KafkaDialogmoteStatusendring(database = database)
 
             beforeEachTest {
-                every { kafkaDialogmoteStatusendring.commitSync() } returns Unit
+                every { kafkaConsumer.commitSync() } returns Unit
             }
 
             afterEachTest {
@@ -66,13 +67,12 @@ class DialogmoteStatusendringSpek : Spek({
 
                 mockReceiveDialogmoteStatusendring(
                     kDialogmoteStatusendring = kDialogmoteStatusendring,
-                    mockKafkaDialogmoteStatusendring = kafkaDialogmoteStatusendring,
+                    mockKafkaDialogmoteStatusendring = kafkaConsumer,
                     moteUuid = moteUuid,
                 )
 
-                pollAndProcessDialogmoteStatusendring(
-                    database = database,
-                    kafkaConsumer = kafkaDialogmoteStatusendring,
+                kafkaDialogmoteStatusendring.pollAndProcessRecords(
+                    kafkaConsumer = kafkaConsumer,
                 )
 
                 val allPDialogmoteStatusendring = database.connection.getDialogmoteStatusendring(

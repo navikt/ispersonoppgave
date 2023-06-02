@@ -4,7 +4,7 @@ import io.ktor.server.testing.*
 import io.mockk.every
 import io.mockk.mockk
 import no.nav.syfo.dialogmotesvar.domain.*
-import no.nav.syfo.dialogmotesvar.kafka.pollAndProcessDialogmotesvar
+import no.nav.syfo.dialogmotesvar.kafka.KafkaDialogmotesvarConsumer
 import no.nav.syfo.testutil.*
 import org.amshove.kluent.shouldBe
 import org.amshove.kluent.shouldBeEqualTo
@@ -24,10 +24,12 @@ class DialogmotesvarSpek : Spek({
 
             val externalMockEnvironment = ExternalMockEnvironment()
             val database = externalMockEnvironment.database
-            val kafkaDialogmotesvar = mockk<KafkaConsumer<String, KDialogmotesvar>>()
+            val kafkaConsumer = mockk<KafkaConsumer<String, KDialogmotesvar>>()
+            val kafkaDialogmotesvarConsumer =
+                KafkaDialogmotesvarConsumer(database = database, cutoffDate = LocalDate.now().minusDays(20))
 
             beforeEachTest {
-                every { kafkaDialogmotesvar.commitSync() } returns Unit
+                every { kafkaConsumer.commitSync() } returns Unit
             }
 
             afterEachTest {
@@ -51,14 +53,12 @@ class DialogmotesvarSpek : Spek({
                 )
                 mockReceiveDialogmotesvar(
                     kDialogmotesvar = kDialogmotesvar,
-                    mockKafkaDialogmotesvar = kafkaDialogmotesvar,
+                    mockKafkaDialogmotesvar = kafkaConsumer,
                     moteUuid = moteUuid,
                 )
 
-                pollAndProcessDialogmotesvar(
-                    database = database,
-                    kafkaConsumer = kafkaDialogmotesvar,
-                    cutoffDate = LocalDate.now().minusDays(20),
+                kafkaDialogmotesvarConsumer.pollAndProcessRecords(
+                    kafkaConsumer = kafkaConsumer,
                 )
 
                 val allPMotesvar = database.connection.getDialogmotesvar(
@@ -76,6 +76,7 @@ class DialogmotesvarSpek : Spek({
         }
     }
 })
+
 fun mockReceiveDialogmotesvar(
     kDialogmotesvar: KDialogmotesvar,
     mockKafkaDialogmotesvar: KafkaConsumer<String, KDialogmotesvar>,
