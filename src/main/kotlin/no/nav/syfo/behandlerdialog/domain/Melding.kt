@@ -1,10 +1,10 @@
-package no.nav.syfo.meldingfrabehandler.domain
+package no.nav.syfo.behandlerdialog.domain
 
 import no.nav.syfo.domain.PersonIdent
 import java.time.OffsetDateTime
 import java.util.*
 
-data class MeldingFraBehandler(
+data class Melding(
     val referanseUuid: UUID,
     val personIdent: PersonIdent,
     val type: MeldingType,
@@ -13,4 +13,5 @@ data class MeldingFraBehandler(
 
 enum class MeldingType {
     FORESPORSEL_PASIENT,
+    FORESPORSEL_PASIENT_PAMINNELSE,
 }

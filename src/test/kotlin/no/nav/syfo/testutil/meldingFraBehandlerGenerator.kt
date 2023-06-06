@@ -1,14 +1,14 @@
 package no.nav.syfo.testutil
 
 import no.nav.syfo.domain.PersonIdent
-import no.nav.syfo.meldingfrabehandler.domain.KMeldingFraBehandler
-import no.nav.syfo.meldingfrabehandler.domain.MeldingType
+import no.nav.syfo.behandlerdialog.domain.KMeldingDTO
+import no.nav.syfo.behandlerdialog.domain.MeldingType
 import java.time.OffsetDateTime
 import java.util.*
 
-fun generateKMeldingFraBehandler(
+fun generateKMeldingDTO(
     uuid: UUID = UUID.randomUUID(),
-) = KMeldingFraBehandler(
+) = KMeldingDTO(
     uuid = uuid.toString(),
     personIdent = UserConstants.ARBEIDSTAKER_FNR.value,
     type = MeldingType.FORESPORSEL_PASIENT.name,
