@@ -4,13 +4,16 @@ import no.nav.syfo.*
 import no.nav.syfo.database.DatabaseInterface
 import no.nav.syfo.kafka.*
 import no.nav.syfo.behandlerdialog.domain.KMeldingDTO
+import no.nav.syfo.behandlerdialog.domain.Melding
 import no.nav.syfo.behandlerdialog.domain.toMelding
 import no.nav.syfo.behandlerdialog.kafka.KafkaMeldingFraBehandler.Companion.MELDING_FRA_BEHANDLER_TOPIC
-import no.nav.syfo.behandlerdialog.processMeldingFraBehandler
-import no.nav.syfo.metric.COUNT_PERSONOPPGAVEHENDELSE_DIALOGMELDING_SVAR_MOTTAT
+import no.nav.syfo.metric.COUNT_PERSONOPPGAVEHENDELSE_DIALOGMELDING_SVAR_MOTTATT
+import no.nav.syfo.personoppgave.createPersonOppgave
+import no.nav.syfo.personoppgave.domain.PersonOppgaveType
 import org.apache.kafka.clients.consumer.*
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import java.sql.Connection
 import java.time.*
 import java.util.*
 
@@ -64,14 +67,25 @@ class KafkaMeldingFraBehandler(private val database: DatabaseInterface) : KafkaC
                     melding = kMelding.toMelding(),
                     connection = connection,
                 )
-                COUNT_PERSONOPPGAVEHENDELSE_DIALOGMELDING_SVAR_MOTTAT.increment()
+                COUNT_PERSONOPPGAVEHENDELSE_DIALOGMELDING_SVAR_MOTTATT.increment()
             }
             connection.commit()
         }
     }
 
+    private fun processMeldingFraBehandler(
+        melding: Melding,
+        connection: Connection,
+    ) {
+        log.info("Received melding fra behandler with uuid: ${melding.referanseUuid}")
+        connection.createPersonOppgave(
+            melding = melding,
+            personOppgaveType = PersonOppgaveType.BEHANDLERDIALOG_SVAR,
+        )
+    }
+
     companion object {
         const val MELDING_FRA_BEHANDLER_TOPIC = "teamsykefravr.melding-fra-behandler"
-        val log: Logger = LoggerFactory.getLogger("no.nav.syfo.meldingfrabehandler.kafka.KafkaMeldingFraBehandler")
+        val log: Logger = LoggerFactory.getLogger(KafkaMeldingFraBehandler::class.java)
     }
 }

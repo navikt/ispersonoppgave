@@ -2,15 +2,18 @@ package no.nav.syfo.behandlerdialog.kafka
 
 import no.nav.syfo.*
 import no.nav.syfo.behandlerdialog.domain.KMeldingDTO
+import no.nav.syfo.behandlerdialog.domain.Melding
 import no.nav.syfo.behandlerdialog.domain.toMelding
 import no.nav.syfo.behandlerdialog.kafka.KafkaUbesvartMelding.Companion.UBESVART_MELDING_TOPIC
 import no.nav.syfo.database.DatabaseInterface
 import no.nav.syfo.kafka.*
-import no.nav.syfo.metric.COUNT_PERSONOPPGAVEHENDELSE_UBESVART_MELDING_MOTTAT
-import no.nav.syfo.behandlerdialog.processUbesvartMelding
+import no.nav.syfo.metric.COUNT_PERSONOPPGAVEHENDELSE_UBESVART_MELDING_MOTTATT
+import no.nav.syfo.personoppgave.createPersonOppgave
+import no.nav.syfo.personoppgave.domain.PersonOppgaveType
 import org.apache.kafka.clients.consumer.*
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import java.sql.Connection
 import java.time.*
 import java.util.*
 
@@ -64,14 +67,25 @@ class KafkaUbesvartMelding(private val database: DatabaseInterface) : KafkaConsu
                     melding = kMelding.toMelding(),
                     connection = connection,
                 )
-                COUNT_PERSONOPPGAVEHENDELSE_UBESVART_MELDING_MOTTAT.increment()
+                COUNT_PERSONOPPGAVEHENDELSE_UBESVART_MELDING_MOTTATT.increment()
             }
             connection.commit()
         }
     }
 
+    private fun processUbesvartMelding(
+        melding: Melding,
+        connection: Connection,
+    ) {
+        log.info("Received ubesvart melding with uuid: ${melding.referanseUuid}")
+        connection.createPersonOppgave(
+            melding = melding,
+            personOppgaveType = PersonOppgaveType.BEHANDLERDIALOG_UBESVART_MELDING,
+        )
+    }
+
     companion object {
         const val UBESVART_MELDING_TOPIC = "teamsykefravr.ubesvart-melding"
-        val log: Logger = LoggerFactory.getLogger("no.nav.syfo.ubesvartmelding.kafka.KafkaUbesvartMelding")
+        val log: Logger = LoggerFactory.getLogger(KafkaUbesvartMelding::class.java)
     }
 }

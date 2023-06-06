@@ -52,16 +52,16 @@ val COUNT_DIALOGMOTESVAR_OPPGAVE_UPDATED: Counter =
         .description("Counts the number of PERSON_OPPGAVE updated from a KDialogmotesvar")
         .register(METRICS_REGISTRY)
 
-const val PERSONOPPGAVEHENDELSE_DIALOGMELDING_SVAR_MOTTAT =
-    "${METRICS_NS}_personoppgavehendelse_dialogmelding_svar_mottat_count"
-val COUNT_PERSONOPPGAVEHENDELSE_DIALOGMELDING_SVAR_MOTTAT: Counter =
-    Counter.builder(PERSONOPPGAVEHENDELSE_DIALOGMELDING_SVAR_MOTTAT)
-        .description("Counts the number of personoppgavehendelse with PersonoppgavehendelseType BEHANDLERDIALOG_SVAR_MOTTATT created from a KMeldingFraBehandler")
+const val PERSONOPPGAVEHENDELSE_DIALOGMELDING_SVAR_MOTTATT =
+    "${METRICS_NS}_personoppgavehendelse_dialogmelding_svar_mottatt_count"
+val COUNT_PERSONOPPGAVEHENDELSE_DIALOGMELDING_SVAR_MOTTATT: Counter =
+    Counter.builder(PERSONOPPGAVEHENDELSE_DIALOGMELDING_SVAR_MOTTATT)
+        .description("Counts the number of personoppgavehendelse with PersonoppgavehendelseType BEHANDLERDIALOG_SVAR_MOTTATT created from a KMeldingDTO")
         .register(METRICS_REGISTRY)
 
-const val PERSONOPPGAVEHENDELSE_UBESVART_MELDING_MOTTAT =
-    "${METRICS_NS}_personoppgavehendelse_ubesvart_melding_mottat_count"
-val COUNT_PERSONOPPGAVEHENDELSE_UBESVART_MELDING_MOTTAT: Counter =
-    Counter.builder(PERSONOPPGAVEHENDELSE_UBESVART_MELDING_MOTTAT)
-        .description("Counts the number of personoppgavehendelse with PersonoppgavehendelseType BEHANDLERDIALOG_UBESVART_MELDING_MOTTATT created from a KUbesvartMelding")
+const val PERSONOPPGAVEHENDELSE_UBESVART_MELDING_MOTTATT =
+    "${METRICS_NS}_personoppgavehendelse_ubesvart_melding_mottatt_count"
+val COUNT_PERSONOPPGAVEHENDELSE_UBESVART_MELDING_MOTTATT: Counter =
+    Counter.builder(PERSONOPPGAVEHENDELSE_UBESVART_MELDING_MOTTATT)
+        .description("Counts the number of personoppgavehendelse with PersonoppgavehendelseType BEHANDLERDIALOG_UBESVART_MELDING_MOTTATT created from a KMeldingDTO")
         .register(METRICS_REGISTRY)
