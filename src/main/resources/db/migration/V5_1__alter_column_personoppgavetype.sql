@@ -1,0 +1,1 @@
+ALTER TABLE person_oppgave ALTER COLUMN type TYPE VARCHAR(50);

@@ -1,10 +1,10 @@
-package no.nav.syfo.meldingfrabehandler.domain
+package no.nav.syfo.behandlerdialog.domain
 
 import no.nav.syfo.domain.PersonIdent
 import java.time.OffsetDateTime
 import java.util.*
 
-data class KMeldingFraBehandler(
+data class KMeldingDTO(
     val uuid: String,
     val personIdent: String,
     val type: String,
@@ -15,7 +15,7 @@ data class KMeldingFraBehandler(
     val behandlerPersonIdent: String?,
 )
 
-fun KMeldingFraBehandler.toMeldingFraBehandler(): MeldingFraBehandler = MeldingFraBehandler(
+fun KMeldingDTO.toMelding(): Melding = Melding(
     referanseUuid = UUID.fromString(uuid),
     personIdent = PersonIdent(personIdent),
     type = MeldingType.valueOf(type),

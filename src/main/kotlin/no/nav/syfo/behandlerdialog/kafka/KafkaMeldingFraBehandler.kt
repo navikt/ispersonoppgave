@@ -1,20 +1,21 @@
-package no.nav.syfo.meldingfrabehandler.kafka
+package no.nav.syfo.behandlerdialog.kafka
 
 import no.nav.syfo.*
 import no.nav.syfo.database.DatabaseInterface
 import no.nav.syfo.kafka.*
-import no.nav.syfo.meldingfrabehandler.domain.KMeldingFraBehandler
-import no.nav.syfo.meldingfrabehandler.domain.toMeldingFraBehandler
-import no.nav.syfo.meldingfrabehandler.processMeldingFraBehandler
-import no.nav.syfo.metric.COUNT_PERSONOPPGAVEHENDELSE_DIALOGMELDING_SVAR_MOTTAT
+import no.nav.syfo.behandlerdialog.domain.KMeldingDTO
+import no.nav.syfo.behandlerdialog.domain.Melding
+import no.nav.syfo.behandlerdialog.domain.toMelding
+import no.nav.syfo.behandlerdialog.kafka.KafkaMeldingFraBehandler.Companion.MELDING_FRA_BEHANDLER_TOPIC
+import no.nav.syfo.metric.COUNT_PERSONOPPGAVEHENDELSE_DIALOGMELDING_SVAR_MOTTATT
+import no.nav.syfo.personoppgave.createPersonOppgave
+import no.nav.syfo.personoppgave.domain.PersonOppgaveType
 import org.apache.kafka.clients.consumer.*
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import java.sql.Connection
 import java.time.*
 import java.util.*
-
-const val MELDING_FRA_BEHANDLER_TOPIC = "teamsykefravr.melding-fra-behandler"
-val log: Logger = LoggerFactory.getLogger("no.nav.syfo.meldingfrabehandler.kafka.KafkaMeldingFraBehandler")
 
 fun launchKafkaTaskMeldingFraBehandler(
     database: DatabaseInterface,
@@ -22,7 +23,7 @@ fun launchKafkaTaskMeldingFraBehandler(
     environment: Environment,
 ) {
     val kafkaMeldingFraBehandler = KafkaMeldingFraBehandler(database = database)
-    val consumerProperties = kafkaAivenConsumerConfig<KMeldingFraBehandlerDeserializer>(environment.kafka)
+    val consumerProperties = kafkaAivenConsumerConfig<KMeldingDTODeserializer>(environment.kafka)
     launchKafkaTask(
         applicationState = applicationState,
         kafkaConsumerService = kafkaMeldingFraBehandler,
@@ -31,9 +32,9 @@ fun launchKafkaTaskMeldingFraBehandler(
     )
 }
 
-class KafkaMeldingFraBehandler(private val database: DatabaseInterface) : KafkaConsumerService<KMeldingFraBehandler> {
+class KafkaMeldingFraBehandler(private val database: DatabaseInterface) : KafkaConsumerService<KMeldingDTO> {
     override val pollDurationInMillis: Long = 1000
-    override fun pollAndProcessRecords(kafkaConsumer: KafkaConsumer<String, KMeldingFraBehandler>) {
+    override fun pollAndProcessRecords(kafkaConsumer: KafkaConsumer<String, KMeldingDTO>) {
         val records = kafkaConsumer.poll(Duration.ofMillis(pollDurationInMillis))
         if (records.count() > 0) {
             log.info("MeldingFraBehandler trace: Received ${records.count()} records")
@@ -47,7 +48,7 @@ class KafkaMeldingFraBehandler(private val database: DatabaseInterface) : KafkaC
 
     private fun processRecords(
         database: DatabaseInterface,
-        records: ConsumerRecords<String, KMeldingFraBehandler>,
+        records: ConsumerRecords<String, KMeldingDTO>,
     ) {
         val (tombstoneRecords, validRecords) = records.partition { it.value() == null }
 
@@ -58,17 +59,33 @@ class KafkaMeldingFraBehandler(private val database: DatabaseInterface) : KafkaC
 
         database.connection.use { connection ->
             validRecords.forEach { record ->
-                val kMeldingFraBehandler = record.value()
+                val kMelding = record.value()
                 val kafkaKey = UUID.fromString(record.key())
-                log.info("Received meldingFraBehandler with key: $kafkaKey of melding with uuid ${kMeldingFraBehandler.uuid}")
+                log.info("Received meldingFraBehandler with key: $kafkaKey of melding with uuid ${kMelding.uuid}")
 
                 processMeldingFraBehandler(
-                    meldingFraBehandler = kMeldingFraBehandler.toMeldingFraBehandler(),
+                    melding = kMelding.toMelding(),
                     connection = connection,
                 )
-                COUNT_PERSONOPPGAVEHENDELSE_DIALOGMELDING_SVAR_MOTTAT.increment()
+                COUNT_PERSONOPPGAVEHENDELSE_DIALOGMELDING_SVAR_MOTTATT.increment()
             }
             connection.commit()
         }
+    }
+
+    private fun processMeldingFraBehandler(
+        melding: Melding,
+        connection: Connection,
+    ) {
+        log.info("Received melding fra behandler with uuid: ${melding.referanseUuid}")
+        connection.createPersonOppgave(
+            melding = melding,
+            personOppgaveType = PersonOppgaveType.BEHANDLERDIALOG_SVAR,
+        )
+    }
+
+    companion object {
+        const val MELDING_FRA_BEHANDLER_TOPIC = "teamsykefravr.melding-fra-behandler"
+        val log: Logger = LoggerFactory.getLogger(KafkaMeldingFraBehandler::class.java)
     }
 }

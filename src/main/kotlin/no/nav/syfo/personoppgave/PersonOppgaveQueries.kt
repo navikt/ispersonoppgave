@@ -5,7 +5,7 @@ import no.nav.syfo.database.toList
 import no.nav.syfo.dialogmotestatusendring.domain.DialogmoteStatusendring
 import no.nav.syfo.dialogmotesvar.domain.Dialogmotesvar
 import no.nav.syfo.domain.PersonIdent
-import no.nav.syfo.meldingfrabehandler.domain.MeldingFraBehandler
+import no.nav.syfo.behandlerdialog.domain.Melding
 import no.nav.syfo.personoppgave.domain.*
 import no.nav.syfo.personoppgave.oppfolgingsplanlps.kafka.KOppfolgingsplanLPS
 import no.nav.syfo.util.convert
@@ -179,18 +179,19 @@ fun Connection.createPersonOppgave( // TODO: send in oppgave instead of dialogmo
 }
 
 fun Connection.createPersonOppgave(
-    meldingFraBehandler: MeldingFraBehandler,
+    melding: Melding,
+    personOppgaveType: PersonOppgaveType,
 ) {
     val now = Timestamp.from(Instant.now())
 
     val personIdList = prepareStatement(queryCreatePersonOppgave).use {
         it.setString(1, UUID.randomUUID().toString())
-        it.setString(2, meldingFraBehandler.referanseUuid.toString())
-        it.setString(3, meldingFraBehandler.personIdent.value)
+        it.setString(2, melding.referanseUuid.toString())
+        it.setString(3, melding.personIdent.value)
         it.setString(4, "")
-        it.setString(5, PersonOppgaveType.BEHANDLERDIALOG_SVAR.name)
+        it.setString(5, personOppgaveType.name)
         it.setTimestamp(6, now)
-        it.setTimestamp(7, Timestamp.from(meldingFraBehandler.tidspunkt.toInstant())) // TODO: Burde denne være now?
+        it.setTimestamp(7, Timestamp.from(melding.tidspunkt.toInstant()))
         it.setBoolean(8, true)
         it.executeQuery().toList { getInt("id") }
     }

@@ -7,7 +7,8 @@ import no.nav.syfo.dialogmotesvar.kafka.launchKafkaTaskDialogmotesvar
 import no.nav.syfo.identhendelse.IdenthendelseService
 import no.nav.syfo.identhendelse.kafka.IdenthendelseConsumerService
 import no.nav.syfo.identhendelse.kafka.launchKafkaTaskIdenthendelse
-import no.nav.syfo.meldingfrabehandler.kafka.launchKafkaTaskMeldingFraBehandler
+import no.nav.syfo.behandlerdialog.kafka.launchKafkaTaskMeldingFraBehandler
+import no.nav.syfo.behandlerdialog.kafka.launchKafkaTaskUbesvartMelding
 import no.nav.syfo.personoppgave.oppfolgingsplanlps.OppfolgingsplanLPSService
 import no.nav.syfo.personoppgave.oppfolgingsplanlps.kafka.launchKafkaTaskOppfolgingsplanLPS
 import no.nav.syfo.personoppgavehendelse.PersonoppgavehendelseProducer
@@ -46,6 +47,14 @@ fun launchKafkaTasks(
         applicationState = applicationState,
         environment = environment,
     )
+
+    if (environment.ubesvartMeldingTopicEnabled) {
+        launchKafkaTaskUbesvartMelding(
+            database = database,
+            applicationState = applicationState,
+            environment = environment,
+        )
+    }
 
     val identhendelseService = IdenthendelseService(
         database = database,
