@@ -38,7 +38,8 @@ fun testEnvironment(
         aivenKeystoreLocation = "keystore",
     ),
     electorPath = "electorPath",
-    outdatedDialogmotesvarCutoff = LocalDate.parse("2022-04-01")
+    outdatedDialogmotesvarCutoff = LocalDate.parse("2022-04-01"),
+    ubesvartMeldingTopicEnabled = true,
 )
 
 fun testAppState() = ApplicationState(

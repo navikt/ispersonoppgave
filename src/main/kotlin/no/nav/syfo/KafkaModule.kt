@@ -48,11 +48,13 @@ fun launchKafkaTasks(
         environment = environment,
     )
 
-    launchKafkaTaskUbesvartMelding(
-        database = database,
-        applicationState = applicationState,
-        environment = environment,
-    )
+    if (environment.ubesvartMeldingTopicEnabled) {
+        launchKafkaTaskUbesvartMelding(
+            database = database,
+            applicationState = applicationState,
+            environment = environment,
+        )
+    }
 
     val identhendelseService = IdenthendelseService(
         database = database,
