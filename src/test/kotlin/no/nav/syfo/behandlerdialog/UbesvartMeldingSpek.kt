@@ -58,7 +58,7 @@ class UbesvartMeldingSpek : Spek({
                     referanseUuid = referanseUuid,
                 )
                 pPersonOppgave?.publish shouldBeEqualTo true
-                pPersonOppgave?.type shouldBeEqualTo PersonOppgaveType.BEHANDLERDIALOG_UBESVART_MELDING.name
+                pPersonOppgave?.type shouldBeEqualTo PersonOppgaveType.BEHANDLERDIALOG_MELDING_UBESVART.name
             }
         }
     }

@@ -63,5 +63,5 @@ const val PERSONOPPGAVEHENDELSE_UBESVART_MELDING_MOTTATT =
     "${METRICS_NS}_personoppgavehendelse_ubesvart_melding_mottatt_count"
 val COUNT_PERSONOPPGAVEHENDELSE_UBESVART_MELDING_MOTTATT: Counter =
     Counter.builder(PERSONOPPGAVEHENDELSE_UBESVART_MELDING_MOTTATT)
-        .description("Counts the number of personoppgavehendelse with PersonoppgavehendelseType BEHANDLERDIALOG_UBESVART_MELDING_MOTTATT created from a KMeldingDTO")
+        .description("Counts the number of personoppgavehendelse with PersonoppgavehendelseType BEHANDLERDIALOG_MELDING_UBESVART_MOTTATT created from a KMeldingDTO")
         .register(METRICS_REGISTRY)

@@ -80,7 +80,7 @@ class KafkaUbesvartMelding(private val database: DatabaseInterface) : KafkaConsu
         log.info("Received ubesvart melding with uuid: ${melding.referanseUuid}")
         connection.createPersonOppgave(
             melding = melding,
-            personOppgaveType = PersonOppgaveType.BEHANDLERDIALOG_UBESVART_MELDING,
+            personOppgaveType = PersonOppgaveType.BEHANDLERDIALOG_MELDING_UBESVART,
         )
     }
 

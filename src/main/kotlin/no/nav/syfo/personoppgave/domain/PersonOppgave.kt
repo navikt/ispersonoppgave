@@ -57,9 +57,9 @@ fun PersonOppgave.toHendelseType(): PersonoppgavehendelseType {
             if (behandletTidspunkt == null) PersonoppgavehendelseType.BEHANDLERDIALOG_SVAR_MOTTATT
             else PersonoppgavehendelseType.BEHANDLERDIALOG_SVAR_BEHANDLET
         }
-        PersonOppgaveType.BEHANDLERDIALOG_UBESVART_MELDING -> {
-            if (behandletTidspunkt == null) PersonoppgavehendelseType.BEHANDLERDIALOG_UBESVART_MELDING_MOTTATT
-            else PersonoppgavehendelseType.BEHANDLERDIALOG_UBESVART_MELDING_BEHANDLET
+        PersonOppgaveType.BEHANDLERDIALOG_MELDING_UBESVART -> {
+            if (behandletTidspunkt == null) PersonoppgavehendelseType.BEHANDLERDIALOG_MELDING_UBESVART_MOTTATT
+            else PersonoppgavehendelseType.BEHANDLERDIALOG_MELDING_UBESVART_BEHANDLET
         }
     }
 }
