@@ -10,6 +10,7 @@ import no.nav.syfo.kafka.*
 import no.nav.syfo.metric.COUNT_PERSONOPPGAVEHENDELSE_UBESVART_MELDING_MOTTATT
 import no.nav.syfo.personoppgave.createPersonOppgave
 import no.nav.syfo.personoppgave.domain.PersonOppgaveType
+import no.nav.syfo.personoppgave.getPersonOppgaveByReferanseUuid
 import org.apache.kafka.clients.consumer.*
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -78,10 +79,13 @@ class KafkaUbesvartMelding(private val database: DatabaseInterface) : KafkaConsu
         connection: Connection,
     ) {
         log.info("Received ubesvart melding with uuid: ${melding.referanseUuid}")
-        connection.createPersonOppgave(
-            melding = melding,
-            personOppgaveType = PersonOppgaveType.BEHANDLERDIALOG_MELDING_UBESVART,
-        )
+        val existingOppgave = connection.getPersonOppgaveByReferanseUuid(melding.referanseUuid)
+        if (existingOppgave == null) {
+            connection.createPersonOppgave(
+                melding = melding,
+                personOppgaveType = PersonOppgaveType.BEHANDLERDIALOG_MELDING_UBESVART,
+            )
+        }
     }
 
     companion object {
