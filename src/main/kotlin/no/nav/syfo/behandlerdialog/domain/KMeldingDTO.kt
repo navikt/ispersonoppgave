@@ -20,4 +20,5 @@ fun KMeldingDTO.toMelding(): Melding = Melding(
     personIdent = PersonIdent(personIdent),
     type = MeldingType.valueOf(type),
     tidspunkt = tidspunkt,
+    parentRef = parentRef?.let { UUID.fromString(it) }
 )

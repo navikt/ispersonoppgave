@@ -23,11 +23,11 @@ class UbesvartMeldingSpek : Spek({
 
             val externalMockEnvironment = ExternalMockEnvironment()
             val database = externalMockEnvironment.database
-            val kafkaUbesvartMeldingConsumer = mockk<KafkaConsumer<String, KMeldingDTO>>()
+            val kafkaConsumer = mockk<KafkaConsumer<String, KMeldingDTO>>()
             val kafkaUbesvartMelding = KafkaUbesvartMelding(database)
 
             beforeEachTest {
-                every { kafkaUbesvartMeldingConsumer.commitSync() } returns Unit
+                every { kafkaConsumer.commitSync() } returns Unit
             }
 
             afterEachTest {
@@ -47,11 +47,11 @@ class UbesvartMeldingSpek : Spek({
                 val kMeldingDTO = generateKMeldingDTO(referanseUuid)
                 mockReceiveMeldingDTO(
                     kMeldingDTO = kMeldingDTO,
-                    kafkaConsumer = kafkaUbesvartMeldingConsumer,
+                    kafkaConsumer = kafkaConsumer,
                 )
 
                 kafkaUbesvartMelding.pollAndProcessRecords(
-                    kafkaConsumer = kafkaUbesvartMeldingConsumer,
+                    kafkaConsumer = kafkaConsumer,
                 )
 
                 val pPersonOppgave = database.connection.getPersonOppgaveByReferanseUuid(

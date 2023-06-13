@@ -9,7 +9,10 @@ import no.nav.syfo.behandlerdialog.domain.toMelding
 import no.nav.syfo.behandlerdialog.kafka.KafkaMeldingFraBehandler.Companion.MELDING_FRA_BEHANDLER_TOPIC
 import no.nav.syfo.metric.COUNT_PERSONOPPGAVEHENDELSE_DIALOGMELDING_SVAR_MOTTATT
 import no.nav.syfo.personoppgave.createPersonOppgave
-import no.nav.syfo.personoppgave.domain.PersonOppgaveType
+import no.nav.syfo.personoppgave.domain.*
+import no.nav.syfo.personoppgave.getPersonOppgaveByReferanseUuid
+import no.nav.syfo.personoppgave.updatePersonoppgave
+import no.nav.syfo.util.Constants
 import org.apache.kafka.clients.consumer.*
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -77,11 +80,34 @@ class KafkaMeldingFraBehandler(private val database: DatabaseInterface) : KafkaC
         melding: Melding,
         connection: Connection,
     ) {
-        log.info("Received melding fra behandler with uuid: ${melding.referanseUuid}")
+        log.info("Received melding fra behandler with uuid: ${melding.referanseUuid} and parentRef: ${melding.parentRef}")
+        if (melding.parentRef != null) {
+            val existingOppgave = connection
+                .getPersonOppgaveByReferanseUuid(melding.parentRef)
+                ?.toPersonOppgave()
+
+            if (existingOppgave != null &&
+                existingOppgave.type == PersonOppgaveType.BEHANDLERDIALOG_MELDING_UBESVART &&
+                existingOppgave.isUBehandlet()
+            ) {
+                log.info("Received svar on ubesvart melding for oppgave with uuid ${existingOppgave.uuid}, behandles automatically by system")
+                markOppgaveAsBehandletBySystem(
+                    personOppgave = existingOppgave,
+                    connection = connection,
+                )
+            }
+        }
         connection.createPersonOppgave(
             melding = melding,
             personOppgaveType = PersonOppgaveType.BEHANDLERDIALOG_SVAR,
         )
+    }
+
+    private fun markOppgaveAsBehandletBySystem(personOppgave: PersonOppgave, connection: Connection) {
+        val behandletPersonoppgave = personOppgave.behandle(
+            veilederIdent = Constants.SYSTEM_VEILEDER_IDENT,
+        )
+        connection.updatePersonoppgave(behandletPersonoppgave)
     }
 
     companion object {
