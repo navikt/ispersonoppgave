@@ -9,6 +9,7 @@ import no.nav.syfo.auth.getNAVIdentFromToken
 import no.nav.syfo.client.veiledertilgang.VeilederTilgangskontrollClient
 import no.nav.syfo.domain.PersonIdent
 import no.nav.syfo.personoppgave.PersonOppgaveService
+import no.nav.syfo.personoppgave.domain.isBehandlet
 import no.nav.syfo.personoppgave.domain.toPersonOppgaveVeileder
 import no.nav.syfo.util.*
 import org.slf4j.Logger
@@ -56,7 +57,7 @@ fun Route.registerVeilederPersonOppgaveApiV2(
 
             val personoppgave = personOppgaveService.getPersonOppgave(uuid)
             personoppgave?.let {
-                if (personoppgave.behandletTidspunkt != null) {
+                if (personoppgave.isBehandlet()) {
                     call.respond(HttpStatusCode.Conflict)
                 } else {
                     if (veilederTilgangskontrollClient.hasAccessWithOBO(

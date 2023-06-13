@@ -9,6 +9,7 @@ data class Melding(
     val personIdent: PersonIdent,
     val type: MeldingType,
     val tidspunkt: OffsetDateTime,
+    val parentRef: UUID?
 )
 
 enum class MeldingType {

@@ -29,11 +29,11 @@ class MeldingFraBehandlerSpek : Spek({
 
             val externalMockEnvironment = ExternalMockEnvironment()
             val database = externalMockEnvironment.database
-            val kafkaMeldingConsumer = mockk<KafkaConsumer<String, KMeldingDTO>>()
+            val kafkaConsumer = mockk<KafkaConsumer<String, KMeldingDTO>>()
             val kafkaMeldingFraBehandler = KafkaMeldingFraBehandler(database = database)
 
             beforeEachTest {
-                every { kafkaMeldingConsumer.commitSync() } returns Unit
+                every { kafkaConsumer.commitSync() } returns Unit
             }
 
             afterEachTest {
@@ -53,11 +53,11 @@ class MeldingFraBehandlerSpek : Spek({
                 val kMeldingFraBehandler = generateKMeldingDTO(referanseUuid)
                 mockReceiveMeldingDTO(
                     kMeldingDTO = kMeldingFraBehandler,
-                    kafkaConsumer = kafkaMeldingConsumer,
+                    kafkaConsumer = kafkaConsumer,
                 )
 
                 kafkaMeldingFraBehandler.pollAndProcessRecords(
-                    kafkaConsumer = kafkaMeldingConsumer,
+                    kafkaConsumer = kafkaConsumer,
                 )
 
                 val pPersonOppgave = database.connection.getPersonOppgaveByReferanseUuid(
@@ -70,19 +70,19 @@ class MeldingFraBehandlerSpek : Spek({
             it("behandler ubesvart melding if svar received on same melding") {
                 val kafkaUbesvartMelding = KafkaUbesvartMelding(database)
                 val referanseUuid = UUID.randomUUID()
-                val kUbesvartMeldingDTO = generateKMeldingDTO(referanseUuid)
-                val kMeldingFraBehandlerDTO = generateKMeldingDTO(referanseUuid)
+                val kUbesvartMeldingDTO = generateKMeldingDTO(uuid = referanseUuid)
+                val kMeldingFraBehandlerDTO = generateKMeldingDTO(parentRef = referanseUuid)
 
                 mockReceiveMeldingDTO(
                     kMeldingDTO = kUbesvartMeldingDTO,
-                    kafkaConsumer = kafkaMeldingConsumer,
+                    kafkaConsumer = kafkaConsumer,
                 )
-                kafkaUbesvartMelding.pollAndProcessRecords(kafkaMeldingConsumer)
+                kafkaUbesvartMelding.pollAndProcessRecords(kafkaConsumer)
                 mockReceiveMeldingDTO(
                     kMeldingDTO = kMeldingFraBehandlerDTO,
-                    kafkaConsumer = kafkaMeldingConsumer,
+                    kafkaConsumer = kafkaConsumer,
                 )
-                kafkaMeldingFraBehandler.pollAndProcessRecords(kafkaMeldingConsumer)
+                kafkaMeldingFraBehandler.pollAndProcessRecords(kafkaConsumer)
 
                 val personoppgaveList = database.getPersonOppgaveList(
                     personIdent = PersonIdent(kUbesvartMeldingDTO.personIdent),

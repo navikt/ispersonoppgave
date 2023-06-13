@@ -4,6 +4,7 @@ import no.nav.syfo.domain.PersonIdent
 import no.nav.syfo.domain.Virksomhetsnummer
 import no.nav.syfo.personoppgave.api.PersonOppgaveVeileder
 import no.nav.syfo.personoppgavehendelse.domain.PersonoppgavehendelseType
+import no.nav.syfo.util.toLocalDateTimeOslo
 import java.time.LocalDateTime
 import java.time.OffsetDateTime
 import java.util.*
@@ -42,24 +43,38 @@ infix fun PersonOppgave.hasSameOppgaveTypeAs(other: PersonOppgave): Boolean = ty
 fun PersonOppgave.toHendelseType(): PersonoppgavehendelseType {
     return when (type) {
         PersonOppgaveType.DIALOGMOTESVAR -> {
-            if (behandletTidspunkt == null)
+            if (isUBehandlet())
                 PersonoppgavehendelseType.DIALOGMOTESVAR_MOTTATT
             else
                 PersonoppgavehendelseType.DIALOGMOTESVAR_BEHANDLET
         }
         PersonOppgaveType.OPPFOLGINGSPLANLPS -> {
-            if (behandletTidspunkt == null)
+            if (isUBehandlet())
                 PersonoppgavehendelseType.OPPFOLGINGSPLANLPS_BISTAND_MOTTATT
             else
                 PersonoppgavehendelseType.OPPFOLGINGSPLANLPS_BISTAND_BEHANDLET
         }
         PersonOppgaveType.BEHANDLERDIALOG_SVAR -> {
-            if (behandletTidspunkt == null) PersonoppgavehendelseType.BEHANDLERDIALOG_SVAR_MOTTATT
+            if (isUBehandlet()) PersonoppgavehendelseType.BEHANDLERDIALOG_SVAR_MOTTATT
             else PersonoppgavehendelseType.BEHANDLERDIALOG_SVAR_BEHANDLET
         }
         PersonOppgaveType.BEHANDLERDIALOG_MELDING_UBESVART -> {
-            if (behandletTidspunkt == null) PersonoppgavehendelseType.BEHANDLERDIALOG_MELDING_UBESVART_MOTTATT
+            if (isUBehandlet()) PersonoppgavehendelseType.BEHANDLERDIALOG_MELDING_UBESVART_MOTTATT
             else PersonoppgavehendelseType.BEHANDLERDIALOG_MELDING_UBESVART_BEHANDLET
         }
     }
+}
+
+fun PersonOppgave.isBehandlet() = behandletTidspunkt != null
+
+fun PersonOppgave.isUBehandlet() = !isBehandlet()
+
+fun PersonOppgave.behandle(veilederIdent: String): PersonOppgave {
+    val now = OffsetDateTime.now().toLocalDateTimeOslo()
+    return this.copy(
+        behandletTidspunkt = now,
+        behandletVeilederIdent = veilederIdent,
+        sistEndret = now,
+        publish = true,
+    )
 }

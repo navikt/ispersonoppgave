@@ -8,12 +8,13 @@ import java.util.*
 
 fun generateKMeldingDTO(
     uuid: UUID = UUID.randomUUID(),
+    parentRef: UUID? = null,
 ) = KMeldingDTO(
     uuid = uuid.toString(),
     personIdent = UserConstants.ARBEIDSTAKER_FNR.value,
     type = MeldingType.FORESPORSEL_PASIENT.name,
     conversationRef = UUID.randomUUID().toString(),
-    parentRef = null,
+    parentRef = parentRef?.toString(),
     msgId = null,
     tidspunkt = OffsetDateTime.now(),
     behandlerPersonIdent = PersonIdent("12312312310").value,

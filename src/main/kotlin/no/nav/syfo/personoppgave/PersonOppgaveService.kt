@@ -6,9 +6,7 @@ import no.nav.syfo.domain.PersonIdent
 import no.nav.syfo.personoppgave.domain.*
 import no.nav.syfo.personoppgavehendelse.PersonoppgavehendelseProducer
 import no.nav.syfo.personoppgavehendelse.domain.PersonoppgavehendelseType
-import no.nav.syfo.util.toLocalDateTimeOslo
 import org.slf4j.LoggerFactory
-import java.time.OffsetDateTime
 import java.util.*
 
 class PersonOppgaveService(
@@ -49,7 +47,7 @@ class PersonOppgaveService(
         veilederIdent: String,
     ) {
         val updatedPersonOppgaver = personoppgaver.map {
-            it.update(veilederIdent)
+            it.behandle(veilederIdent)
         }
         val updatedRows = database.updatePersonoppgaver(
             personoppgaver = updatedPersonOppgaver,
@@ -70,11 +68,11 @@ class PersonOppgaveService(
     }
 
     private fun behandle(personOppgave: PersonOppgave, veilederIdent: String) {
-        val updatedOppgave = personOppgave.update(
+        val behandletOppgave = personOppgave.behandle(
             veilederIdent = veilederIdent,
         )
         database.connection.use { connection ->
-            connection.updatePersonoppgave(updatedOppgave)
+            connection.updatePersonoppgave(behandletOppgave)
             connection.commit()
         }
     }
@@ -107,16 +105,6 @@ class PersonOppgaveService(
         database.updatePersonOppgaveBehandlet(
             personoppgave.uuid,
             veilederIdent
-        )
-    }
-
-    private fun PersonOppgave.update(veilederIdent: String): PersonOppgave {
-        val now = OffsetDateTime.now().toLocalDateTimeOslo()
-        return this.copy(
-            behandletTidspunkt = now,
-            behandletVeilederIdent = veilederIdent,
-            sistEndret = now,
-            publish = true,
         )
     }
 
