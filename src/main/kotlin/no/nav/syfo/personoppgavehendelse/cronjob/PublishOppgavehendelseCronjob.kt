@@ -1,4 +1,4 @@
-package no.nav.syfo.cronjob.oppgavehendelse
+package no.nav.syfo.personoppgavehendelse.cronjob
 
 import net.logstash.logback.argument.StructuredArguments
 import no.nav.syfo.cronjob.Cronjob

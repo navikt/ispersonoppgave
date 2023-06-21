@@ -3,7 +3,7 @@ package no.nav.syfo.cronjob
 import io.ktor.server.application.*
 import no.nav.syfo.*
 import no.nav.syfo.cronjob.leaderelection.LeaderPodClient
-import no.nav.syfo.cronjob.oppgavehendelse.PublishOppgavehendelseCronjob
+import no.nav.syfo.personoppgavehendelse.cronjob.PublishOppgavehendelseCronjob
 import no.nav.syfo.personoppgavehendelse.PublishPersonoppgavehendelseService
 import no.nav.syfo.database.DatabaseInterface
 import no.nav.syfo.personoppgavehendelse.PersonoppgavehendelseProducer
