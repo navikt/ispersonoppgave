@@ -161,7 +161,7 @@ class VeilederPersonOppgaveApiV2Spek : Spek({
                     database.connection.createPersonOppgave(
                         kOppfolgingsplanLPS2,
                         personOppgaveType
-                    ).second
+                    )
 
                     val urlProcess = "$baseUrl/$uuid/behandle"
                     val urlGet = "$baseUrl/personident"

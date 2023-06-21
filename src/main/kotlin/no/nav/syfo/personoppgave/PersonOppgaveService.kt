@@ -78,16 +78,20 @@ class PersonOppgaveService(
     }
 
     private fun behandleLps(personoppgave: PersonOppgave, veilederIdent: String) {
-        val personFnr = personoppgave.personIdent
+        database.updatePersonOppgaveBehandlet(
+            personoppgave.uuid,
+            veilederIdent
+        )
 
-        val isOnePersonOppgaveUbehandlet = getPersonOppgaveList(personFnr)
-            .filter { it.behandletTidspunkt == null && it.type == PersonOppgaveType.OPPFOLGINGSPLANLPS }
-            .size == 1
+        val hasNoOtherUbehandledeOppfolgingsplanLSPOppgaver = getUbehandledePersonOppgaver(
+            personIdent = personoppgave.personIdent,
+            personOppgaveType = PersonOppgaveType.OPPFOLGINGSPLANLPS,
+        ).isEmpty()
 
-        if (isOnePersonOppgaveUbehandlet) {
+        if (hasNoOtherUbehandledeOppfolgingsplanLSPOppgaver) {
             personoppgavehendelseProducer.sendPersonoppgavehendelse(
                 PersonoppgavehendelseType.OPPFOLGINGSPLANLPS_BISTAND_BEHANDLET,
-                personFnr,
+                personoppgave.personIdent,
                 personoppgave.uuid,
             )
             LOG.info(
@@ -97,15 +101,11 @@ class PersonOppgaveService(
             )
         } else {
             LOG.info(
-                "No Personoppgavehendelse sent, isOnePersonOppgaveUbehandlet=false, {}, {}",
+                "No Personoppgavehendelse sent, there are other oppgaver of this type that still needs behandling, {}, {}",
                 StructuredArguments.keyValue("type", PersonoppgavehendelseType.OPPFOLGINGSPLANLPS_BISTAND_BEHANDLET),
                 StructuredArguments.keyValue("veilederident", veilederIdent)
             )
         }
-        database.updatePersonOppgaveBehandlet(
-            personoppgave.uuid,
-            veilederIdent
-        )
     }
 
     companion object {
