@@ -76,18 +76,49 @@ const val queryUpdatePersonOppgaveBehandlet =
     WHERE uuid = ?
     """
 
+fun Connection.updatePersonOppgaveBehandlet(
+    updatedPersonoppgave: PersonOppgave,
+    commit: Boolean = true,
+): Int {
+    var updatedRows = 0
+    this.prepareStatement(queryUpdatePersonOppgaveBehandlet).use {
+        it.setTimestamp(1, updatedPersonoppgave.behandletTidspunkt.toTimestamp())
+        it.setString(2, updatedPersonoppgave.behandletVeilederIdent)
+        it.setString(3, updatedPersonoppgave.uuid.toString())
+        updatedRows += it.executeUpdate()
+    }
+    if (updatedRows < 1) {
+        throw SQLException("Updating oppgave failed, no rows affected.")
+    }
+    if (commit) {
+        this.commit()
+    }
+    return updatedRows
+}
+
 fun DatabaseInterface.updatePersonOppgaveBehandlet(
     updatedPersonoppgave: PersonOppgave,
 ) {
     connection.use { connection ->
-        connection.prepareStatement(queryUpdatePersonOppgaveBehandlet).use {
-            it.setTimestamp(1, updatedPersonoppgave.behandletTidspunkt.toTimestamp())
-            it.setString(2, updatedPersonoppgave.behandletVeilederIdent)
-            it.setString(3, updatedPersonoppgave.uuid.toString())
-            it.execute()
+        connection.updatePersonOppgaveBehandlet(updatedPersonoppgave)
+    }
+}
+
+fun DatabaseInterface.updatePersonoppgaverBehandlet(
+    updatedPersonoppgaver: List<PersonOppgave>,
+): Int {
+    var updatedRows = 0
+    this.connection.use { connection ->
+        updatedPersonoppgaver.forEach { personoppgave ->
+            updatedRows += connection.updatePersonOppgaveBehandlet(
+                updatedPersonoppgave = personoppgave,
+                commit = false,
+            )
         }
         connection.commit()
     }
+
+    return updatedRows
 }
 
 const val queryUpdatePersonOppgaveOversikthendelse =
@@ -270,33 +301,6 @@ fun Connection.updatePersonoppgave(
     if (behandletOppgaver != 1) {
         throw SQLException("Updating oppgave failed, no rows affected.")
     }
-}
-
-fun DatabaseInterface.updatePersonoppgaver(
-    personoppgaver: List<PersonOppgave>,
-): Int {
-    var updatedRows = 0
-    this.connection.use { connection ->
-        connection.prepareStatement(queryUpdatePersonoppgave).use {
-            personoppgaver.forEach { personoppgave ->
-                val behandletTidspunkt = personoppgave.behandletTidspunkt?.let { Timestamp.valueOf(it) }
-                val publishedAt = personoppgave.publishedAt?.let { Timestamp.from(it.toInstant()) }
-                it.setTimestamp(1, behandletTidspunkt)
-                it.setString(2, personoppgave.behandletVeilederIdent)
-                it.setTimestamp(3, Timestamp.valueOf(personoppgave.sistEndret))
-                it.setBoolean(4, personoppgave.publish)
-                it.setObject(5, publishedAt)
-                it.setString(6, personoppgave.uuid.toString())
-                updatedRows += it.executeUpdate()
-            }
-            if (updatedRows < 1) {
-                throw SQLException("Updating oppgave failed, no rows affected.")
-            }
-        }
-        connection.commit()
-    }
-
-    return updatedRows
 }
 
 fun ResultSet.toPPersonOppgave(): PPersonOppgave =

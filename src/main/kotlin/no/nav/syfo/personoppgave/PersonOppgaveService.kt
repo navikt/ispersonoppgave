@@ -48,10 +48,15 @@ class PersonOppgaveService(
         val updatedPersonOppgaver = personoppgaver.map {
             it.behandle(veilederIdent)
         }
-        val updatedRows = database.updatePersonoppgaver(
-            personoppgaver = updatedPersonOppgaver,
+        val updatedRows = database.updatePersonoppgaverBehandlet(
+            updatedPersonoppgaver = updatedPersonOppgaver,
         )
         LOG.info("Updated $updatedRows personoppgaver for personoppgavetype ${personoppgaver.first().type.name}")
+
+        publishIfAlleOppgaverBehandlet(
+            behandletPersonOppgave = updatedPersonOppgaver.first(),
+            veilederIdent = veilederIdent,
+        )
     }
 
     fun getUbehandledePersonOppgaver(
@@ -83,6 +88,13 @@ class PersonOppgaveService(
             updatedPersonoppgave = behandletPersonOppgave,
         )
 
+        publishIfAlleOppgaverBehandlet(
+            behandletPersonOppgave = behandletPersonOppgave,
+            veilederIdent = veilederIdent,
+        )
+    }
+
+    private fun publishIfAlleOppgaverBehandlet(behandletPersonOppgave: PersonOppgave, veilederIdent: String) {
         val hasNoOtherUbehandledeOppgaver = getUbehandledePersonOppgaver(
             personIdent = behandletPersonOppgave.personIdent,
             personOppgaveType = behandletPersonOppgave.type,
