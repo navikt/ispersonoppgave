@@ -5,6 +5,7 @@ import no.nav.syfo.database.DatabaseInterface
 import no.nav.syfo.domain.PersonIdent
 import no.nav.syfo.personoppgave.domain.*
 import no.nav.syfo.personoppgavehendelse.PersonoppgavehendelseProducer
+import no.nav.syfo.personoppgavehendelse.domain.PersonoppgavehendelseType
 import org.slf4j.LoggerFactory
 import java.util.*
 
@@ -94,32 +95,44 @@ class PersonOppgaveService(
         )
     }
 
-    private fun publishIfAlleOppgaverBehandlet(behandletPersonOppgave: PersonOppgave, veilederIdent: String) {
-        val hasNoOtherUbehandledeOppgaver = getUbehandledePersonOppgaver(
+    fun publishIfAlleOppgaverBehandlet(behandletPersonOppgave: PersonOppgave, veilederIdent: String) {
+        val hasNoOtherUbehandledeOppgaverOfSameType = getUbehandledePersonOppgaver(
             personIdent = behandletPersonOppgave.personIdent,
             personOppgaveType = behandletPersonOppgave.type,
         ).isEmpty()
 
-        val personoppgaveHendelseType = behandletPersonOppgave.toHendelseType()
+        val personoppgavehendelseType = behandletPersonOppgave.toHendelseType()
 
-        if (hasNoOtherUbehandledeOppgaver) {
-            personoppgavehendelseProducer.sendPersonoppgavehendelse(
-                personoppgaveHendelseType,
-                behandletPersonOppgave.personIdent,
-                behandletPersonOppgave.uuid,
+        if (hasNoOtherUbehandledeOppgaverOfSameType) {
+            publishPersonoppgaveHendelse(
+                personoppgavehendelseType = personoppgavehendelseType,
+                personIdent = behandletPersonOppgave.personIdent,
+                personoppgaveUUID = behandletPersonOppgave.uuid,
             )
             LOG.info(
                 "Sent Personoppgavehendelse, {}, {}",
-                StructuredArguments.keyValue("type", personoppgaveHendelseType),
+                StructuredArguments.keyValue("type", personoppgavehendelseType),
                 StructuredArguments.keyValue("veilederident", veilederIdent)
             )
         } else {
             LOG.info(
                 "No Personoppgavehendelse sent, there are other oppgaver of this type that still needs behandling, {}, {}",
-                StructuredArguments.keyValue("type", personoppgaveHendelseType),
+                StructuredArguments.keyValue("type", personoppgavehendelseType),
                 StructuredArguments.keyValue("veilederident", veilederIdent)
             )
         }
+    }
+
+    fun publishPersonoppgaveHendelse(
+        personoppgavehendelseType: PersonoppgavehendelseType,
+        personIdent: PersonIdent,
+        personoppgaveUUID: UUID,
+    ) {
+        personoppgavehendelseProducer.sendPersonoppgavehendelse(
+            personoppgavehendelseType,
+            personIdent,
+            personoppgaveUUID,
+        )
     }
 
     companion object {

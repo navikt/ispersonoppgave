@@ -1,5 +1,7 @@
 package no.nav.syfo
 
+import no.nav.syfo.behandlerdialog.MeldingFraBehandlerService
+import no.nav.syfo.behandlerdialog.UbesvartMeldingService
 import no.nav.syfo.client.pdl.PdlClient
 import no.nav.syfo.database.DatabaseInterface
 import no.nav.syfo.dialogmotestatusendring.kafka.launchKafkaTaskDialogmotestatusendring
@@ -11,6 +13,7 @@ import no.nav.syfo.behandlerdialog.kafka.launchKafkaTaskMeldingFraBehandler
 import no.nav.syfo.behandlerdialog.kafka.launchKafkaTaskUbesvartMelding
 import no.nav.syfo.oppfolgingsplanlps.OppfolgingsplanLPSService
 import no.nav.syfo.oppfolgingsplanlps.kafka.launchKafkaTaskOppfolgingsplanLPS
+import no.nav.syfo.personoppgave.PersonOppgaveService
 import no.nav.syfo.personoppgavehendelse.PersonoppgavehendelseProducer
 
 fun launchKafkaTasks(
@@ -23,6 +26,19 @@ fun launchKafkaTasks(
     val oppfolgingsplanLPSService = OppfolgingsplanLPSService(
         database,
         personoppgavehendelseProducer,
+    )
+
+    val personOppgaveService = PersonOppgaveService(
+        database = database,
+        personoppgavehendelseProducer = personoppgavehendelseProducer,
+    )
+
+    val meldingFraBehandlerService = MeldingFraBehandlerService(
+        personOppgaveService = personOppgaveService,
+    )
+
+    val ubesvartMeldingService = UbesvartMeldingService(
+        personOppgaveService = personOppgaveService,
     )
 
     launchKafkaTaskOppfolgingsplanLPS(
@@ -46,13 +62,14 @@ fun launchKafkaTasks(
         database = database,
         applicationState = applicationState,
         environment = environment,
+        meldingFraBehandlerService = meldingFraBehandlerService,
     )
 
     launchKafkaTaskUbesvartMelding(
         database = database,
         applicationState = applicationState,
         environment = environment,
-        personoppgavehendelseProducer = personoppgavehendelseProducer,
+        ubesvartMeldingService = ubesvartMeldingService,
     )
 
     val identhendelseService = IdenthendelseService(

@@ -4,6 +4,7 @@ import io.ktor.server.testing.*
 import io.mockk.*
 import no.nav.syfo.behandlerdialog.domain.KMeldingDTO
 import no.nav.syfo.behandlerdialog.kafka.KafkaUbesvartMelding
+import no.nav.syfo.personoppgave.PersonOppgaveService
 import no.nav.syfo.personoppgave.domain.PersonOppgaveType
 import no.nav.syfo.personoppgave.domain.toPersonOppgave
 import no.nav.syfo.personoppgave.getPersonOppgaveByReferanseUuid
@@ -27,7 +28,12 @@ class UbesvartMeldingSpek : Spek({
             val database = externalMockEnvironment.database
             val kafkaConsumer = mockk<KafkaConsumer<String, KMeldingDTO>>()
             val personoppgavehendelseProducer = mockk<PersonoppgavehendelseProducer>()
-            val kafkaUbesvartMelding = KafkaUbesvartMelding(database, personoppgavehendelseProducer)
+            val personOppgaveService = PersonOppgaveService(
+                database = database,
+                personoppgavehendelseProducer = personoppgavehendelseProducer,
+            )
+            val ubesvartMeldingService = UbesvartMeldingService(personOppgaveService)
+            val kafkaUbesvartMelding = KafkaUbesvartMelding(database, ubesvartMeldingService)
 
             beforeEachTest {
                 every { kafkaConsumer.commitSync() } returns Unit
@@ -46,7 +52,7 @@ class UbesvartMeldingSpek : Spek({
                 externalMockEnvironment.stopExternalMocks()
             }
 
-            it("stores ubesvart melding from kafka as oppgave in database") {
+            it("stores ubesvart melding from kafka as oppgave in database and publish as new oppgave") {
                 val referanseUuid = UUID.randomUUID()
                 val kMeldingDTO = generateKMeldingDTO(referanseUuid)
                 mockReceiveMeldingDTO(

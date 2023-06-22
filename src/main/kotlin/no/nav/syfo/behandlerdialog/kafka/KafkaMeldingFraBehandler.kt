@@ -1,22 +1,16 @@
 package no.nav.syfo.behandlerdialog.kafka
 
 import no.nav.syfo.*
+import no.nav.syfo.behandlerdialog.MeldingFraBehandlerService
 import no.nav.syfo.database.DatabaseInterface
 import no.nav.syfo.kafka.*
 import no.nav.syfo.behandlerdialog.domain.KMeldingDTO
-import no.nav.syfo.behandlerdialog.domain.Melding
 import no.nav.syfo.behandlerdialog.domain.toMelding
 import no.nav.syfo.behandlerdialog.kafka.KafkaMeldingFraBehandler.Companion.MELDING_FRA_BEHANDLER_TOPIC
 import no.nav.syfo.metric.COUNT_PERSONOPPGAVEHENDELSE_DIALOGMELDING_SVAR_MOTTATT
-import no.nav.syfo.personoppgave.createPersonOppgave
-import no.nav.syfo.personoppgave.domain.*
-import no.nav.syfo.personoppgave.getPersonOppgaveByReferanseUuid
-import no.nav.syfo.personoppgave.updatePersonoppgave
-import no.nav.syfo.util.Constants
 import org.apache.kafka.clients.consumer.*
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-import java.sql.Connection
 import java.time.*
 import java.util.*
 
@@ -24,8 +18,12 @@ fun launchKafkaTaskMeldingFraBehandler(
     database: DatabaseInterface,
     applicationState: ApplicationState,
     environment: Environment,
+    meldingFraBehandlerService: MeldingFraBehandlerService,
 ) {
-    val kafkaMeldingFraBehandler = KafkaMeldingFraBehandler(database = database)
+    val kafkaMeldingFraBehandler = KafkaMeldingFraBehandler(
+        database = database,
+        meldingFraBehandlerService = meldingFraBehandlerService,
+    )
     val consumerProperties = kafkaAivenConsumerConfig<KMeldingDTODeserializer>(environment.kafka)
     launchKafkaTask(
         applicationState = applicationState,
@@ -35,15 +33,18 @@ fun launchKafkaTaskMeldingFraBehandler(
     )
 }
 
-class KafkaMeldingFraBehandler(private val database: DatabaseInterface) : KafkaConsumerService<KMeldingDTO> {
+class KafkaMeldingFraBehandler(
+    private val database: DatabaseInterface,
+    private val meldingFraBehandlerService: MeldingFraBehandlerService,
+) : KafkaConsumerService<KMeldingDTO> {
     override val pollDurationInMillis: Long = 1000
     override fun pollAndProcessRecords(kafkaConsumer: KafkaConsumer<String, KMeldingDTO>) {
         val records = kafkaConsumer.poll(Duration.ofMillis(pollDurationInMillis))
         if (records.count() > 0) {
             log.info("MeldingFraBehandler trace: Received ${records.count()} records")
             processRecords(
-                database,
-                records,
+                database = database,
+                records = records,
             )
             kafkaConsumer.commitSync()
         }
@@ -64,9 +65,9 @@ class KafkaMeldingFraBehandler(private val database: DatabaseInterface) : KafkaC
             validRecords.forEach { record ->
                 val kMelding = record.value()
                 val kafkaKey = UUID.fromString(record.key())
-                log.info("Received meldingFraBehandler with key: $kafkaKey of melding with uuid ${kMelding.uuid}")
+                log.info("Received meldingFraBehandler with key=$kafkaKey, uuid=${kMelding.uuid} and parentRef=${kMelding.parentRef}")
 
-                processMeldingFraBehandler(
+                meldingFraBehandlerService.processMeldingFraBehandler(
                     melding = kMelding.toMelding(),
                     connection = connection,
                 )
@@ -74,40 +75,6 @@ class KafkaMeldingFraBehandler(private val database: DatabaseInterface) : KafkaC
             }
             connection.commit()
         }
-    }
-
-    private fun processMeldingFraBehandler(
-        melding: Melding,
-        connection: Connection,
-    ) {
-        log.info("Received melding fra behandler with uuid: ${melding.referanseUuid} and parentRef: ${melding.parentRef}")
-        if (melding.parentRef != null) {
-            val existingOppgave = connection
-                .getPersonOppgaveByReferanseUuid(melding.parentRef)
-                ?.toPersonOppgave()
-
-            if (existingOppgave != null &&
-                existingOppgave.type == PersonOppgaveType.BEHANDLERDIALOG_MELDING_UBESVART &&
-                existingOppgave.isUBehandlet()
-            ) {
-                log.info("Received svar on ubesvart melding for oppgave with uuid ${existingOppgave.uuid}, behandles automatically by system")
-                markOppgaveAsBehandletBySystem(
-                    personOppgave = existingOppgave,
-                    connection = connection,
-                )
-            }
-        }
-        connection.createPersonOppgave(
-            melding = melding,
-            personOppgaveType = PersonOppgaveType.BEHANDLERDIALOG_SVAR,
-        )
-    }
-
-    private fun markOppgaveAsBehandletBySystem(personOppgave: PersonOppgave, connection: Connection) {
-        val behandletPersonoppgave = personOppgave.behandle(
-            veilederIdent = Constants.SYSTEM_VEILEDER_IDENT,
-        )
-        connection.updatePersonoppgave(behandletPersonoppgave)
     }
 
     companion object {

@@ -1,19 +1,18 @@
 package no.nav.syfo.behandlerdialog
 
 import io.ktor.server.testing.*
-import io.mockk.clearMocks
-import io.mockk.every
-import io.mockk.justRun
-import io.mockk.mockk
+import io.mockk.*
 import no.nav.syfo.behandlerdialog.domain.KMeldingDTO
 import no.nav.syfo.behandlerdialog.kafka.KafkaMeldingFraBehandler
 import no.nav.syfo.behandlerdialog.kafka.KafkaUbesvartMelding
 import no.nav.syfo.domain.PersonIdent
+import no.nav.syfo.personoppgave.PersonOppgaveService
 import no.nav.syfo.personoppgave.domain.PersonOppgaveType
 import no.nav.syfo.personoppgave.domain.toPersonOppgave
 import no.nav.syfo.personoppgave.getPersonOppgaveByReferanseUuid
 import no.nav.syfo.personoppgave.getPersonOppgaveList
 import no.nav.syfo.personoppgavehendelse.PersonoppgavehendelseProducer
+import no.nav.syfo.personoppgavehendelse.domain.PersonoppgavehendelseType
 import no.nav.syfo.testutil.*
 import no.nav.syfo.testutil.mock.mockReceiveMeldingDTO
 import no.nav.syfo.util.Constants
@@ -34,10 +33,21 @@ class MeldingFraBehandlerSpek : Spek({
             val database = externalMockEnvironment.database
             val kafkaConsumer = mockk<KafkaConsumer<String, KMeldingDTO>>()
             val personoppgavehendelseProducer = mockk<PersonoppgavehendelseProducer>()
-            val kafkaMeldingFraBehandler = KafkaMeldingFraBehandler(database = database)
+            val personOppgaveService = PersonOppgaveService(
+                database = database,
+                personoppgavehendelseProducer = personoppgavehendelseProducer,
+            )
+            val meldingFraBehandlerService = MeldingFraBehandlerService(
+                personOppgaveService = personOppgaveService,
+            )
+            val kafkaMeldingFraBehandler = KafkaMeldingFraBehandler(
+                database = database,
+                meldingFraBehandlerService = meldingFraBehandlerService,
+            )
 
             beforeEachTest {
                 every { kafkaConsumer.commitSync() } returns Unit
+                justRun { personoppgavehendelseProducer.sendPersonoppgavehendelse(any(), any(), any()) }
             }
 
             afterEachTest {
@@ -53,7 +63,7 @@ class MeldingFraBehandlerSpek : Spek({
                 externalMockEnvironment.stopExternalMocks()
             }
 
-            it("stores melding fra behandler from kafka in database") {
+            it("stores melding fra behandler from kafka in database and publish as new oppgave") {
                 val referanseUuid = UUID.randomUUID()
                 val kMeldingFraBehandler = generateKMeldingDTO(referanseUuid)
                 mockReceiveMeldingDTO(
@@ -65,15 +75,24 @@ class MeldingFraBehandlerSpek : Spek({
                     kafkaConsumer = kafkaConsumer,
                 )
 
-                val pPersonOppgave = database.connection.getPersonOppgaveByReferanseUuid(
+                val personOppgave = database.connection.getPersonOppgaveByReferanseUuid(
                     referanseUuid = referanseUuid,
-                )
-                pPersonOppgave?.publish shouldBeEqualTo false
-                pPersonOppgave?.type shouldBeEqualTo PersonOppgaveType.BEHANDLERDIALOG_SVAR.name
+                )!!.toPersonOppgave()
+                personOppgave.publish shouldBeEqualTo false
+                personOppgave.type.name shouldBeEqualTo PersonOppgaveType.BEHANDLERDIALOG_SVAR.name
+
+                verify(exactly = 1) {
+                    personoppgavehendelseProducer.sendPersonoppgavehendelse(
+                        hendelsetype = PersonoppgavehendelseType.BEHANDLERDIALOG_SVAR_MOTTATT,
+                        personIdent = personOppgave.personIdent,
+                        personoppgaveId = personOppgave.uuid,
+                    )
+                }
             }
 
             it("behandler ubesvart melding if svar received on same melding") {
-                val kafkaUbesvartMelding = KafkaUbesvartMelding(database, personoppgavehendelseProducer)
+                val ubesvartMeldingService = UbesvartMeldingService(personOppgaveService)
+                val kafkaUbesvartMelding = KafkaUbesvartMelding(database, ubesvartMeldingService)
                 val referanseUuid = UUID.randomUUID()
                 val kUbesvartMeldingDTO = generateKMeldingDTO(uuid = referanseUuid)
                 val kMeldingFraBehandlerDTO = generateKMeldingDTO(parentRef = referanseUuid)
@@ -82,7 +101,7 @@ class MeldingFraBehandlerSpek : Spek({
                     kMeldingDTO = kUbesvartMeldingDTO,
                     kafkaConsumer = kafkaConsumer,
                 )
-                justRun { personoppgavehendelseProducer.sendPersonoppgavehendelse(any(), any(), any()) }
+
                 kafkaUbesvartMelding.pollAndProcessRecords(kafkaConsumer)
 
                 mockReceiveMeldingDTO(
@@ -102,7 +121,31 @@ class MeldingFraBehandlerSpek : Spek({
                 personoppgaveUbesvart.publish shouldBeEqualTo false
                 personoppgaveSvar.behandletTidspunkt shouldBeEqualTo null
                 personoppgaveSvar.publish shouldBeEqualTo false
+
+                verify(exactly = 1) {
+                    personoppgavehendelseProducer.sendPersonoppgavehendelse(
+                        hendelsetype = PersonoppgavehendelseType.BEHANDLERDIALOG_MELDING_UBESVART_MOTTATT,
+                        personIdent = personoppgaveUbesvart.personIdent,
+                        personoppgaveId = personoppgaveUbesvart.uuid,
+                    )
+                }
+                verify(exactly = 1) {
+                    personoppgavehendelseProducer.sendPersonoppgavehendelse(
+                        hendelsetype = PersonoppgavehendelseType.BEHANDLERDIALOG_MELDING_UBESVART_BEHANDLET,
+                        personIdent = personoppgaveUbesvart.personIdent,
+                        personoppgaveId = personoppgaveUbesvart.uuid,
+                    )
+                }
+                verify(exactly = 1) {
+                    personoppgavehendelseProducer.sendPersonoppgavehendelse(
+                        hendelsetype = PersonoppgavehendelseType.BEHANDLERDIALOG_SVAR_MOTTATT,
+                        personIdent = personoppgaveSvar.personIdent,
+                        personoppgaveId = personoppgaveSvar.uuid,
+                    )
+                }
             }
+
+            // TODO: Test der man har to ubesvart-oppg og den ene blir løst -> skal ikke sende på kafka
         }
     }
 })
