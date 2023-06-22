@@ -10,6 +10,8 @@ import no.nav.syfo.kafka.*
 import no.nav.syfo.metric.COUNT_PERSONOPPGAVEHENDELSE_UBESVART_MELDING_MOTTATT
 import no.nav.syfo.personoppgave.createPersonOppgave
 import no.nav.syfo.personoppgave.domain.PersonOppgaveType
+import no.nav.syfo.personoppgavehendelse.PersonoppgavehendelseProducer
+import no.nav.syfo.personoppgavehendelse.domain.PersonoppgavehendelseType
 import org.apache.kafka.clients.consumer.*
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -21,8 +23,12 @@ fun launchKafkaTaskUbesvartMelding(
     database: DatabaseInterface,
     applicationState: ApplicationState,
     environment: Environment,
+    personoppgavehendelseProducer: PersonoppgavehendelseProducer,
 ) {
-    val kafkaUbesvartMelding = KafkaUbesvartMelding(database)
+    val kafkaUbesvartMelding = KafkaUbesvartMelding(
+        database = database,
+        personoppgavehendelseProducer = personoppgavehendelseProducer,
+    )
     val consumerProperties = kafkaAivenConsumerConfig<KMeldingDTODeserializer>(environment.kafka)
     launchKafkaTask(
         applicationState = applicationState,
@@ -32,7 +38,10 @@ fun launchKafkaTaskUbesvartMelding(
     )
 }
 
-class KafkaUbesvartMelding(private val database: DatabaseInterface) : KafkaConsumerService<KMeldingDTO> {
+class KafkaUbesvartMelding(
+    private val database: DatabaseInterface,
+    private val personoppgavehendelseProducer: PersonoppgavehendelseProducer,
+) : KafkaConsumerService<KMeldingDTO> {
     override val pollDurationInMillis: Long = 1000
     override fun pollAndProcessRecords(kafkaConsumer: KafkaConsumer<String, KMeldingDTO>) {
         val records = kafkaConsumer.poll(Duration.ofMillis(pollDurationInMillis))
@@ -78,9 +87,14 @@ class KafkaUbesvartMelding(private val database: DatabaseInterface) : KafkaConsu
         connection: Connection,
     ) {
         log.info("Received ubesvart melding with uuid: ${melding.referanseUuid}")
-        connection.createPersonOppgave(
+        val oppgaveUuid = connection.createPersonOppgave(
             melding = melding,
             personOppgaveType = PersonOppgaveType.BEHANDLERDIALOG_MELDING_UBESVART,
+        )
+        personoppgavehendelseProducer.sendPersonoppgavehendelse(
+            hendelsetype = PersonoppgavehendelseType.BEHANDLERDIALOG_MELDING_UBESVART_MOTTATT,
+            personIdent = melding.personIdent,
+            personoppgaveId = oppgaveUuid,
         )
     }
 

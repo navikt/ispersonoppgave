@@ -1,7 +1,9 @@
 package no.nav.syfo.behandlerdialog
 
 import io.ktor.server.testing.*
+import io.mockk.clearMocks
 import io.mockk.every
+import io.mockk.justRun
 import io.mockk.mockk
 import no.nav.syfo.behandlerdialog.domain.KMeldingDTO
 import no.nav.syfo.behandlerdialog.kafka.KafkaMeldingFraBehandler
@@ -11,6 +13,7 @@ import no.nav.syfo.personoppgave.domain.PersonOppgaveType
 import no.nav.syfo.personoppgave.domain.toPersonOppgave
 import no.nav.syfo.personoppgave.getPersonOppgaveByReferanseUuid
 import no.nav.syfo.personoppgave.getPersonOppgaveList
+import no.nav.syfo.personoppgavehendelse.PersonoppgavehendelseProducer
 import no.nav.syfo.testutil.*
 import no.nav.syfo.testutil.mock.mockReceiveMeldingDTO
 import no.nav.syfo.util.Constants
@@ -30,6 +33,7 @@ class MeldingFraBehandlerSpek : Spek({
             val externalMockEnvironment = ExternalMockEnvironment()
             val database = externalMockEnvironment.database
             val kafkaConsumer = mockk<KafkaConsumer<String, KMeldingDTO>>()
+            val personoppgavehendelseProducer = mockk<PersonoppgavehendelseProducer>()
             val kafkaMeldingFraBehandler = KafkaMeldingFraBehandler(database = database)
 
             beforeEachTest {
@@ -38,6 +42,7 @@ class MeldingFraBehandlerSpek : Spek({
 
             afterEachTest {
                 database.connection.dropData()
+                clearMocks(personoppgavehendelseProducer)
             }
 
             beforeGroup {
@@ -63,12 +68,12 @@ class MeldingFraBehandlerSpek : Spek({
                 val pPersonOppgave = database.connection.getPersonOppgaveByReferanseUuid(
                     referanseUuid = referanseUuid,
                 )
-                pPersonOppgave?.publish shouldBeEqualTo true
+                pPersonOppgave?.publish shouldBeEqualTo false
                 pPersonOppgave?.type shouldBeEqualTo PersonOppgaveType.BEHANDLERDIALOG_SVAR.name
             }
 
             it("behandler ubesvart melding if svar received on same melding") {
-                val kafkaUbesvartMelding = KafkaUbesvartMelding(database)
+                val kafkaUbesvartMelding = KafkaUbesvartMelding(database, personoppgavehendelseProducer)
                 val referanseUuid = UUID.randomUUID()
                 val kUbesvartMeldingDTO = generateKMeldingDTO(uuid = referanseUuid)
                 val kMeldingFraBehandlerDTO = generateKMeldingDTO(parentRef = referanseUuid)
@@ -77,7 +82,9 @@ class MeldingFraBehandlerSpek : Spek({
                     kMeldingDTO = kUbesvartMeldingDTO,
                     kafkaConsumer = kafkaConsumer,
                 )
+                justRun { personoppgavehendelseProducer.sendPersonoppgavehendelse(any(), any(), any()) }
                 kafkaUbesvartMelding.pollAndProcessRecords(kafkaConsumer)
+
                 mockReceiveMeldingDTO(
                     kMeldingDTO = kMeldingFraBehandlerDTO,
                     kafkaConsumer = kafkaConsumer,
@@ -92,9 +99,9 @@ class MeldingFraBehandlerSpek : Spek({
                 val personoppgaveSvar = personoppgaveList.first { it.type == PersonOppgaveType.BEHANDLERDIALOG_SVAR }
                 personoppgaveUbesvart.behandletTidspunkt shouldNotBeEqualTo null
                 personoppgaveUbesvart.behandletVeilederIdent shouldBeEqualTo Constants.SYSTEM_VEILEDER_IDENT
-                personoppgaveUbesvart.publish shouldBeEqualTo true
+                personoppgaveUbesvart.publish shouldBeEqualTo false
                 personoppgaveSvar.behandletTidspunkt shouldBeEqualTo null
-                personoppgaveSvar.publish shouldBeEqualTo true
+                personoppgaveSvar.publish shouldBeEqualTo false
             }
         }
     }

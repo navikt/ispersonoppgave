@@ -129,12 +129,12 @@ fun DatabaseInterface.createPersonOppgave(
     kOppfolgingsplanLPS: KOppfolgingsplanLPS,
     type: PersonOppgaveType
 ): Pair<Int, UUID> {
-    val uuid = UUID.randomUUID().toString()
+    val uuid = UUID.randomUUID()
     val now = Timestamp.from(Instant.now())
 
     connection.use { connection ->
         val personIdList = connection.prepareStatement(queryCreatePersonOppgave).use {
-            it.setString(1, uuid)
+            it.setString(1, uuid.toString())
             it.setString(2, kOppfolgingsplanLPS.uuid)
             it.setString(3, kOppfolgingsplanLPS.fodselsnummer)
             it.setString(4, kOppfolgingsplanLPS.virksomhetsnummer)
@@ -150,7 +150,7 @@ fun DatabaseInterface.createPersonOppgave(
         }
         connection.commit()
 
-        return Pair(personIdList.first(), UUID.fromString(uuid))
+        return Pair(personIdList.first(), uuid)
     }
 }
 
@@ -180,24 +180,26 @@ fun Connection.createPersonOppgave( // TODO: send in oppgave instead of dialogmo
 fun Connection.createPersonOppgave(
     melding: Melding,
     personOppgaveType: PersonOppgaveType,
-) {
+): UUID {
     val now = Timestamp.from(Instant.now())
+    val uuid = UUID.randomUUID()
 
     val personIdList = prepareStatement(queryCreatePersonOppgave).use {
-        it.setString(1, UUID.randomUUID().toString())
+        it.setString(1, uuid.toString())
         it.setString(2, melding.referanseUuid.toString())
         it.setString(3, melding.personIdent.value)
         it.setString(4, "")
         it.setString(5, personOppgaveType.name)
         it.setTimestamp(6, now)
         it.setTimestamp(7, now)
-        it.setBoolean(8, true)
+        it.setBoolean(8, false)
         it.executeQuery().toList { getInt("id") }
     }
 
     if (personIdList.size != 1) {
         throw SQLException("Creating personopppgave failed, no rows affected.")
     }
+    return uuid
 }
 
 const val queryCreateBehandletPersonOppgave =

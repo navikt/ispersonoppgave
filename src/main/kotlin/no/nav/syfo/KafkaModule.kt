@@ -52,6 +52,7 @@ fun launchKafkaTasks(
         database = database,
         applicationState = applicationState,
         environment = environment,
+        personoppgavehendelseProducer = personoppgavehendelseProducer,
     )
 
     val identhendelseService = IdenthendelseService(
