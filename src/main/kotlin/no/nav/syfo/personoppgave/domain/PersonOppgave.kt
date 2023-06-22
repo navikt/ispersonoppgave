@@ -70,6 +70,13 @@ fun PersonOppgave.isBehandlet() = behandletTidspunkt != null
 fun PersonOppgave.isUBehandlet() = !isBehandlet()
 
 fun PersonOppgave.behandle(veilederIdent: String): PersonOppgave {
+    return this.copy(
+        behandletTidspunkt = OffsetDateTime.now().toLocalDateTimeOslo(),
+        behandletVeilederIdent = veilederIdent,
+    )
+}
+
+fun PersonOppgave.behandleAndPrepareForCronjob(veilederIdent: String): PersonOppgave {
     val now = OffsetDateTime.now().toLocalDateTimeOslo()
     return this.copy(
         behandletTidspunkt = now,
@@ -77,4 +84,10 @@ fun PersonOppgave.behandle(veilederIdent: String): PersonOppgave {
         sistEndret = now,
         publish = true,
     )
+}
+
+fun PersonOppgave.shouldBePublishedDirectlyToKafka(): Boolean {
+    return type == PersonOppgaveType.OPPFOLGINGSPLANLPS ||
+        type == PersonOppgaveType.BEHANDLERDIALOG_SVAR ||
+        type == PersonOppgaveType.BEHANDLERDIALOG_MELDING_UBESVART
 }

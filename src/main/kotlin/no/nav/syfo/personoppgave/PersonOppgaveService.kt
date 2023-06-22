@@ -5,7 +5,6 @@ import no.nav.syfo.database.DatabaseInterface
 import no.nav.syfo.domain.PersonIdent
 import no.nav.syfo.personoppgave.domain.*
 import no.nav.syfo.personoppgavehendelse.PersonoppgavehendelseProducer
-import no.nav.syfo.personoppgavehendelse.domain.PersonoppgavehendelseType
 import org.slf4j.LoggerFactory
 import java.util.*
 
@@ -36,9 +35,9 @@ class PersonOppgaveService(
         personoppgave: PersonOppgave,
         veilederIdent: String,
     ) {
-        when (personoppgave.type) {
-            PersonOppgaveType.OPPFOLGINGSPLANLPS -> behandleLps(personoppgave, veilederIdent)
-            else -> behandle(personoppgave, veilederIdent)
+        when {
+            personoppgave.shouldBePublishedDirectlyToKafka() -> behandle(personoppgave, veilederIdent)
+            else -> behandleAndPrepareForCronjob(personoppgave, veilederIdent)
         }
     }
 
@@ -67,8 +66,8 @@ class PersonOppgaveService(
         }
     }
 
-    private fun behandle(personOppgave: PersonOppgave, veilederIdent: String) {
-        val behandletOppgave = personOppgave.behandle(
+    private fun behandleAndPrepareForCronjob(personOppgave: PersonOppgave, veilederIdent: String) {
+        val behandletOppgave = personOppgave.behandleAndPrepareForCronjob(
             veilederIdent = veilederIdent,
         )
         database.connection.use { connection ->
@@ -77,32 +76,35 @@ class PersonOppgaveService(
         }
     }
 
-    private fun behandleLps(personoppgave: PersonOppgave, veilederIdent: String) {
+    private fun behandle(personoppgave: PersonOppgave, veilederIdent: String) {
+        val behandletPersonOppgave = personoppgave.behandle(veilederIdent)
+
         database.updatePersonOppgaveBehandlet(
-            personoppgave.uuid,
-            veilederIdent
+            updatedPersonoppgave = behandletPersonOppgave,
         )
 
-        val hasNoOtherUbehandledeOppfolgingsplanLSPOppgaver = getUbehandledePersonOppgaver(
-            personIdent = personoppgave.personIdent,
-            personOppgaveType = PersonOppgaveType.OPPFOLGINGSPLANLPS,
+        val hasNoOtherUbehandledeOppgaver = getUbehandledePersonOppgaver(
+            personIdent = behandletPersonOppgave.personIdent,
+            personOppgaveType = behandletPersonOppgave.type,
         ).isEmpty()
 
-        if (hasNoOtherUbehandledeOppfolgingsplanLSPOppgaver) {
+        val personoppgaveHendelseType = behandletPersonOppgave.toHendelseType()
+
+        if (hasNoOtherUbehandledeOppgaver) {
             personoppgavehendelseProducer.sendPersonoppgavehendelse(
-                PersonoppgavehendelseType.OPPFOLGINGSPLANLPS_BISTAND_BEHANDLET,
-                personoppgave.personIdent,
-                personoppgave.uuid,
+                personoppgaveHendelseType,
+                behandletPersonOppgave.personIdent,
+                behandletPersonOppgave.uuid,
             )
             LOG.info(
                 "Sent Personoppgavehendelse, {}, {}",
-                StructuredArguments.keyValue("type", PersonoppgavehendelseType.OPPFOLGINGSPLANLPS_BISTAND_BEHANDLET),
+                StructuredArguments.keyValue("type", personoppgaveHendelseType),
                 StructuredArguments.keyValue("veilederident", veilederIdent)
             )
         } else {
             LOG.info(
                 "No Personoppgavehendelse sent, there are other oppgaver of this type that still needs behandling, {}, {}",
-                StructuredArguments.keyValue("type", PersonoppgavehendelseType.OPPFOLGINGSPLANLPS_BISTAND_BEHANDLET),
+                StructuredArguments.keyValue("type", personoppgaveHendelseType),
                 StructuredArguments.keyValue("veilederident", veilederIdent)
             )
         }

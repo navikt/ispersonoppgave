@@ -10,6 +10,7 @@ import no.nav.syfo.personoppgave.domain.*
 import no.nav.syfo.personoppgave.oppfolgingsplanlps.kafka.KOppfolgingsplanLPS
 import no.nav.syfo.util.convert
 import no.nav.syfo.util.convertNullable
+import no.nav.syfo.util.toTimestamp
 import java.sql.*
 import java.time.Instant
 import java.time.OffsetDateTime
@@ -76,15 +77,13 @@ const val queryUpdatePersonOppgaveBehandlet =
     """
 
 fun DatabaseInterface.updatePersonOppgaveBehandlet(
-    uuid: UUID,
-    veilederIdent: String
+    updatedPersonoppgave: PersonOppgave,
 ) {
-    val now = Timestamp.from(Instant.now())
     connection.use { connection ->
         connection.prepareStatement(queryUpdatePersonOppgaveBehandlet).use {
-            it.setTimestamp(1, now)
-            it.setString(2, veilederIdent)
-            it.setString(3, uuid.toString())
+            it.setTimestamp(1, updatedPersonoppgave.behandletTidspunkt.toTimestamp())
+            it.setString(2, updatedPersonoppgave.behandletVeilederIdent)
+            it.setString(3, updatedPersonoppgave.uuid.toString())
             it.execute()
         }
         connection.commit()
@@ -191,7 +190,7 @@ fun Connection.createPersonOppgave(
         it.setString(4, "")
         it.setString(5, personOppgaveType.name)
         it.setTimestamp(6, now)
-        it.setTimestamp(7, Timestamp.from(melding.tidspunkt.toInstant()))
+        it.setTimestamp(7, now)
         it.setBoolean(8, true)
         it.executeQuery().toList { getInt("id") }
     }
@@ -252,7 +251,7 @@ const val queryUpdatePersonoppgave =
 fun Connection.updatePersonoppgave(
     personoppgave: PersonOppgave,
 ) {
-    val behandletTidspunkt = personoppgave.behandletTidspunkt?.let { Timestamp.valueOf(it) }
+    val behandletTidspunkt = personoppgave.behandletTidspunkt?.toTimestamp()
     val publishedAt = personoppgave.publishedAt?.let { Timestamp.from(it.toInstant()) }
 
     val behandletOppgaver = prepareStatement(queryUpdatePersonoppgave).use {
