@@ -9,7 +9,7 @@ import no.nav.syfo.dialogmotesvar.domain.PDialogmotesvar
 import no.nav.syfo.dialogmotesvar.toPDialogmotesvar
 import no.nav.syfo.domain.PersonIdent
 import no.nav.syfo.personoppgave.domain.*
-import no.nav.syfo.personoppgave.oppfolgingsplanlps.kafka.KOppfolgingsplanLPS
+import no.nav.syfo.oppfolgingsplanlps.kafka.KOppfolgingsplanLPS
 import no.nav.syfo.personoppgave.queryGetPersonOppgaveListForFnr
 import no.nav.syfo.personoppgave.toPPersonOppgave
 import no.nav.syfo.util.toOffsetDateTimeUTC

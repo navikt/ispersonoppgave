@@ -1,9 +1,9 @@
-package no.nav.syfo.personoppgave.oppfolgingsplanlps.kafka
+package no.nav.syfo.oppfolgingsplanlps.kafka
 
 import net.logstash.logback.argument.StructuredArguments
 import no.nav.syfo.*
 import no.nav.syfo.kafka.*
-import no.nav.syfo.personoppgave.oppfolgingsplanlps.OppfolgingsplanLPSService
+import no.nav.syfo.oppfolgingsplanlps.OppfolgingsplanLPSService
 import no.nav.syfo.util.*
 import org.apache.kafka.clients.consumer.KafkaConsumer
 import org.apache.kafka.common.serialization.Deserializer

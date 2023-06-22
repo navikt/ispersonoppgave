@@ -1,4 +1,4 @@
-package no.nav.syfo.personoppgave.oppfolgingsplanlps.kafka
+package no.nav.syfo.oppfolgingsplanlps.kafka
 
 data class KOppfolgingsplanLPS(
     val uuid: String,

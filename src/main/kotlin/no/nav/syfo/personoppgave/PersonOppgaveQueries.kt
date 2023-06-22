@@ -7,7 +7,7 @@ import no.nav.syfo.dialogmotesvar.domain.Dialogmotesvar
 import no.nav.syfo.domain.PersonIdent
 import no.nav.syfo.behandlerdialog.domain.Melding
 import no.nav.syfo.personoppgave.domain.*
-import no.nav.syfo.personoppgave.oppfolgingsplanlps.kafka.KOppfolgingsplanLPS
+import no.nav.syfo.oppfolgingsplanlps.kafka.KOppfolgingsplanLPS
 import no.nav.syfo.util.convert
 import no.nav.syfo.util.convertNullable
 import no.nav.syfo.util.toTimestamp

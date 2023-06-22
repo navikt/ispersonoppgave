@@ -9,9 +9,8 @@ import no.nav.syfo.identhendelse.kafka.IdenthendelseConsumerService
 import no.nav.syfo.identhendelse.kafka.launchKafkaTaskIdenthendelse
 import no.nav.syfo.behandlerdialog.kafka.launchKafkaTaskMeldingFraBehandler
 import no.nav.syfo.behandlerdialog.kafka.launchKafkaTaskUbesvartMelding
-import no.nav.syfo.database.database
-import no.nav.syfo.personoppgave.oppfolgingsplanlps.OppfolgingsplanLPSService
-import no.nav.syfo.personoppgave.oppfolgingsplanlps.kafka.launchKafkaTaskOppfolgingsplanLPS
+import no.nav.syfo.oppfolgingsplanlps.OppfolgingsplanLPSService
+import no.nav.syfo.oppfolgingsplanlps.kafka.launchKafkaTaskOppfolgingsplanLPS
 import no.nav.syfo.personoppgavehendelse.PersonoppgavehendelseProducer
 
 fun launchKafkaTasks(
