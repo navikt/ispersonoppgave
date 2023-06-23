@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
 import io.ktor.http.*
 import io.ktor.server.testing.*
+import no.nav.syfo.behandlerdialog.domain.toMelding
 import no.nav.syfo.dialogmotesvar.domain.DialogmoteSvartype
 import no.nav.syfo.domain.PersonIdent
 import no.nav.syfo.personoppgavehendelse.domain.*
@@ -11,21 +12,22 @@ import no.nav.syfo.personoppgave.api.PersonOppgaveVeileder
 import no.nav.syfo.personoppgave.createPersonOppgave
 import no.nav.syfo.personoppgave.domain.PersonOppgaveType
 import no.nav.syfo.personoppgave.getPersonOppgaveList
-import no.nav.syfo.personoppgave.updatePersonoppgave
+import no.nav.syfo.personoppgave.updatePersonOppgaveBehandlet
 import no.nav.syfo.testutil.*
 import no.nav.syfo.testutil.UserConstants.ARBEIDSTAKER_FNR
 import no.nav.syfo.testutil.UserConstants.VEILEDER_IDENT
 import no.nav.syfo.util.*
 import org.amshove.kluent.*
+import org.apache.kafka.clients.consumer.KafkaConsumer
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
 import java.time.Duration
 import java.time.LocalDateTime
 import java.util.*
-import kotlin.collections.ArrayList
+
+val objectMapper: ObjectMapper = configuredJacksonMapper()
 
 class VeilederPersonOppgaveApiV2Spek : Spek({
-    val objectMapper: ObjectMapper = configuredJacksonMapper()
 
     describe(VeilederPersonOppgaveApiV2Spek::class.java.simpleName) {
 
@@ -147,8 +149,8 @@ class VeilederPersonOppgaveApiV2Spek : Spek({
                 }
             }
 
-            describe("Process PersonOppgave for PersonIdent") {
-                it("returns OK and does NOT send Personoppgavehendelse if processed 1 of 2 existing PersonOppgave") {
+            describe("Process OppfolgingsplanLSP-PersonOppgave for PersonIdent") {
+                it("returns OK and does NOT send Personoppgavehendelse if processed 1 of 2 existing oppfolging-Oppgave") {
                     val kOppfolgingsplanLPS = generateKOppfolgingsplanLPS
                     val kOppfolgingsplanLPS2 = generateKOppfolgingsplanLPS2
                     val personOppgaveType = PersonOppgaveType.OPPFOLGINGSPLANLPS
@@ -214,16 +216,12 @@ class VeilederPersonOppgaveApiV2Spek : Spek({
                         personOppgaveUbehandlet.behandletVeilederIdent.shouldBeNull()
                         personOppgaveUbehandlet.opprettet.shouldNotBeNull()
 
-                        val messages: ArrayList<KPersonoppgavehendelse> = arrayListOf()
-                        consumerPersonoppgavehendelse.poll(Duration.ofMillis(5000)).forEach {
-                            val consumedPersonoppgavehendelse: KPersonoppgavehendelse = objectMapper.readValue(it.value())
-                            messages.add(consumedPersonoppgavehendelse)
-                        }
+                        val messages = getRecordsFromTopic(consumerPersonoppgavehendelse)
                         messages.size shouldBeEqualTo 0
                     }
                 }
 
-                it("returns OK and sends Personoppgavehendelse if processed the 1 and only existing PersonOppgave") {
+                it("returns OK and sends Personoppgavehendelse if processed the 1 and only existing oppfolgingsplan-oppgave") {
                     val kOppfolgingsplanLPS = generateKOppfolgingsplanLPS
                     val personOppgaveType = PersonOppgaveType.OPPFOLGINGSPLANLPS
 
@@ -266,11 +264,7 @@ class VeilederPersonOppgaveApiV2Spek : Spek({
                         personOppgave.opprettet.shouldNotBeNull()
                     }
 
-                    val messages: ArrayList<KPersonoppgavehendelse> = arrayListOf()
-                    consumerPersonoppgavehendelse.poll(Duration.ofMillis(5000)).forEach {
-                        val consumedPersonoppgavehendelse: KPersonoppgavehendelse = objectMapper.readValue(it.value())
-                        messages.add(consumedPersonoppgavehendelse)
-                    }
+                    val messages = getRecordsFromTopic(consumerPersonoppgavehendelse)
                     messages.size shouldBeEqualTo 1
                     messages.first().personident shouldBeEqualTo kOppfolgingsplanLPS.fodselsnummer
                     messages.first().hendelsetype shouldBeEqualTo PersonoppgavehendelseType.OPPFOLGINGSPLANLPS_BISTAND_BEHANDLET.name
@@ -295,6 +289,63 @@ class VeilederPersonOppgaveApiV2Spek : Spek({
                         response.status() shouldBeEqualTo HttpStatusCode.OK
                     }
                 }
+
+                it("returns OK on behandle and sends Personoppgavehendelse if no other ubehandlede ubesvart-oppgave") {
+                    val meldingUuid = UUID.randomUUID()
+                    val ubesvartMelding = generateKMeldingDTO(uuid = meldingUuid).toMelding()
+                    var oppgaveUuid: UUID
+                    database.connection.use { connection ->
+                        oppgaveUuid = connection.createPersonOppgave(
+                            melding = ubesvartMelding,
+                            personOppgaveType = PersonOppgaveType.BEHANDLERDIALOG_MELDING_UBESVART,
+                        )
+                        connection.commit()
+                    }
+
+                    val urlProcess = "$baseUrl/$oppgaveUuid/behandle"
+                    with(
+                        handleRequest(HttpMethod.Post, urlProcess) {
+                            addHeader(HttpHeaders.Authorization, bearerHeader(validToken))
+                        }
+                    ) {
+                        response.status() shouldBeEqualTo HttpStatusCode.OK
+
+                        val records = getRecordsFromTopic(consumerPersonoppgavehendelse)
+                        records.size shouldBeEqualTo 1
+                        records.first().hendelsetype shouldBeEqualTo PersonoppgavehendelseType.BEHANDLERDIALOG_MELDING_UBESVART_BEHANDLET.name
+                    }
+                }
+
+                it("returns OK on behandle and do NOT send Personoppgavehendelse when there are other ubehandlede ubesvart-oppgaver") {
+                    val meldingUuid = UUID.randomUUID()
+                    val otherMeldingUuid = UUID.randomUUID()
+                    val ubesvartMelding = generateKMeldingDTO(uuid = meldingUuid).toMelding()
+                    val otherUbesvartMelding = generateKMeldingDTO(uuid = otherMeldingUuid).toMelding()
+                    var oppgaveUuid: UUID
+                    database.connection.use { connection ->
+                        oppgaveUuid = connection.createPersonOppgave(
+                            melding = ubesvartMelding,
+                            personOppgaveType = PersonOppgaveType.BEHANDLERDIALOG_MELDING_UBESVART,
+                        )
+                        connection.createPersonOppgave(
+                            melding = otherUbesvartMelding,
+                            personOppgaveType = PersonOppgaveType.BEHANDLERDIALOG_MELDING_UBESVART,
+                        )
+                        connection.commit()
+                    }
+
+                    val urlProcess = "$baseUrl/$oppgaveUuid/behandle"
+                    with(
+                        handleRequest(HttpMethod.Post, urlProcess) {
+                            addHeader(HttpHeaders.Authorization, bearerHeader(validToken))
+                        }
+                    ) {
+                        response.status() shouldBeEqualTo HttpStatusCode.OK
+
+                        val records = getRecordsFromTopic(consumerPersonoppgavehendelse)
+                        records.size shouldBeEqualTo 0
+                    }
+                }
             }
 
             describe("Process several personoppgaver") {
@@ -307,7 +358,7 @@ class VeilederPersonOppgaveApiV2Spek : Spek({
                     personOppgaveType = personoppgaveBehandlerdialog.type,
                 )
                 describe("Happy path") {
-                    it("Will behandle several personoppgaver") {
+                    it("Will behandle several personoppgaver and produce Personoppgavehendelse") {
                         database.connection.use {
                             it.createPersonOppgave(personoppgaveBehandlerdialog)
                             it.createPersonOppgave(
@@ -335,6 +386,11 @@ class VeilederPersonOppgaveApiV2Spek : Spek({
                             personoppgaver.all {
                                 it.behandletVeilederIdent == VEILEDER_IDENT && it.behandletTidspunkt != null
                             } shouldBeEqualTo true
+                            personoppgaver.all { !it.publish } shouldBeEqualTo true
+
+                            val records = getRecordsFromTopic(consumerPersonoppgavehendelse)
+                            records.size shouldBeEqualTo 1
+                            records.first().hendelsetype shouldBeEqualTo PersonoppgavehendelseType.BEHANDLERDIALOG_SVAR_BEHANDLET.name
                         }
                     }
 
@@ -389,7 +445,7 @@ class VeilederPersonOppgaveApiV2Spek : Spek({
                         database.connection.use {
                             it.createPersonOppgave(personoppgaveBehandlerdialog)
                             it.createPersonOppgave(alreadyBehandletPersonOppgave)
-                            it.updatePersonoppgave(alreadyBehandletPersonOppgave)
+                            it.updatePersonOppgaveBehandlet(alreadyBehandletPersonOppgave)
                             it.commit()
                         }
 
@@ -435,3 +491,12 @@ class VeilederPersonOppgaveApiV2Spek : Spek({
         }
     }
 })
+
+fun getRecordsFromTopic(consumer: KafkaConsumer<String, String>): MutableList<KPersonoppgavehendelse> {
+    val records: MutableList<KPersonoppgavehendelse> = mutableListOf()
+    consumer.poll(Duration.ofMillis(5000)).forEach {
+        val consumedPersonoppgavehendelse: KPersonoppgavehendelse = objectMapper.readValue(it.value())
+        records.add(consumedPersonoppgavehendelse)
+    }
+    return records
+}

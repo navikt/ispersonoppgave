@@ -145,7 +145,62 @@ class MeldingFraBehandlerSpek : Spek({
                 }
             }
 
-            // TODO: Test der man har to ubesvart-oppg og den ene blir løst -> skal ikke sende på kafka
+            it("behandler ubesvart melding if svar received on same melding, but does not publish if there are other ubehandlede ubesvart oppgaver") {
+                val ubesvartMeldingService = UbesvartMeldingService(personOppgaveService)
+                val kafkaUbesvartMelding = KafkaUbesvartMelding(database, ubesvartMeldingService)
+                val referanseUuid = UUID.randomUUID()
+                val otherReferanseUuid = UUID.randomUUID()
+                val kUbesvartMeldingDTO = generateKMeldingDTO(uuid = referanseUuid)
+                val otherKUbesvartMeldingDTO = generateKMeldingDTO(uuid = otherReferanseUuid)
+                val kMeldingFraBehandlerDTO = generateKMeldingDTO(parentRef = referanseUuid)
+
+                mockReceiveMeldingDTO(
+                    kMeldingDTO = kUbesvartMeldingDTO,
+                    kafkaConsumer = kafkaConsumer,
+                )
+                kafkaUbesvartMelding.pollAndProcessRecords(kafkaConsumer)
+                mockReceiveMeldingDTO(
+                    kMeldingDTO = otherKUbesvartMeldingDTO,
+                    kafkaConsumer = kafkaConsumer,
+                )
+                kafkaUbesvartMelding.pollAndProcessRecords(kafkaConsumer)
+
+                mockReceiveMeldingDTO(
+                    kMeldingDTO = kMeldingFraBehandlerDTO,
+                    kafkaConsumer = kafkaConsumer,
+                )
+                kafkaMeldingFraBehandler.pollAndProcessRecords(kafkaConsumer)
+
+                val personoppgaveList = database.getPersonOppgaveList(
+                    personIdent = PersonIdent(kUbesvartMeldingDTO.personIdent),
+                ).map { it.toPersonOppgave() }
+                personoppgaveList.size shouldBeEqualTo 3
+                val personoppgaveUbesvart = personoppgaveList.first { it.referanseUuid == referanseUuid }
+                val otherPersonoppgaveUbesvart = personoppgaveList.first { it.referanseUuid == otherReferanseUuid }
+                val personoppgaveSvar = personoppgaveList.first { it.type == PersonOppgaveType.BEHANDLERDIALOG_SVAR }
+                personoppgaveUbesvart.behandletTidspunkt shouldNotBeEqualTo null
+                personoppgaveUbesvart.behandletVeilederIdent shouldBeEqualTo Constants.SYSTEM_VEILEDER_IDENT
+                personoppgaveUbesvart.publish shouldBeEqualTo false
+                otherPersonoppgaveUbesvart.behandletTidspunkt shouldBeEqualTo null
+                otherPersonoppgaveUbesvart.behandletVeilederIdent shouldBeEqualTo null
+                personoppgaveSvar.behandletTidspunkt shouldBeEqualTo null
+                personoppgaveSvar.publish shouldBeEqualTo false
+
+                verify(exactly = 0) {
+                    personoppgavehendelseProducer.sendPersonoppgavehendelse(
+                        hendelsetype = PersonoppgavehendelseType.BEHANDLERDIALOG_MELDING_UBESVART_BEHANDLET,
+                        personIdent = personoppgaveUbesvart.personIdent,
+                        personoppgaveId = personoppgaveUbesvart.uuid,
+                    )
+                }
+                verify(exactly = 1) {
+                    personoppgavehendelseProducer.sendPersonoppgavehendelse(
+                        hendelsetype = PersonoppgavehendelseType.BEHANDLERDIALOG_SVAR_MOTTATT,
+                        personIdent = personoppgaveSvar.personIdent,
+                        personoppgaveId = personoppgaveSvar.uuid,
+                    )
+                }
+            }
         }
     }
 })
