@@ -37,8 +37,8 @@ class PersonOppgaveService(
         veilederIdent: String,
     ) {
         when {
-            personoppgave.shouldBePublishedDirectlyToKafka() -> behandle(personoppgave, veilederIdent)
-            else -> behandleAndPrepareForCronjob(personoppgave, veilederIdent)
+            personoppgave.shouldPublishOppgaveHendelseNow() -> behandleAndPublishOppgaveHendelse(personoppgave, veilederIdent)
+            else -> behandleAndReadyForPublish(personoppgave, veilederIdent)
         }
     }
 
@@ -72,8 +72,8 @@ class PersonOppgaveService(
         }
     }
 
-    private fun behandleAndPrepareForCronjob(personOppgave: PersonOppgave, veilederIdent: String) {
-        val behandletOppgave = personOppgave.behandleAndPrepareForCronjob(
+    private fun behandleAndReadyForPublish(personOppgave: PersonOppgave, veilederIdent: String) {
+        val behandletOppgave = personOppgave.behandleAndReadyForPublish(
             veilederIdent = veilederIdent,
         )
         database.connection.use { connection ->
@@ -82,7 +82,7 @@ class PersonOppgaveService(
         }
     }
 
-    private fun behandle(personoppgave: PersonOppgave, veilederIdent: String) {
+    private fun behandleAndPublishOppgaveHendelse(personoppgave: PersonOppgave, veilederIdent: String) {
         val behandletPersonOppgave = personoppgave.behandle(veilederIdent)
 
         database.updatePersonOppgaveBehandlet(

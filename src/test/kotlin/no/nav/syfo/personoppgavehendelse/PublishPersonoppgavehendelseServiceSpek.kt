@@ -81,7 +81,6 @@ class PublishPersonoppgavehendelseServiceSpek : Spek({
             }
 
             it("publishes an oppgavehendelse if the personoppgave is the newest") {
-                val now = OffsetDateTime.now()
                 val olderMoteUuid = UUID.randomUUID()
                 val moteUuid = UUID.randomUUID()
                 val olderPPersonOppgave = generatePPersonoppgave(
