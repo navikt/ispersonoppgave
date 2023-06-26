@@ -13,6 +13,7 @@ data class Melding(
 )
 
 enum class MeldingType {
-    FORESPORSEL_PASIENT,
+    FORESPORSEL_PASIENT, // TODO: Remove this after migrate isbehandlerdialog
+    FORESPORSEL_PASIENT_TILLEGGSOPPLYSNINGER,
     FORESPORSEL_PASIENT_PAMINNELSE,
 }
