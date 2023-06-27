@@ -36,9 +36,9 @@ class PersonOppgaveService(
         personoppgave: PersonOppgave,
         veilederIdent: String,
     ) {
-        when (personoppgave.type) {
-            PersonOppgaveType.OPPFOLGINGSPLANLPS -> behandleLps(personoppgave, veilederIdent)
-            else -> behandle(personoppgave, veilederIdent)
+        when {
+            personoppgave.shouldPublishOppgaveHendelseNow() -> behandleAndPublishOppgaveHendelse(personoppgave, veilederIdent)
+            else -> behandleAndReadyForPublish(personoppgave, veilederIdent)
         }
     }
 
@@ -49,10 +49,15 @@ class PersonOppgaveService(
         val updatedPersonOppgaver = personoppgaver.map {
             it.behandle(veilederIdent)
         }
-        val updatedRows = database.updatePersonoppgaver(
-            personoppgaver = updatedPersonOppgaver,
+        val updatedRows = database.updatePersonoppgaverBehandlet(
+            updatedPersonoppgaver = updatedPersonOppgaver,
         )
         LOG.info("Updated $updatedRows personoppgaver for personoppgavetype ${personoppgaver.first().type.name}")
+
+        publishIfAllOppgaverBehandlet(
+            behandletPersonOppgave = updatedPersonOppgaver.first(),
+            veilederIdent = veilederIdent,
+        )
     }
 
     fun getUbehandledePersonOppgaver(
@@ -67,8 +72,8 @@ class PersonOppgaveService(
         }
     }
 
-    private fun behandle(personOppgave: PersonOppgave, veilederIdent: String) {
-        val behandletOppgave = personOppgave.behandle(
+    private fun behandleAndReadyForPublish(personOppgave: PersonOppgave, veilederIdent: String) {
+        val behandletOppgave = personOppgave.behandleAndReadyForPublish(
             veilederIdent = veilederIdent,
         )
         database.connection.use { connection ->
@@ -77,34 +82,56 @@ class PersonOppgaveService(
         }
     }
 
-    private fun behandleLps(personoppgave: PersonOppgave, veilederIdent: String) {
-        val personFnr = personoppgave.personIdent
+    private fun behandleAndPublishOppgaveHendelse(personoppgave: PersonOppgave, veilederIdent: String) {
+        val behandletPersonOppgave = personoppgave.behandle(veilederIdent)
 
-        val isOnePersonOppgaveUbehandlet = getPersonOppgaveList(personFnr)
-            .filter { it.behandletTidspunkt == null && it.type == PersonOppgaveType.OPPFOLGINGSPLANLPS }
-            .size == 1
+        database.updatePersonOppgaveBehandlet(
+            updatedPersonoppgave = behandletPersonOppgave,
+        )
 
-        if (isOnePersonOppgaveUbehandlet) {
-            personoppgavehendelseProducer.sendPersonoppgavehendelse(
-                PersonoppgavehendelseType.OPPFOLGINGSPLANLPS_BISTAND_BEHANDLET,
-                personFnr,
-                personoppgave.uuid,
+        publishIfAllOppgaverBehandlet(
+            behandletPersonOppgave = behandletPersonOppgave,
+            veilederIdent = veilederIdent,
+        )
+    }
+
+    fun publishIfAllOppgaverBehandlet(behandletPersonOppgave: PersonOppgave, veilederIdent: String) {
+        val hasNoOtherUbehandledeOppgaverOfSameType = getUbehandledePersonOppgaver(
+            personIdent = behandletPersonOppgave.personIdent,
+            personOppgaveType = behandletPersonOppgave.type,
+        ).isEmpty()
+
+        val personoppgavehendelseType = behandletPersonOppgave.toHendelseType()
+
+        if (hasNoOtherUbehandledeOppgaverOfSameType) {
+            publishPersonoppgaveHendelse(
+                personoppgavehendelseType = personoppgavehendelseType,
+                personIdent = behandletPersonOppgave.personIdent,
+                personoppgaveUUID = behandletPersonOppgave.uuid,
             )
             LOG.info(
                 "Sent Personoppgavehendelse, {}, {}",
-                StructuredArguments.keyValue("type", PersonoppgavehendelseType.OPPFOLGINGSPLANLPS_BISTAND_BEHANDLET),
+                StructuredArguments.keyValue("type", personoppgavehendelseType),
                 StructuredArguments.keyValue("veilederident", veilederIdent)
             )
         } else {
             LOG.info(
-                "No Personoppgavehendelse sent, isOnePersonOppgaveUbehandlet=false, {}, {}",
-                StructuredArguments.keyValue("type", PersonoppgavehendelseType.OPPFOLGINGSPLANLPS_BISTAND_BEHANDLET),
+                "No Personoppgavehendelse sent, there are other oppgaver of this type that still needs behandling, {}, {}",
+                StructuredArguments.keyValue("type", personoppgavehendelseType),
                 StructuredArguments.keyValue("veilederident", veilederIdent)
             )
         }
-        database.updatePersonOppgaveBehandlet(
-            personoppgave.uuid,
-            veilederIdent
+    }
+
+    fun publishPersonoppgaveHendelse(
+        personoppgavehendelseType: PersonoppgavehendelseType,
+        personIdent: PersonIdent,
+        personoppgaveUUID: UUID,
+    ) {
+        personoppgavehendelseProducer.sendPersonoppgavehendelse(
+            personoppgavehendelseType,
+            personIdent,
+            personoppgaveUUID,
         )
     }
 

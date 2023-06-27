@@ -1,12 +1,15 @@
 package no.nav.syfo.behandlerdialog
 
 import io.ktor.server.testing.*
-import io.mockk.every
-import io.mockk.mockk
+import io.mockk.*
 import no.nav.syfo.behandlerdialog.domain.KMeldingDTO
 import no.nav.syfo.behandlerdialog.kafka.KafkaUbesvartMelding
+import no.nav.syfo.personoppgave.PersonOppgaveService
 import no.nav.syfo.personoppgave.domain.PersonOppgaveType
+import no.nav.syfo.personoppgave.domain.toPersonOppgave
 import no.nav.syfo.personoppgave.getPersonOppgaveByReferanseUuid
+import no.nav.syfo.personoppgavehendelse.PersonoppgavehendelseProducer
+import no.nav.syfo.personoppgavehendelse.domain.PersonoppgavehendelseType
 import no.nav.syfo.testutil.*
 import no.nav.syfo.testutil.mock.mockReceiveMeldingDTO
 import org.amshove.kluent.shouldBeEqualTo
@@ -24,7 +27,13 @@ class UbesvartMeldingSpek : Spek({
             val externalMockEnvironment = ExternalMockEnvironment()
             val database = externalMockEnvironment.database
             val kafkaConsumer = mockk<KafkaConsumer<String, KMeldingDTO>>()
-            val kafkaUbesvartMelding = KafkaUbesvartMelding(database)
+            val personoppgavehendelseProducer = mockk<PersonoppgavehendelseProducer>()
+            val personOppgaveService = PersonOppgaveService(
+                database = database,
+                personoppgavehendelseProducer = personoppgavehendelseProducer,
+            )
+            val ubesvartMeldingService = UbesvartMeldingService(personOppgaveService)
+            val kafkaUbesvartMelding = KafkaUbesvartMelding(database, ubesvartMeldingService)
 
             beforeEachTest {
                 every { kafkaConsumer.commitSync() } returns Unit
@@ -32,6 +41,7 @@ class UbesvartMeldingSpek : Spek({
 
             afterEachTest {
                 database.connection.dropData()
+                clearMocks(personoppgavehendelseProducer)
             }
 
             beforeGroup {
@@ -42,23 +52,32 @@ class UbesvartMeldingSpek : Spek({
                 externalMockEnvironment.stopExternalMocks()
             }
 
-            it("stores ubesvart melding from kafka as oppgave in database") {
+            it("stores ubesvart melding from kafka as oppgave in database and publish as new oppgave") {
                 val referanseUuid = UUID.randomUUID()
                 val kMeldingDTO = generateKMeldingDTO(referanseUuid)
                 mockReceiveMeldingDTO(
                     kMeldingDTO = kMeldingDTO,
                     kafkaConsumer = kafkaConsumer,
                 )
+                justRun { personoppgavehendelseProducer.sendPersonoppgavehendelse(any(), any(), any()) }
 
                 kafkaUbesvartMelding.pollAndProcessRecords(
                     kafkaConsumer = kafkaConsumer,
                 )
 
-                val pPersonOppgave = database.connection.getPersonOppgaveByReferanseUuid(
+                val personOppgave = database.connection.getPersonOppgaveByReferanseUuid(
                     referanseUuid = referanseUuid,
-                )
-                pPersonOppgave?.publish shouldBeEqualTo true
-                pPersonOppgave?.type shouldBeEqualTo PersonOppgaveType.BEHANDLERDIALOG_MELDING_UBESVART.name
+                )!!.toPersonOppgave()
+                personOppgave.publish shouldBeEqualTo false
+                personOppgave.type.name shouldBeEqualTo PersonOppgaveType.BEHANDLERDIALOG_MELDING_UBESVART.name
+
+                verify(exactly = 1) {
+                    personoppgavehendelseProducer.sendPersonoppgavehendelse(
+                        hendelsetype = PersonoppgavehendelseType.BEHANDLERDIALOG_MELDING_UBESVART_MOTTATT,
+                        personIdent = personOppgave.personIdent,
+                        personoppgaveId = personOppgave.uuid,
+                    )
+                }
             }
         }
     }

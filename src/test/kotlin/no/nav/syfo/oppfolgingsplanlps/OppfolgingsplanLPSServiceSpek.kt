@@ -1,4 +1,4 @@
-package no.nav.syfo.personoppgave.oppfolgingsplanlps
+package no.nav.syfo.oppfolgingsplanlps
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue

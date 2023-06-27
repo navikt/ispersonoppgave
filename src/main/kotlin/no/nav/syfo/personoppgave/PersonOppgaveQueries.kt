@@ -7,9 +7,10 @@ import no.nav.syfo.dialogmotesvar.domain.Dialogmotesvar
 import no.nav.syfo.domain.PersonIdent
 import no.nav.syfo.behandlerdialog.domain.Melding
 import no.nav.syfo.personoppgave.domain.*
-import no.nav.syfo.personoppgave.oppfolgingsplanlps.kafka.KOppfolgingsplanLPS
+import no.nav.syfo.oppfolgingsplanlps.kafka.KOppfolgingsplanLPS
 import no.nav.syfo.util.convert
 import no.nav.syfo.util.convertNullable
+import no.nav.syfo.util.toTimestamp
 import java.sql.*
 import java.time.Instant
 import java.time.OffsetDateTime
@@ -75,20 +76,51 @@ const val queryUpdatePersonOppgaveBehandlet =
     WHERE uuid = ?
     """
 
+fun Connection.updatePersonOppgaveBehandlet(
+    updatedPersonoppgave: PersonOppgave,
+    commit: Boolean = false,
+): Int {
+    var updatedRows = 0
+    this.prepareStatement(queryUpdatePersonOppgaveBehandlet).use {
+        it.setTimestamp(1, updatedPersonoppgave.behandletTidspunkt.toTimestamp())
+        it.setString(2, updatedPersonoppgave.behandletVeilederIdent)
+        it.setString(3, updatedPersonoppgave.uuid.toString())
+        updatedRows += it.executeUpdate()
+    }
+    if (updatedRows < 1) {
+        throw SQLException("Updating oppgave failed, no rows affected.")
+    }
+    if (commit) {
+        this.commit()
+    }
+    return updatedRows
+}
+
 fun DatabaseInterface.updatePersonOppgaveBehandlet(
-    uuid: UUID,
-    veilederIdent: String
+    updatedPersonoppgave: PersonOppgave,
 ) {
-    val now = Timestamp.from(Instant.now())
     connection.use { connection ->
-        connection.prepareStatement(queryUpdatePersonOppgaveBehandlet).use {
-            it.setTimestamp(1, now)
-            it.setString(2, veilederIdent)
-            it.setString(3, uuid.toString())
-            it.execute()
+        connection.updatePersonOppgaveBehandlet(
+            updatedPersonoppgave = updatedPersonoppgave,
+            commit = true,
+        )
+    }
+}
+
+fun DatabaseInterface.updatePersonoppgaverBehandlet(
+    updatedPersonoppgaver: List<PersonOppgave>,
+): Int {
+    var updatedRows = 0
+    this.connection.use { connection ->
+        updatedPersonoppgaver.forEach { personoppgave ->
+            updatedRows += connection.updatePersonOppgaveBehandlet(
+                updatedPersonoppgave = personoppgave,
+            )
         }
         connection.commit()
     }
+
+    return updatedRows
 }
 
 const val queryUpdatePersonOppgaveOversikthendelse =
@@ -130,12 +162,12 @@ fun DatabaseInterface.createPersonOppgave(
     kOppfolgingsplanLPS: KOppfolgingsplanLPS,
     type: PersonOppgaveType
 ): Pair<Int, UUID> {
-    val uuid = UUID.randomUUID().toString()
+    val uuid = UUID.randomUUID()
     val now = Timestamp.from(Instant.now())
 
     connection.use { connection ->
         val personIdList = connection.prepareStatement(queryCreatePersonOppgave).use {
-            it.setString(1, uuid)
+            it.setString(1, uuid.toString())
             it.setString(2, kOppfolgingsplanLPS.uuid)
             it.setString(3, kOppfolgingsplanLPS.fodselsnummer)
             it.setString(4, kOppfolgingsplanLPS.virksomhetsnummer)
@@ -151,7 +183,7 @@ fun DatabaseInterface.createPersonOppgave(
         }
         connection.commit()
 
-        return Pair(personIdList.first(), UUID.fromString(uuid))
+        return Pair(personIdList.first(), uuid)
     }
 }
 
@@ -181,24 +213,26 @@ fun Connection.createPersonOppgave( // TODO: send in oppgave instead of dialogmo
 fun Connection.createPersonOppgave(
     melding: Melding,
     personOppgaveType: PersonOppgaveType,
-) {
+): UUID {
     val now = Timestamp.from(Instant.now())
+    val uuid = UUID.randomUUID()
 
     val personIdList = prepareStatement(queryCreatePersonOppgave).use {
-        it.setString(1, UUID.randomUUID().toString())
+        it.setString(1, uuid.toString())
         it.setString(2, melding.referanseUuid.toString())
         it.setString(3, melding.personIdent.value)
         it.setString(4, "")
         it.setString(5, personOppgaveType.name)
         it.setTimestamp(6, now)
-        it.setTimestamp(7, Timestamp.from(melding.tidspunkt.toInstant()))
-        it.setBoolean(8, true)
+        it.setTimestamp(7, now)
+        it.setBoolean(8, false)
         it.executeQuery().toList { getInt("id") }
     }
 
     if (personIdList.size != 1) {
         throw SQLException("Creating personopppgave failed, no rows affected.")
     }
+    return uuid
 }
 
 const val queryCreateBehandletPersonOppgave =
@@ -252,7 +286,7 @@ const val queryUpdatePersonoppgave =
 fun Connection.updatePersonoppgave(
     personoppgave: PersonOppgave,
 ) {
-    val behandletTidspunkt = personoppgave.behandletTidspunkt?.let { Timestamp.valueOf(it) }
+    val behandletTidspunkt = personoppgave.behandletTidspunkt?.toTimestamp()
     val publishedAt = personoppgave.publishedAt?.let { Timestamp.from(it.toInstant()) }
 
     val behandletOppgaver = prepareStatement(queryUpdatePersonoppgave).use {
@@ -269,33 +303,6 @@ fun Connection.updatePersonoppgave(
     if (behandletOppgaver != 1) {
         throw SQLException("Updating oppgave failed, no rows affected.")
     }
-}
-
-fun DatabaseInterface.updatePersonoppgaver(
-    personoppgaver: List<PersonOppgave>,
-): Int {
-    var updatedRows = 0
-    this.connection.use { connection ->
-        connection.prepareStatement(queryUpdatePersonoppgave).use {
-            personoppgaver.forEach { personoppgave ->
-                val behandletTidspunkt = personoppgave.behandletTidspunkt?.let { Timestamp.valueOf(it) }
-                val publishedAt = personoppgave.publishedAt?.let { Timestamp.from(it.toInstant()) }
-                it.setTimestamp(1, behandletTidspunkt)
-                it.setString(2, personoppgave.behandletVeilederIdent)
-                it.setTimestamp(3, Timestamp.valueOf(personoppgave.sistEndret))
-                it.setBoolean(4, personoppgave.publish)
-                it.setObject(5, publishedAt)
-                it.setString(6, personoppgave.uuid.toString())
-                updatedRows += it.executeUpdate()
-            }
-            if (updatedRows < 1) {
-                throw SQLException("Updating oppgave failed, no rows affected.")
-            }
-        }
-        connection.commit()
-    }
-
-    return updatedRows
 }
 
 fun ResultSet.toPPersonOppgave(): PPersonOppgave =

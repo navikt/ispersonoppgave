@@ -4,7 +4,9 @@ import no.nav.common.KafkaEnvironment
 import no.nav.syfo.Environment
 import no.nav.syfo.identhendelse.kafka.PDL_AKTOR_TOPIC
 import no.nav.syfo.kafka.*
-import no.nav.syfo.personoppgave.oppfolgingsplanlps.kafka.*
+import no.nav.syfo.oppfolgingsplanlps.kafka.KOppfolgingsplanLPS
+import no.nav.syfo.oppfolgingsplanlps.kafka.KOppfolgingsplanLPSDeserializer
+import no.nav.syfo.oppfolgingsplanlps.kafka.OPPFOLGINGSPLAN_LPS_NAV_TOPIC
 import no.nav.syfo.personoppgavehendelse.*
 import no.nav.syfo.personoppgavehendelse.domain.KPersonoppgavehendelse
 import org.apache.kafka.clients.CommonClientConfigs

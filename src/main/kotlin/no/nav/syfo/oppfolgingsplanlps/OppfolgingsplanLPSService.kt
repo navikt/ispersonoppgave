@@ -1,4 +1,4 @@
-package no.nav.syfo.personoppgave.oppfolgingsplanlps
+package no.nav.syfo.oppfolgingsplanlps
 
 import no.nav.syfo.database.DatabaseInterface
 import no.nav.syfo.domain.PersonIdent
@@ -6,7 +6,7 @@ import no.nav.syfo.metric.*
 import no.nav.syfo.personoppgave.*
 import no.nav.syfo.personoppgave.domain.PPersonOppgave
 import no.nav.syfo.personoppgave.domain.PersonOppgaveType
-import no.nav.syfo.personoppgave.oppfolgingsplanlps.kafka.KOppfolgingsplanLPS
+import no.nav.syfo.oppfolgingsplanlps.kafka.KOppfolgingsplanLPS
 import no.nav.syfo.personoppgavehendelse.PersonoppgavehendelseProducer
 import no.nav.syfo.personoppgavehendelse.domain.PersonoppgavehendelseType
 import no.nav.syfo.util.callIdArgument

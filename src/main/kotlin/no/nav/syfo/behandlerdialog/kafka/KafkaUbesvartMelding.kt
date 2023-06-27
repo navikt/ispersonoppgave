@@ -1,19 +1,16 @@
 package no.nav.syfo.behandlerdialog.kafka
 
 import no.nav.syfo.*
+import no.nav.syfo.behandlerdialog.UbesvartMeldingService
 import no.nav.syfo.behandlerdialog.domain.KMeldingDTO
-import no.nav.syfo.behandlerdialog.domain.Melding
 import no.nav.syfo.behandlerdialog.domain.toMelding
 import no.nav.syfo.behandlerdialog.kafka.KafkaUbesvartMelding.Companion.UBESVART_MELDING_TOPIC
 import no.nav.syfo.database.DatabaseInterface
 import no.nav.syfo.kafka.*
 import no.nav.syfo.metric.COUNT_PERSONOPPGAVEHENDELSE_UBESVART_MELDING_MOTTATT
-import no.nav.syfo.personoppgave.createPersonOppgave
-import no.nav.syfo.personoppgave.domain.PersonOppgaveType
 import org.apache.kafka.clients.consumer.*
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-import java.sql.Connection
 import java.time.*
 import java.util.*
 
@@ -21,9 +18,16 @@ fun launchKafkaTaskUbesvartMelding(
     database: DatabaseInterface,
     applicationState: ApplicationState,
     environment: Environment,
+    ubesvartMeldingService: UbesvartMeldingService,
 ) {
-    val kafkaUbesvartMelding = KafkaUbesvartMelding(database)
+    val kafkaUbesvartMelding = KafkaUbesvartMelding(
+        database = database,
+        ubesvartMeldingService = ubesvartMeldingService,
+    )
     val consumerProperties = kafkaAivenConsumerConfig<KMeldingDTODeserializer>(environment.kafka)
+    consumerProperties.apply {
+        this[ConsumerConfig.MAX_POLL_RECORDS_CONFIG] = "1"
+    }
     launchKafkaTask(
         applicationState = applicationState,
         kafkaConsumerService = kafkaUbesvartMelding,
@@ -32,7 +36,10 @@ fun launchKafkaTaskUbesvartMelding(
     )
 }
 
-class KafkaUbesvartMelding(private val database: DatabaseInterface) : KafkaConsumerService<KMeldingDTO> {
+class KafkaUbesvartMelding(
+    private val database: DatabaseInterface,
+    private val ubesvartMeldingService: UbesvartMeldingService,
+) : KafkaConsumerService<KMeldingDTO> {
     override val pollDurationInMillis: Long = 1000
     override fun pollAndProcessRecords(kafkaConsumer: KafkaConsumer<String, KMeldingDTO>) {
         val records = kafkaConsumer.poll(Duration.ofMillis(pollDurationInMillis))
@@ -63,7 +70,7 @@ class KafkaUbesvartMelding(private val database: DatabaseInterface) : KafkaConsu
                 val kafkaKey = UUID.fromString(record.key())
                 log.info("Received ubesvart melding with key: $kafkaKey of melding with uuid ${kMelding.uuid}")
 
-                processUbesvartMelding(
+                ubesvartMeldingService.processUbesvartMelding(
                     melding = kMelding.toMelding(),
                     connection = connection,
                 )
@@ -71,17 +78,6 @@ class KafkaUbesvartMelding(private val database: DatabaseInterface) : KafkaConsu
             }
             connection.commit()
         }
-    }
-
-    private fun processUbesvartMelding(
-        melding: Melding,
-        connection: Connection,
-    ) {
-        log.info("Received ubesvart melding with uuid: ${melding.referanseUuid}")
-        connection.createPersonOppgave(
-            melding = melding,
-            personOppgaveType = PersonOppgaveType.BEHANDLERDIALOG_MELDING_UBESVART,
-        )
     }
 
     companion object {

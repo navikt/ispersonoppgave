@@ -15,3 +15,5 @@ fun OffsetDateTime.toLocalDateTimeOslo(): LocalDateTime = this.atZoneSameInstant
 
 fun LocalDateTime.toOffsetDateTimeUTC(): OffsetDateTime =
     this.atZone(ZoneId.of("Europe/Oslo")).withZoneSameInstant(ZoneOffset.UTC).toOffsetDateTime()
+
+fun LocalDateTime?.toTimestamp() = this.let { Timestamp.valueOf(it) }
