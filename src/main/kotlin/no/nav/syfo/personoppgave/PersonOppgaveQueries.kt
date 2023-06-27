@@ -78,7 +78,7 @@ const val queryUpdatePersonOppgaveBehandlet =
 
 fun Connection.updatePersonOppgaveBehandlet(
     updatedPersonoppgave: PersonOppgave,
-    commit: Boolean = true,
+    commit: Boolean = false,
 ): Int {
     var updatedRows = 0
     this.prepareStatement(queryUpdatePersonOppgaveBehandlet).use {
@@ -100,7 +100,10 @@ fun DatabaseInterface.updatePersonOppgaveBehandlet(
     updatedPersonoppgave: PersonOppgave,
 ) {
     connection.use { connection ->
-        connection.updatePersonOppgaveBehandlet(updatedPersonoppgave)
+        connection.updatePersonOppgaveBehandlet(
+            updatedPersonoppgave = updatedPersonoppgave,
+            commit = true,
+        )
     }
 }
 
@@ -112,7 +115,6 @@ fun DatabaseInterface.updatePersonoppgaverBehandlet(
         updatedPersonoppgaver.forEach { personoppgave ->
             updatedRows += connection.updatePersonOppgaveBehandlet(
                 updatedPersonoppgave = personoppgave,
-                commit = false,
             )
         }
         connection.commit()

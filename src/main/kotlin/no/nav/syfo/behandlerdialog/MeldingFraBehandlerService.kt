@@ -55,7 +55,7 @@ class MeldingFraBehandlerService(
         )
         connection.updatePersonOppgaveBehandlet(behandletPersonoppgave)
 
-        personOppgaveService.publishIfAlleOppgaverBehandlet(
+        personOppgaveService.publishIfAllOppgaverBehandlet(
             behandletPersonOppgave = behandletPersonoppgave,
             veilederIdent = veilederIdent,
         )

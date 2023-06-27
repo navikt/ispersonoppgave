@@ -150,7 +150,7 @@ class VeilederPersonOppgaveApiV2Spek : Spek({
             }
 
             describe("Process OppfolgingsplanLSP-PersonOppgave for PersonIdent") {
-                it("returns OK and does NOT send Personoppgavehendelse if processed 1 of 2 existing oppfolging-Oppgave") {
+                it("returns OK and does NOT send Personoppgavehendelse if processed 1 of 2 existing oppfolgingsplan-oppgave") {
                     val kOppfolgingsplanLPS = generateKOppfolgingsplanLPS
                     val kOppfolgingsplanLPS2 = generateKOppfolgingsplanLPS2
                     val personOppgaveType = PersonOppgaveType.OPPFOLGINGSPLANLPS

@@ -54,7 +54,7 @@ class PersonOppgaveService(
         )
         LOG.info("Updated $updatedRows personoppgaver for personoppgavetype ${personoppgaver.first().type.name}")
 
-        publishIfAlleOppgaverBehandlet(
+        publishIfAllOppgaverBehandlet(
             behandletPersonOppgave = updatedPersonOppgaver.first(),
             veilederIdent = veilederIdent,
         )
@@ -89,13 +89,13 @@ class PersonOppgaveService(
             updatedPersonoppgave = behandletPersonOppgave,
         )
 
-        publishIfAlleOppgaverBehandlet(
+        publishIfAllOppgaverBehandlet(
             behandletPersonOppgave = behandletPersonOppgave,
             veilederIdent = veilederIdent,
         )
     }
 
-    fun publishIfAlleOppgaverBehandlet(behandletPersonOppgave: PersonOppgave, veilederIdent: String) {
+    fun publishIfAllOppgaverBehandlet(behandletPersonOppgave: PersonOppgave, veilederIdent: String) {
         val hasNoOtherUbehandledeOppgaverOfSameType = getUbehandledePersonOppgaver(
             personIdent = behandletPersonOppgave.personIdent,
             personOppgaveType = behandletPersonOppgave.type,
