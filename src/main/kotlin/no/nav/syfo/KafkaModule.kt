@@ -34,6 +34,7 @@ fun launchKafkaTasks(
     )
 
     val meldingFraBehandlerService = MeldingFraBehandlerService(
+        database = database,
         personOppgaveService = personOppgaveService,
     )
 

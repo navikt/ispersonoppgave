@@ -38,6 +38,7 @@ class MeldingFraBehandlerSpek : Spek({
                 personoppgavehendelseProducer = personoppgavehendelseProducer,
             )
             val meldingFraBehandlerService = MeldingFraBehandlerService(
+                database = database,
                 personOppgaveService = personOppgaveService,
             )
             val kafkaMeldingFraBehandler = KafkaMeldingFraBehandler(
