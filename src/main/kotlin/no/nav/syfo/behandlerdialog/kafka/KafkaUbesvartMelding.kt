@@ -25,6 +25,9 @@ fun launchKafkaTaskUbesvartMelding(
         ubesvartMeldingService = ubesvartMeldingService,
     )
     val consumerProperties = kafkaAivenConsumerConfig<KMeldingDTODeserializer>(environment.kafka)
+    consumerProperties.apply {
+        this[ConsumerConfig.MAX_POLL_RECORDS_CONFIG] = "1"
+    }
     launchKafkaTask(
         applicationState = applicationState,
         kafkaConsumerService = kafkaUbesvartMelding,

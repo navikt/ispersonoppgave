@@ -25,6 +25,9 @@ fun launchKafkaTaskMeldingFraBehandler(
         meldingFraBehandlerService = meldingFraBehandlerService,
     )
     val consumerProperties = kafkaAivenConsumerConfig<KMeldingDTODeserializer>(environment.kafka)
+    consumerProperties.apply {
+        this[ConsumerConfig.MAX_POLL_RECORDS_CONFIG] = "1"
+    }
     launchKafkaTask(
         applicationState = applicationState,
         kafkaConsumerService = kafkaMeldingFraBehandler,
@@ -74,6 +77,11 @@ class KafkaMeldingFraBehandler(
                 COUNT_PERSONOPPGAVEHENDELSE_DIALOGMELDING_SVAR_MOTTATT.increment()
             }
             connection.commit()
+        }
+
+        validRecords.forEach { record ->
+            val melding = record.value().toMelding()
+            meldingFraBehandlerService.handleExistingUbesvartMeldingOppgave(melding)
         }
     }
 
