@@ -12,7 +12,7 @@ fun generateKMeldingDTO(
 ) = KMeldingDTO(
     uuid = uuid.toString(),
     personIdent = UserConstants.ARBEIDSTAKER_FNR.value,
-    type = MeldingType.FORESPORSEL_PASIENT.name,
+    type = MeldingType.FORESPORSEL_PASIENT_TILLEGGSOPPLYSNINGER.name,
     conversationRef = UUID.randomUUID().toString(),
     parentRef = parentRef?.toString(),
     msgId = null,
