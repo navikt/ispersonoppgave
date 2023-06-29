@@ -2,7 +2,7 @@ package no.nav.syfo.identhendelse
 
 import io.ktor.server.testing.*
 import kotlinx.coroutines.runBlocking
-import no.nav.syfo.client.azuread.v2.AzureAdV2Client
+import no.nav.syfo.client.azuread.AzureAdClient
 import no.nav.syfo.client.pdl.PdlClient
 import no.nav.syfo.dialogmotestatusendring.createDialogmoteStatusendring
 import no.nav.syfo.dialogmotestatusendring.getDialogmoteStatusendring
@@ -26,15 +26,18 @@ object IdenthendelseServiceSpek : Spek({
 
             val externalMockEnvironment = ExternalMockEnvironment()
             val database = externalMockEnvironment.database
-            val azureAdV2Client = AzureAdV2Client(
+            val mockHttpClient = externalMockEnvironment.mockHttpClient
+            val azureAdClient = AzureAdClient(
                 azureAppClientId = externalMockEnvironment.environment.azureAppClientId,
                 azureAppClientSecret = externalMockEnvironment.environment.azureAppClientSecret,
                 azureTokenEndpoint = externalMockEnvironment.environment.azureTokenEndpoint,
+                httpClient = mockHttpClient,
             )
             val pdlClient = PdlClient(
-                azureAdV2Client = azureAdV2Client,
+                azureAdClient = azureAdClient,
                 pdlClientId = externalMockEnvironment.environment.pdlClientId,
                 pdlUrl = externalMockEnvironment.environment.pdlUrl,
+                httpClient = mockHttpClient,
             )
 
             val identhendelseService = IdenthendelseService(
@@ -44,14 +47,6 @@ object IdenthendelseServiceSpek : Spek({
 
             afterEachTest {
                 database.connection.dropData()
-            }
-
-            beforeGroup {
-                externalMockEnvironment.startExternalMocks()
-            }
-
-            afterGroup {
-                externalMockEnvironment.stopExternalMocks()
             }
 
             describe("Happy path") {

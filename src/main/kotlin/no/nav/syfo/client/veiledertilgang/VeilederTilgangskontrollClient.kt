@@ -1,12 +1,13 @@
 package no.nav.syfo.client.veiledertilgang
 
+import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.plugins.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
 import net.logstash.logback.argument.StructuredArguments
-import no.nav.syfo.client.azuread.v2.AzureAdV2Client
+import no.nav.syfo.client.azuread.AzureAdClient
 import no.nav.syfo.client.httpClientDefault
 import no.nav.syfo.domain.PersonIdent
 import no.nav.syfo.metric.*
@@ -14,11 +15,11 @@ import no.nav.syfo.util.*
 import org.slf4j.LoggerFactory
 
 class VeilederTilgangskontrollClient(
-    private val azureAdV2Client: AzureAdV2Client,
+    private val azureAdClient: AzureAdClient,
     private val syfotilgangskontrollClientId: String,
     private val endpointUrl: String,
+    private val httpClient: HttpClient = httpClientDefault(),
 ) {
-    private val httpClient = httpClientDefault()
 
     private val tilgangskontrollPersonUrl: String
 
@@ -31,7 +32,7 @@ class VeilederTilgangskontrollClient(
         token: String,
         callId: String,
     ): Boolean {
-        val oboToken = azureAdV2Client.getOnBehalfOfToken(
+        val oboToken = azureAdClient.getOnBehalfOfToken(
             scopeClientId = syfotilgangskontrollClientId,
             token = token,
         )?.accessToken ?: throw RuntimeException("Failed to request access to Person: Failed to get OBO token")

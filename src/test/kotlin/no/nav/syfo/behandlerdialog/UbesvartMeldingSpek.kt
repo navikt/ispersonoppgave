@@ -44,14 +44,6 @@ class UbesvartMeldingSpek : Spek({
                 clearMocks(personoppgavehendelseProducer)
             }
 
-            beforeGroup {
-                externalMockEnvironment.startExternalMocks()
-            }
-
-            afterGroup {
-                externalMockEnvironment.stopExternalMocks()
-            }
-
             it("stores ubesvart melding from kafka as oppgave in database and publish as new oppgave") {
                 val referanseUuid = UUID.randomUUID()
                 val kMeldingDTO = generateKMeldingDTO(referanseUuid)

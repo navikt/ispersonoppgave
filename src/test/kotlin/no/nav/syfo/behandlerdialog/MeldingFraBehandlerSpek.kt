@@ -56,14 +56,6 @@ class MeldingFraBehandlerSpek : Spek({
                 clearMocks(personoppgavehendelseProducer)
             }
 
-            beforeGroup {
-                externalMockEnvironment.startExternalMocks()
-            }
-
-            afterGroup {
-                externalMockEnvironment.stopExternalMocks()
-            }
-
             it("stores melding fra behandler from kafka in database and publish as new oppgave") {
                 val referanseUuid = UUID.randomUUID()
                 val kMeldingFraBehandler = generateKMeldingDTO(referanseUuid)

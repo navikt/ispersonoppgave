@@ -36,14 +36,6 @@ class DialogmoteStatusendringSpek : Spek({
                 database.connection.dropData()
             }
 
-            beforeGroup {
-                externalMockEnvironment.startExternalMocks()
-            }
-
-            afterGroup {
-                externalMockEnvironment.stopExternalMocks()
-            }
-
             it("stores dialogmøtesvar from kafka in database") {
                 val moteUuid = UUID.randomUUID()
                 val instantNow = Instant.now()
