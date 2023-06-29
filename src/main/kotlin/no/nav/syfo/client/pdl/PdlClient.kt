@@ -1,10 +1,11 @@
 package no.nav.syfo.client.pdl
 
+import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
-import no.nav.syfo.client.azuread.v2.AzureAdV2Client
+import no.nav.syfo.client.azuread.AzureAdClient
 import no.nav.syfo.client.httpClientDefault
 import no.nav.syfo.client.pdl.domain.*
 import no.nav.syfo.domain.PersonIdent
@@ -12,17 +13,17 @@ import no.nav.syfo.util.*
 import org.slf4j.LoggerFactory
 
 class PdlClient(
-    private val azureAdV2Client: AzureAdV2Client,
+    private val azureAdClient: AzureAdClient,
     private val pdlClientId: String,
     private val pdlUrl: String,
+    private val httpClient: HttpClient = httpClientDefault(),
 ) {
-    private val httpClient = httpClientDefault()
 
     suspend fun getPdlIdenter(
         personIdent: PersonIdent,
         callId: String? = null,
     ): PdlHentIdenter? {
-        val token = azureAdV2Client.getSystemToken(pdlClientId)
+        val token = azureAdClient.getSystemToken(pdlClientId)
             ?: throw RuntimeException("Failed to send PdlHentIdenterRequest to PDL: No token was found")
 
         val query = getPdlQuery(
@@ -63,6 +64,7 @@ class PdlClient(
                     pdlIdenterResponse.data
                 }
             }
+
             else -> {
                 COUNT_CALL_PDL_IDENTER_FAIL.increment()
                 logger.error("Request to get IdentList with url: $pdlClientId failed with reponse code ${response.status.value}")

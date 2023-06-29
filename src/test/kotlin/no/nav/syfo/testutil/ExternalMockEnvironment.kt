@@ -3,6 +3,7 @@ package no.nav.syfo.testutil
 import io.ktor.server.netty.*
 import no.nav.common.KafkaEnvironment
 import no.nav.syfo.ApplicationState
+import no.nav.syfo.testutil.mock.mockHttpClient
 import no.nav.syfo.testutil.mock.*
 
 class ExternalMockEnvironment(
@@ -14,33 +15,19 @@ class ExternalMockEnvironment(
         withSchemaRegistry = withSchemaRegistry,
     )
 
-    private val azureAdV2Mock = AzureAdV2Mock()
-    private val tilgangskontrollMock = VeilederTilgangskontrollMock()
-    private val pdlMock = PdlMock()
-
-    val externalApplicationMockMap = hashMapOf(
-        azureAdV2Mock.name to azureAdV2Mock.server,
-        tilgangskontrollMock.name to tilgangskontrollMock.server,
-        pdlMock.name to pdlMock.server,
-    )
-
     val environment = testEnvironment(
         kafkaBootstrapServers = embeddedEnvironment.brokersURL,
-        azureTokenEndpoint = azureAdV2Mock.url,
-        syfotilgangskontrollUrl = tilgangskontrollMock.url,
-        pdlUrl = pdlMock.url,
     )
 
+    val mockHttpClient = mockHttpClient(environment = environment)
     val wellKnownInternADV2Mock = wellKnownInternADV2Mock()
 }
 
 fun ExternalMockEnvironment.startExternalMocks() {
-    this.externalApplicationMockMap.start()
     this.embeddedEnvironment.start()
 }
 
 fun ExternalMockEnvironment.stopExternalMocks() {
-    this.externalApplicationMockMap.stop()
     this.database.stop()
     this.embeddedEnvironment.tearDown()
 }
@@ -48,14 +35,5 @@ fun ExternalMockEnvironment.stopExternalMocks() {
 fun HashMap<String, NettyApplicationEngine>.start() {
     this.forEach {
         it.value.start()
-    }
-}
-
-fun HashMap<String, NettyApplicationEngine>.stop(
-    gracePeriodMillis: Long = 1L,
-    timeoutMillis: Long = 10L
-) {
-    this.forEach {
-        it.value.stop(gracePeriodMillis, timeoutMillis)
     }
 }

@@ -2,22 +2,31 @@ package no.nav.syfo.testutil
 
 import io.ktor.server.application.*
 import no.nav.syfo.api.apiModule
-import no.nav.syfo.client.azuread.v2.AzureAdV2Client
+import no.nav.syfo.client.azuread.AzureAdClient
+import no.nav.syfo.client.veiledertilgang.VeilederTilgangskontrollClient
 import no.nav.syfo.personoppgavehendelse.PersonoppgavehendelseProducer
 
 fun Application.testApiModule(
     externalMockEnvironment: ExternalMockEnvironment,
     personoppgavehendelseProducer: PersonoppgavehendelseProducer,
 ) {
-    val azureAdV2Client = AzureAdV2Client(
+    val mockHttpClient = externalMockEnvironment.mockHttpClient
+    val azureAdClient = AzureAdClient(
         azureAppClientId = externalMockEnvironment.environment.azureAppClientId,
         azureAppClientSecret = externalMockEnvironment.environment.azureAppClientSecret,
         azureTokenEndpoint = externalMockEnvironment.environment.azureTokenEndpoint,
+        httpClient = mockHttpClient,
+    )
+    val veilederTilgangskontrollClient = VeilederTilgangskontrollClient(
+        azureAdClient = azureAdClient,
+        syfotilgangskontrollClientId = externalMockEnvironment.environment.syfotilgangskontrollClientId,
+        endpointUrl = externalMockEnvironment.environment.syfotilgangskontrollUrl,
+        httpClient = mockHttpClient
     )
 
     apiModule(
         applicationState = externalMockEnvironment.applicationState,
-        azureAdV2Client = azureAdV2Client,
+        veilederTilgangskontrollClient = veilederTilgangskontrollClient,
         database = externalMockEnvironment.database,
         environment = externalMockEnvironment.environment,
         personoppgavehendelseProducer = personoppgavehendelseProducer,

@@ -6,7 +6,6 @@ import io.ktor.server.routing.*
 import no.nav.syfo.ApplicationState
 import no.nav.syfo.Environment
 import no.nav.syfo.api.authentication.*
-import no.nav.syfo.client.azuread.v2.AzureAdV2Client
 import no.nav.syfo.client.veiledertilgang.VeilederTilgangskontrollClient
 import no.nav.syfo.database.DatabaseInterface
 import no.nav.syfo.personoppgave.PersonOppgaveService
@@ -15,7 +14,7 @@ import no.nav.syfo.personoppgavehendelse.PersonoppgavehendelseProducer
 
 fun Application.apiModule(
     applicationState: ApplicationState,
-    azureAdV2Client: AzureAdV2Client,
+    veilederTilgangskontrollClient: VeilederTilgangskontrollClient,
     database: DatabaseInterface,
     environment: Environment,
     personoppgavehendelseProducer: PersonoppgavehendelseProducer,
@@ -38,11 +37,6 @@ fun Application.apiModule(
     val personOppgaveService = PersonOppgaveService(
         database = database,
         personoppgavehendelseProducer = personoppgavehendelseProducer,
-    )
-    val veilederTilgangskontrollClient = VeilederTilgangskontrollClient(
-        azureAdV2Client = azureAdV2Client,
-        syfotilgangskontrollClientId = environment.syfotilgangskontrollClientId,
-        endpointUrl = environment.syfotilgangskontrollUrl,
     )
 
     routing {

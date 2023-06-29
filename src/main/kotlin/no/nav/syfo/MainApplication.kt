@@ -7,8 +7,9 @@ import io.ktor.server.engine.*
 import io.ktor.server.netty.*
 import no.nav.syfo.api.apiModule
 import no.nav.syfo.api.authentication.getWellKnown
-import no.nav.syfo.client.azuread.v2.AzureAdV2Client
+import no.nav.syfo.client.azuread.AzureAdClient
 import no.nav.syfo.client.pdl.PdlClient
+import no.nav.syfo.client.veiledertilgang.VeilederTilgangskontrollClient
 import no.nav.syfo.cronjob.cronjobModule
 import no.nav.syfo.database.database
 import no.nav.syfo.database.databaseModule
@@ -40,14 +41,19 @@ fun main() {
         wellKnownUrl = environment.azureAppWellKnownUrl,
     )
 
-    val azureAdV2Client = AzureAdV2Client(
+    val azureAdClient = AzureAdClient(
         azureAppClientId = environment.azureAppClientId,
         azureAppClientSecret = environment.azureAppClientSecret,
         azureTokenEndpoint = environment.azureTokenEndpoint,
     )
+    val veilederTilgangskontrollClient = VeilederTilgangskontrollClient(
+        azureAdClient = azureAdClient,
+        syfotilgangskontrollClientId = environment.syfotilgangskontrollClientId,
+        endpointUrl = environment.syfotilgangskontrollUrl,
+    )
 
     val pdlClient = PdlClient(
-        azureAdV2Client = azureAdV2Client,
+        azureAdClient = azureAdClient,
         pdlClientId = environment.pdlClientId,
         pdlUrl = environment.pdlUrl,
     )
@@ -65,7 +71,7 @@ fun main() {
             )
             apiModule(
                 applicationState = applicationState,
-                azureAdV2Client = azureAdV2Client,
+                veilederTilgangskontrollClient = veilederTilgangskontrollClient,
                 database = database,
                 environment = environment,
                 personoppgavehendelseProducer = personoppgavehendelseProducer,
