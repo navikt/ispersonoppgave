@@ -45,6 +45,7 @@ fun launchKafkaTasks(
     )
 
     val avvistMeldingService = AvvistMeldingService(
+        database = database,
         personOppgaveService = personOppgaveService,
     )
 
@@ -81,7 +82,6 @@ fun launchKafkaTasks(
 
     if (environment.toggleAvvistMeldingConsuming) {
         launchKafkaTaskAvvistMelding(
-            database = database,
             applicationState = applicationState,
             environment = environment,
             avvistMeldingService = avvistMeldingService,

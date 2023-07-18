@@ -39,8 +39,8 @@ class AvvistMeldingSpek : Spek({
                 database = database,
                 personoppgavehendelseProducer = personoppgavehendelseProducer,
             )
-            val avvistMeldingService = AvvistMeldingService(personOppgaveService)
-            val avvistMeldingConsumerService = AvvistMeldingConsumerService(database, avvistMeldingService)
+            val avvistMeldingService = AvvistMeldingService(database, personOppgaveService)
+            val avvistMeldingConsumerService = AvvistMeldingConsumerService(avvistMeldingService)
 
             beforeEachTest {
                 every { kafkaConsumer.commitSync() } returns Unit
