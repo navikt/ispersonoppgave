@@ -19,7 +19,7 @@ class AvvistMeldingService(
             personOppgaveType = PersonOppgaveType.BEHANDLERDIALOG_MELDING_AVVIST,
         )
         personOppgaveService.publishPersonoppgaveHendelse(
-            personoppgavehendelseType = PersonoppgavehendelseType.BEHANDLERDIALOG_MELDING_UBESVART_MOTTATT,
+            personoppgavehendelseType = PersonoppgavehendelseType.BEHANDLERDIALOG_MELDING_AVVIST_MOTTATT,
             personIdent = melding.personIdent,
             personoppgaveUUID = oppgaveUuid,
         )

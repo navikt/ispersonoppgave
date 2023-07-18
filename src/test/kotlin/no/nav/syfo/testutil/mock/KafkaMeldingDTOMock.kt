@@ -10,7 +10,7 @@ import java.time.Duration
 import java.util.*
 
 fun mockReceiveMeldingDTO(
-    kMeldingDTO: KMeldingDTO,
+    kMeldingDTO: KMeldingDTO?,
     kafkaConsumer: KafkaConsumer<String, KMeldingDTO>,
 ) {
     every { kafkaConsumer.poll(any<Duration>()) } returns ConsumerRecords(
@@ -30,7 +30,7 @@ fun mockTopicPartition() = TopicPartition(
 )
 
 fun meldingDTORecord(
-    kMeldingDTO: KMeldingDTO,
+    kMeldingDTO: KMeldingDTO?,
 ) = ConsumerRecord(
     "topicnavn",
     0,

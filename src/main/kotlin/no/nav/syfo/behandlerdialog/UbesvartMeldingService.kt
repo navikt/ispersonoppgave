@@ -20,7 +20,7 @@ class UbesvartMeldingService(
         )
 
         personOppgaveService.publishPersonoppgaveHendelse(
-            personoppgavehendelseType = PersonoppgavehendelseType.BEHANDLERDIALOG_MELDING_AVVIST_MOTTATT,
+            personoppgavehendelseType = PersonoppgavehendelseType.BEHANDLERDIALOG_MELDING_UBESVART_MOTTATT,
             personIdent = melding.personIdent,
             personoppgaveUUID = oppgaveUuid,
         )

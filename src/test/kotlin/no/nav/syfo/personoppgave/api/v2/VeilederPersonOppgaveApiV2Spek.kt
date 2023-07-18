@@ -289,7 +289,9 @@ class VeilederPersonOppgaveApiV2Spek : Spek({
                         response.status() shouldBeEqualTo HttpStatusCode.OK
                     }
                 }
+            }
 
+            describe("Behandle behandlerdialog-oppgaver") {
                 it("returns OK on behandle and sends Personoppgavehendelse if no other ubehandlede ubesvart-oppgave") {
                     val meldingUuid = UUID.randomUUID()
                     val ubesvartMelding = generateKMeldingDTO(uuid = meldingUuid).toMelding()
@@ -330,6 +332,62 @@ class VeilederPersonOppgaveApiV2Spek : Spek({
                         connection.createPersonOppgave(
                             melding = otherUbesvartMelding,
                             personOppgaveType = PersonOppgaveType.BEHANDLERDIALOG_MELDING_UBESVART,
+                        )
+                        connection.commit()
+                    }
+
+                    val urlProcess = "$baseUrl/$oppgaveUuid/behandle"
+                    with(
+                        handleRequest(HttpMethod.Post, urlProcess) {
+                            addHeader(HttpHeaders.Authorization, bearerHeader(validToken))
+                        }
+                    ) {
+                        response.status() shouldBeEqualTo HttpStatusCode.OK
+
+                        val records = getRecordsFromTopic(consumerPersonoppgavehendelse)
+                        records.size shouldBeEqualTo 0
+                    }
+                }
+
+                it("returns OK on behandle and sends Personoppgavehendelse if no other ubehandlede avvist-oppgaver") {
+                    val meldingUuid = UUID.randomUUID()
+                    val avvistMelding = generateKMeldingDTO(uuid = meldingUuid).toMelding()
+                    var oppgaveUuid: UUID
+                    database.connection.use { connection ->
+                        oppgaveUuid = connection.createPersonOppgave(
+                            melding = avvistMelding,
+                            personOppgaveType = PersonOppgaveType.BEHANDLERDIALOG_MELDING_AVVIST,
+                        )
+                        connection.commit()
+                    }
+
+                    val urlProcess = "$baseUrl/$oppgaveUuid/behandle"
+                    with(
+                        handleRequest(HttpMethod.Post, urlProcess) {
+                            addHeader(HttpHeaders.Authorization, bearerHeader(validToken))
+                        }
+                    ) {
+                        response.status() shouldBeEqualTo HttpStatusCode.OK
+
+                        val records = getRecordsFromTopic(consumerPersonoppgavehendelse)
+                        records.size shouldBeEqualTo 1
+                        records.first().hendelsetype shouldBeEqualTo PersonoppgavehendelseType.BEHANDLERDIALOG_MELDING_AVVIST_BEHANDLET.name
+                    }
+                }
+
+                it("returns OK on behandle and do NOT send Personoppgavehendelse where there are other ubehandlede avvist-oppgaver") {
+                    val meldingUuid = UUID.randomUUID()
+                    val avvistMelding = generateKMeldingDTO(uuid = meldingUuid).toMelding()
+                    val otherAvvistMelding = generateKMeldingDTO().toMelding()
+                    var oppgaveUuid: UUID
+                    database.connection.use { connection ->
+                        oppgaveUuid = connection.createPersonOppgave(
+                            melding = avvistMelding,
+                            personOppgaveType = PersonOppgaveType.BEHANDLERDIALOG_MELDING_AVVIST,
+                        )
+                        connection.createPersonOppgave(
+                            melding = otherAvvistMelding,
+                            personOppgaveType = PersonOppgaveType.BEHANDLERDIALOG_MELDING_AVVIST,
                         )
                         connection.commit()
                     }
