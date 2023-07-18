@@ -10,10 +10,6 @@ import java.sql.Connection
 class AvvistMeldingService(
     private val personOppgaveService: PersonOppgaveService,
 ) {
-
-    // Lage personoppgave
-    // Publisere på kafka syfooversiktsrv
-
     fun processAvvistMelding(
         melding: Melding,
         connection: Connection,
@@ -28,5 +24,4 @@ class AvvistMeldingService(
             personoppgaveUUID = oppgaveUuid,
         )
     }
-
 }

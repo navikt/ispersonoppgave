@@ -3,14 +3,13 @@ package no.nav.syfo.behandlerdialog.kafka
 import no.nav.syfo.ApplicationState
 import no.nav.syfo.Environment
 import no.nav.syfo.behandlerdialog.AvvistMeldingService
-import no.nav.syfo.behandlerdialog.UbesvartMeldingService
 import no.nav.syfo.behandlerdialog.domain.KMeldingDTO
 import no.nav.syfo.behandlerdialog.domain.toMelding
 import no.nav.syfo.database.DatabaseInterface
 import no.nav.syfo.kafka.KafkaConsumerService
 import no.nav.syfo.kafka.kafkaAivenConsumerConfig
 import no.nav.syfo.kafka.launchKafkaTask
-import no.nav.syfo.metric.COUNT_PERSONOPPGAVEHENDELSE_DIALOGMELDING_SVAR_MOTTATT
+import no.nav.syfo.metric.COUNT_PERSONOPPGAVEHENDELSE_AVVIST_MELDING_MOTTATT
 import org.apache.kafka.clients.consumer.ConsumerConfig
 import org.apache.kafka.clients.consumer.ConsumerRecords
 import org.apache.kafka.clients.consumer.KafkaConsumer
@@ -23,11 +22,11 @@ fun launchKafkaTaskAvvistMelding(
     database: DatabaseInterface,
     applicationState: ApplicationState,
     environment: Environment,
-    ubesvartMeldingService: UbesvartMeldingService,
+    avvistMeldingService: AvvistMeldingService,
 ) {
-    val kafkaUbesvartMelding = KafkaUbesvartMelding(
+    val kafkaAvvistMelding = AvvistMeldingConsumerService(
         database = database,
-        ubesvartMeldingService = ubesvartMeldingService,
+        avvistMeldingService = avvistMeldingService,
     )
     val consumerProperties = kafkaAivenConsumerConfig<KMeldingDTODeserializer>(environment.kafka)
     consumerProperties.apply {
@@ -35,13 +34,13 @@ fun launchKafkaTaskAvvistMelding(
     }
     launchKafkaTask(
         applicationState = applicationState,
-        kafkaConsumerService = kafkaUbesvartMelding,
+        kafkaConsumerService = kafkaAvvistMelding,
         consumerProperties = consumerProperties,
-        topic = KafkaUbesvartMelding.UBESVART_MELDING_TOPIC,
+        topic = AvvistMeldingConsumerService.AVVIST_MELDING_TOPIC,
     )
 }
 
-class AvvistMeldingConsumerService (
+class AvvistMeldingConsumerService(
     private val database: DatabaseInterface,
     private val avvistMeldingService: AvvistMeldingService,
 ) : KafkaConsumerService<KMeldingDTO> {
@@ -49,7 +48,6 @@ class AvvistMeldingConsumerService (
     override val pollDurationInMillis: Long = 1000
 
     override fun pollAndProcessRecords(kafkaConsumer: KafkaConsumer<String, KMeldingDTO>) {
-        // Poll records with consumer
         val records = kafkaConsumer.poll(Duration.ofMillis(pollDurationInMillis))
         if (records.count() > 0) {
             log.info("AvvistMelding trace: Received ${records.count()} records")
@@ -76,8 +74,7 @@ class AvvistMeldingConsumerService (
                     melding = kMelding.toMelding(),
                     connection = connection,
                 )
-                // TODO: fix
-                COUNT_PERSONOPPGAVEHENDELSE_DIALOGMELDING_SVAR_MOTTATT.increment()
+                COUNT_PERSONOPPGAVEHENDELSE_AVVIST_MELDING_MOTTATT.increment()
             }
             connection.commit()
         }
