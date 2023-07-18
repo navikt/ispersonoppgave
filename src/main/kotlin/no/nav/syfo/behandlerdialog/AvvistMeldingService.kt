@@ -7,22 +7,26 @@ import no.nav.syfo.personoppgave.domain.PersonOppgaveType
 import no.nav.syfo.personoppgavehendelse.domain.PersonoppgavehendelseType
 import java.sql.Connection
 
-class UbesvartMeldingService(
+class AvvistMeldingService(
     private val personOppgaveService: PersonOppgaveService,
 ) {
-    fun processUbesvartMelding(
+
+    // Lage personoppgave
+    // Publisere på kafka syfooversiktsrv
+
+    fun processAvvistMelding(
         melding: Melding,
         connection: Connection,
     ) {
         val oppgaveUuid = connection.createPersonOppgave(
             melding = melding,
-            personOppgaveType = PersonOppgaveType.BEHANDLERDIALOG_MELDING_UBESVART,
+            personOppgaveType = PersonOppgaveType.BEHANDLERDIALOG_MELDING_AVVIST,
         )
-
         personOppgaveService.publishPersonoppgaveHendelse(
-            personoppgavehendelseType = PersonoppgavehendelseType.BEHANDLERDIALOG_MELDING_AVVIST_MOTTATT,
+            personoppgavehendelseType = PersonoppgavehendelseType.BEHANDLERDIALOG_MELDING_UBESVART_MOTTATT,
             personIdent = melding.personIdent,
             personoppgaveUUID = oppgaveUuid,
         )
     }
+
 }
