@@ -1,7 +1,9 @@
 package no.nav.syfo
 
+import no.nav.syfo.behandlerdialog.AvvistMeldingService
 import no.nav.syfo.behandlerdialog.MeldingFraBehandlerService
 import no.nav.syfo.behandlerdialog.UbesvartMeldingService
+import no.nav.syfo.behandlerdialog.kafka.launchKafkaTaskAvvistMelding
 import no.nav.syfo.client.pdl.PdlClient
 import no.nav.syfo.database.DatabaseInterface
 import no.nav.syfo.dialogmotestatusendring.kafka.launchKafkaTaskDialogmotestatusendring
@@ -42,6 +44,11 @@ fun launchKafkaTasks(
         personOppgaveService = personOppgaveService,
     )
 
+    val avvistMeldingService = AvvistMeldingService(
+        database = database,
+        personOppgaveService = personOppgaveService,
+    )
+
     launchKafkaTaskOppfolgingsplanLPS(
         applicationState = applicationState,
         environment = environment,
@@ -72,6 +79,14 @@ fun launchKafkaTasks(
         environment = environment,
         ubesvartMeldingService = ubesvartMeldingService,
     )
+
+    if (environment.toggleAvvistMeldingConsuming) {
+        launchKafkaTaskAvvistMelding(
+            applicationState = applicationState,
+            environment = environment,
+            avvistMeldingService = avvistMeldingService,
+        )
+    }
 
     val identhendelseService = IdenthendelseService(
         database = database,

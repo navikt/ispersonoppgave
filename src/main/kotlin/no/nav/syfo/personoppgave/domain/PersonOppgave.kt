@@ -62,6 +62,10 @@ fun PersonOppgave.toHendelseType(): PersonoppgavehendelseType {
             if (isUBehandlet()) PersonoppgavehendelseType.BEHANDLERDIALOG_MELDING_UBESVART_MOTTATT
             else PersonoppgavehendelseType.BEHANDLERDIALOG_MELDING_UBESVART_BEHANDLET
         }
+        PersonOppgaveType.BEHANDLERDIALOG_MELDING_AVVIST -> {
+            if (isUBehandlet()) PersonoppgavehendelseType.BEHANDLERDIALOG_MELDING_AVVIST_MOTTATT
+            else PersonoppgavehendelseType.BEHANDLERDIALOG_MELDING_AVVIST_BEHANDLET
+        }
     }
 }
 
@@ -89,5 +93,6 @@ fun PersonOppgave.behandleAndReadyForPublish(veilederIdent: String): PersonOppga
 fun PersonOppgave.shouldPublishOppgaveHendelseNow(): Boolean {
     return type == PersonOppgaveType.OPPFOLGINGSPLANLPS ||
         type == PersonOppgaveType.BEHANDLERDIALOG_SVAR ||
-        type == PersonOppgaveType.BEHANDLERDIALOG_MELDING_UBESVART
+        type == PersonOppgaveType.BEHANDLERDIALOG_MELDING_UBESVART ||
+        type == PersonOppgaveType.BEHANDLERDIALOG_MELDING_AVVIST
 }
