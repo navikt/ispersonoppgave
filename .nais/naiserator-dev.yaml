@@ -84,4 +84,4 @@ spec:
     - name: PDL_URL
       value: "https://pdl-api.dev-fss-pub.nais.io/graphql"
     - name: TOGGLE_AVVIST_MELDING_CONSUMING
-      value: "false"
+      value: "true"
