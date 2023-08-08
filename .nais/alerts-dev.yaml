@@ -1,25 +1,31 @@
-apiVersion: "nais.io/v1"
-kind: "Alert"
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
 metadata:
   name: ispersonoppgave-alerts
   namespace: teamsykefravr
   labels:
     team: teamsykefravr
 spec:
-  receivers:
-    slack:
-      channel: '#syfo-alarm'
-      prependText: '<!here> | '
-  alerts:
-    - alert: ISPERSONOPPGAVE IS DOWN(DEV)
-      expr: count(kube_pod_container_status_running{container="ispersonoppgave"}) == 0
-      for: 5m
-      description: "Det er ingen pods for app kjørende i namespace og dermed er appen nede"
-      action: "Undersøk hvofor pods er nede og få den kjørende igjen!"
-      severity: danger
-    - alert: ISPERSONOPPGAVE is restarting alot(DEV)
-      expr: sum(increase(kube_pod_container_status_restarts_total{container="ispersonoppgave"}[1h])) > 5
-      for: 10m
-      description: "App restarter mange ganger"
-      action: "Undersøk hvorfor pods restarter ofte."
-      severity: warning
+  groups:
+    - name: ispersonoppgave-alerts
+      rules:
+        - alert: ISPERSONOPPGAVE IS DOWN(DEV)
+          expr: count(kube_pod_container_status_running{container="ispersonoppgave"}) == 0
+          for: 5m
+          annotations:
+            consequence: Application is unavailable
+            action: "Undersøk hvorfor pods er nede og få den kjørende igjen!"
+            summary: "Det er ingen pods for app kjørende i namespace og dermed er appen nede."
+          labels:
+            namespace: teamsykefravr
+            severity: danger
+        - alert: ISPERSONOPPGAVE is restarting alot(DEV)
+          expr: sum(increase(kube_pod_container_status_restarts_total{container="ispersonoppgave"}[1h])) > 5
+          for: 10m
+          annotations:
+            consequence: Application is restarting
+            action: "Undersøk hvorfor pods restarter ofte."
+            summary: "App restarter mange ganger"
+          labels:
+            namespace: teamsykefravr
+            severity: warning
