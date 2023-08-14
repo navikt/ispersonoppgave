@@ -80,13 +80,11 @@ fun launchKafkaTasks(
         ubesvartMeldingService = ubesvartMeldingService,
     )
 
-    if (environment.toggleAvvistMeldingConsuming) {
-        launchKafkaTaskAvvistMelding(
-            applicationState = applicationState,
-            environment = environment,
-            avvistMeldingService = avvistMeldingService,
-        )
-    }
+    launchKafkaTaskAvvistMelding(
+        applicationState = applicationState,
+        environment = environment,
+        avvistMeldingService = avvistMeldingService,
+    )
 
     val identhendelseService = IdenthendelseService(
         database = database,
