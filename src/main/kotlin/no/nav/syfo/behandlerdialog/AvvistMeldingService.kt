@@ -20,10 +20,6 @@ class AvvistMeldingService(
                 val melding = record.second
                 log.info("Received avvistMelding with key=${record.first}, uuid=${melding.referanseUuid} and parentRef=${melding.parentRef}")
 
-                if (melding.referanseUuid.toString() == "f7bfd93e-3807-448d-ad0b-07fb51855ad2") {
-                    return@forEach
-                }
-
                 val oppgaveUuid = connection.createPersonOppgave(
                     melding = melding,
                     personOppgaveType = PersonOppgaveType.BEHANDLERDIALOG_MELDING_AVVIST,
