@@ -84,7 +84,7 @@ class AvvistMeldingSpek : Spek({
                 kPersonoppgavehendelse.hendelsetype shouldBeEqualTo PersonoppgavehendelseType.BEHANDLERDIALOG_MELDING_AVVIST_MOTTATT.name
                 kPersonoppgavehendelse.personident shouldBeEqualTo UserConstants.ARBEIDSTAKER_FNR.value
             }
-            it("stores avvist melding from kafka as oppgave in database and publish as new oppgave also when ubesvartopphgave exists for same referanseUuid") {
+            it("stores avvist melding from kafka as oppgave in database and publish as new oppgave also when ubesvartoppgave exists for same referanseUuid") {
                 val referanseUuid = UUID.randomUUID()
                 database.connection.use { connection ->
                     connection.createPersonOppgave(
