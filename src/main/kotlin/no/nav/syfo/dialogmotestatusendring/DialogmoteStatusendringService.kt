@@ -17,7 +17,7 @@ fun processDialogmoteStatusendring(
     val personOppgave = connection
         .getPersonOppgaverByReferanseUuid(statusendring.dialogmoteUuid)
         .map { it.toPersonOppgave() }
-        .firstOrNull { it.type == PersonOppgaveType.DIALOGMOTESVAR && it.isUBehandlet() }
+        .firstOrNull { it.type == PersonOppgaveType.DIALOGMOTESVAR }
 
     if (personOppgave == null) {
         val personoppgaveUuid = UUID.randomUUID()
