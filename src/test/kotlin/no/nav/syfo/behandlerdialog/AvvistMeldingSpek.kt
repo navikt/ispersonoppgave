@@ -69,7 +69,7 @@ class AvvistMeldingSpek : Spek({
                     kafkaConsumer = kafkaConsumer,
                 )
 
-                val personOppgave = database.connection.getPersonOppgaveByReferanseUuid(
+                val personOppgave = database.connection.getPersonOppgaverByReferanseUuid(
                     referanseUuid = referanseUuid,
                 ).map { it.toPersonOppgave() }.first()
                 personOppgave.publish shouldBeEqualTo false
@@ -117,7 +117,7 @@ class AvvistMeldingSpek : Spek({
                     kafkaConsumer = kafkaConsumer,
                 )
 
-                val personOppgave = database.connection.getPersonOppgaveByReferanseUuid(
+                val personOppgave = database.connection.getPersonOppgaverByReferanseUuid(
                     referanseUuid = referanseUuid,
                 ).map { it.toPersonOppgave() }.first { it.type == PersonOppgaveType.BEHANDLERDIALOG_MELDING_AVVIST }
 

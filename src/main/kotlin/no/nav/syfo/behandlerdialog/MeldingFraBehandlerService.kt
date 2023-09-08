@@ -5,7 +5,7 @@ import no.nav.syfo.database.DatabaseInterface
 import no.nav.syfo.personoppgave.PersonOppgaveService
 import no.nav.syfo.personoppgave.createPersonOppgave
 import no.nav.syfo.personoppgave.domain.*
-import no.nav.syfo.personoppgave.getPersonOppgaveByReferanseUuid
+import no.nav.syfo.personoppgave.getPersonOppgaverByReferanseUuid
 import no.nav.syfo.personoppgave.updatePersonOppgaveBehandlet
 import no.nav.syfo.personoppgavehendelse.domain.PersonoppgavehendelseType
 import no.nav.syfo.util.Constants
@@ -38,7 +38,7 @@ class MeldingFraBehandlerService(
         if (melding.parentRef != null) {
             database.connection.use { connection ->
                 val existingOppgave = connection
-                    .getPersonOppgaveByReferanseUuid(melding.parentRef)
+                    .getPersonOppgaverByReferanseUuid(melding.parentRef)
                     .map { it.toPersonOppgave() }
                     .firstOrNull { it.type == PersonOppgaveType.BEHANDLERDIALOG_MELDING_UBESVART && it.isUBehandlet() }
 

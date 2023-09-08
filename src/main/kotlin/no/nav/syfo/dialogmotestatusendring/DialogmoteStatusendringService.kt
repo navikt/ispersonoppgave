@@ -15,7 +15,7 @@ fun processDialogmoteStatusendring(
     log.info("Received statusendring of type ${statusendring.type} and uuid ${statusendring.dialogmoteUuid}")
 
     val personOppgave = connection
-        .getPersonOppgaveByReferanseUuid(statusendring.dialogmoteUuid)
+        .getPersonOppgaverByReferanseUuid(statusendring.dialogmoteUuid)
         .map { it.toPersonOppgave() }
         .firstOrNull { it.type == PersonOppgaveType.DIALOGMOTESVAR && it.isUBehandlet() }
 

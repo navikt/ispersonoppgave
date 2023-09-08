@@ -7,7 +7,7 @@ import no.nav.syfo.behandlerdialog.kafka.KafkaUbesvartMelding
 import no.nav.syfo.personoppgave.PersonOppgaveService
 import no.nav.syfo.personoppgave.domain.PersonOppgaveType
 import no.nav.syfo.personoppgave.domain.toPersonOppgave
-import no.nav.syfo.personoppgave.getPersonOppgaveByReferanseUuid
+import no.nav.syfo.personoppgave.getPersonOppgaverByReferanseUuid
 import no.nav.syfo.personoppgavehendelse.PersonoppgavehendelseProducer
 import no.nav.syfo.personoppgavehendelse.domain.PersonoppgavehendelseType
 import no.nav.syfo.testutil.*
@@ -57,7 +57,7 @@ class UbesvartMeldingSpek : Spek({
                     kafkaConsumer = kafkaConsumer,
                 )
 
-                val personOppgave = database.connection.getPersonOppgaveByReferanseUuid(
+                val personOppgave = database.connection.getPersonOppgaverByReferanseUuid(
                     referanseUuid = referanseUuid,
                 ).map { it.toPersonOppgave() }.first()
                 personOppgave.publish shouldBeEqualTo false

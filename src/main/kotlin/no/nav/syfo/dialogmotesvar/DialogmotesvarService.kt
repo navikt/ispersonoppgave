@@ -21,7 +21,7 @@ fun processDialogmotesvar(
     if (isIrrelevantDialogmotesvar(connection, dialogmotesvar, cutoffDate)) return
 
     val personOppgave = connection
-        .getPersonOppgaveByReferanseUuid(dialogmotesvar.moteuuid)
+        .getPersonOppgaverByReferanseUuid(dialogmotesvar.moteuuid)
         .map { it.toPersonOppgave() }
         .firstOrNull { it.type == PersonOppgaveType.DIALOGMOTESVAR && it.isUBehandlet() }
 
