@@ -1,0 +1,2 @@
+ALTER TABLE person_oppgave DROP CONSTRAINT person_oppgave_referanse_uuid_key;
+CREATE INDEX ix_person_oppgave_referanse_uuid ON person_oppgave(referanse_uuid);

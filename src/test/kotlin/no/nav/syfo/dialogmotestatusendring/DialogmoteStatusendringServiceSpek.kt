@@ -51,7 +51,7 @@ object DialogmoteStatusendringServiceSpek : Spek({
                     sistEndret = HAPPENS_NOW.toLocalDateTimeOslo(),
                     publish = true,
                 )
-                every { connection.getPersonOppgaveByReferanseUuid(dialogmoteUuid) } returns personoppgave
+                every { connection.getPersonOppgaveByReferanseUuid(dialogmoteUuid) } returns listOf(personoppgave)
                 justRun { connection.updatePersonoppgave(any()) }
 
                 processDialogmoteStatusendring(connection, statusendring)
@@ -80,7 +80,7 @@ object DialogmoteStatusendringServiceSpek : Spek({
                     sistEndret = HAPPENS_NOW.toLocalDateTimeOslo(),
                     publish = true,
                 )
-                every { connection.getPersonOppgaveByReferanseUuid(dialogmoteUuid) } returns personoppgave
+                every { connection.getPersonOppgaveByReferanseUuid(dialogmoteUuid) } returns listOf(personoppgave)
                 justRun { connection.updatePersonoppgave(any()) }
 
                 processDialogmoteStatusendring(connection, statusendring)
@@ -105,7 +105,7 @@ object DialogmoteStatusendringServiceSpek : Spek({
                     sistEndret = HAPPENS_NOW.toLocalDateTimeOslo(),
                     publish = true,
                 )
-                every { connection.getPersonOppgaveByReferanseUuid(dialogmoteUuid) } returns personoppgave
+                every { connection.getPersonOppgaveByReferanseUuid(dialogmoteUuid) } returns listOf(personoppgave)
                 justRun { connection.updatePersonoppgave(any()) }
 
                 processDialogmoteStatusendring(connection, statusendring)
@@ -120,7 +120,7 @@ object DialogmoteStatusendringServiceSpek : Spek({
             it("Create finished personoppgave when a dialogmote is created") {
                 val statusendring =
                     generateDialogmotestatusendring(DialogmoteStatusendringType.INNKALT, dialogmoteUuid, HAPPENS_NOW)
-                every { connection.getPersonOppgaveByReferanseUuid(dialogmoteUuid) } returns null
+                every { connection.getPersonOppgaveByReferanseUuid(dialogmoteUuid) } returns emptyList()
                 justRun { connection.createBehandletPersonoppgave(statusendring, any()) }
 
                 processDialogmoteStatusendring(connection, statusendring)
@@ -136,7 +136,7 @@ object DialogmoteStatusendringServiceSpek : Spek({
                 val statusendring =
                     generateDialogmotestatusendring(DialogmoteStatusendringType.INNKALT, dialogmoteUuid, ONE_DAY_AGO)
                 val personoppgave = generatePPersonoppgave(dialogmoteUuid, HAPPENS_NOW.toLocalDateTime())
-                every { connection.getPersonOppgaveByReferanseUuid(dialogmoteUuid) } returns personoppgave
+                every { connection.getPersonOppgaveByReferanseUuid(dialogmoteUuid) } returns listOf(personoppgave)
 
                 processDialogmoteStatusendring(connection, statusendring)
 
@@ -153,7 +153,7 @@ object DialogmoteStatusendringServiceSpek : Spek({
                         ONE_DAY_AGO
                     )
                 val personoppgave = generatePPersonoppgave(dialogmoteUuid, HAPPENS_NOW.toLocalDateTime())
-                every { connection.getPersonOppgaveByReferanseUuid(dialogmoteUuid) } returns personoppgave
+                every { connection.getPersonOppgaveByReferanseUuid(dialogmoteUuid) } returns listOf(personoppgave)
 
                 processDialogmoteStatusendring(connection, statusendring)
 
@@ -170,7 +170,7 @@ object DialogmoteStatusendringServiceSpek : Spek({
                         ONE_DAY_AGO
                     )
                 val personoppgave = generatePPersonoppgave(dialogmoteUuid, HAPPENS_NOW.toLocalDateTime())
-                every { connection.getPersonOppgaveByReferanseUuid(dialogmoteUuid) } returns personoppgave
+                every { connection.getPersonOppgaveByReferanseUuid(dialogmoteUuid) } returns listOf(personoppgave)
                 justRun { connection.updatePersonoppgave(any()) }
 
                 processDialogmoteStatusendring(connection, statusendring)

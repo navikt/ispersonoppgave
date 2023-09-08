@@ -39,12 +39,10 @@ class MeldingFraBehandlerService(
             database.connection.use { connection ->
                 val existingOppgave = connection
                     .getPersonOppgaveByReferanseUuid(melding.parentRef)
-                    ?.toPersonOppgave()
+                    .map { it.toPersonOppgave() }
+                    .firstOrNull { it.type == PersonOppgaveType.BEHANDLERDIALOG_MELDING_UBESVART && it.isUBehandlet() }
 
-                if (existingOppgave != null &&
-                    existingOppgave.type == PersonOppgaveType.BEHANDLERDIALOG_MELDING_UBESVART &&
-                    existingOppgave.isUBehandlet()
-                ) {
+                if (existingOppgave != null) {
                     log.info("Received svar on ubesvart melding for oppgave with uuid ${existingOppgave.uuid}, behandles automatically by system")
                     markOppgaveAsBehandletBySystem(
                         meldingUbesvartOppgave = existingOppgave,

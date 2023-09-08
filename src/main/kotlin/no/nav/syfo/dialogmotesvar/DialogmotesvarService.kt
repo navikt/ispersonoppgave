@@ -6,7 +6,7 @@ import no.nav.syfo.dialogmotestatusendring.kafka.log
 import no.nav.syfo.dialogmotesvar.domain.*
 import no.nav.syfo.metric.COUNT_DIALOGMOTESVAR_OPPGAVE_UPDATED
 import no.nav.syfo.personoppgave.*
-import no.nav.syfo.personoppgave.domain.toPersonOppgave
+import no.nav.syfo.personoppgave.domain.*
 import no.nav.syfo.util.toLocalDateTimeOslo
 import java.sql.Connection
 import java.time.LocalDate
@@ -20,15 +20,17 @@ fun processDialogmotesvar(
     log.info("Received dialogmotesvar! ${dialogmotesvar.moteuuid}")
     if (isIrrelevantDialogmotesvar(connection, dialogmotesvar, cutoffDate)) return
 
-    val pPersonOppgave = connection.getPersonOppgaveByReferanseUuid(dialogmotesvar.moteuuid)
+    val personOppgave = connection
+        .getPersonOppgaveByReferanseUuid(dialogmotesvar.moteuuid)
+        .map { it.toPersonOppgave() }
+        .firstOrNull { it.type == PersonOppgaveType.DIALOGMOTESVAR && it.isUBehandlet() }
 
-    if (pPersonOppgave == null) {
+    if (personOppgave == null) {
         val personoppgaveUuid = UUID.randomUUID()
         connection.createPersonOppgave(dialogmotesvar, personoppgaveUuid)
     } else {
-        val oppgave = pPersonOppgave.toPersonOppgave()
-        if (dialogmotesvar happenedAfter oppgave) {
-            val updatedOppgave = oppgave.copy(
+        if (dialogmotesvar happenedAfter personOppgave) {
+            val updatedOppgave = personOppgave.copy(
                 behandletTidspunkt = null,
                 behandletVeilederIdent = null,
                 sistEndret = dialogmotesvar.svarReceivedAt.toLocalDateTimeOslo(),

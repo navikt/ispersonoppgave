@@ -38,7 +38,7 @@ class DialogmotesvarServiceSpek : Spek({
             val moteUuid = UUID.randomUUID()
 
             beforeEachTest {
-                every { connection.getPersonOppgaveByReferanseUuid(moteUuid) } returns null
+                every { connection.getPersonOppgaveByReferanseUuid(moteUuid) } returns emptyList()
             }
 
             it("creates an oppgave if arbeidstaker wants a new time or place for dialogmote") {
@@ -128,7 +128,7 @@ class DialogmotesvarServiceSpek : Spek({
                     type = DialogmoteStatusendringType.NYTT_TID_STED,
                     uuid = moteuuid,
                 )
-                every { connection.getPersonOppgaveByReferanseUuid(moteuuid) } returns pPersonoppgave
+                every { connection.getPersonOppgaveByReferanseUuid(moteuuid) } returns listOf(pPersonoppgave)
                 every { connection.getDialogmoteStatusendring(moteuuid) } returns mutableListOf(pDialogmoteStatusendring)
                 justRun { connection.updatePersonoppgave(any()) }
 
@@ -163,7 +163,7 @@ class DialogmotesvarServiceSpek : Spek({
                     type = DialogmoteStatusendringType.NYTT_TID_STED,
                     uuid = moteuuid,
                 )
-                every { connection.getPersonOppgaveByReferanseUuid(moteuuid) } returns ppersonoppgave
+                every { connection.getPersonOppgaveByReferanseUuid(moteuuid) } returns listOf(ppersonoppgave)
                 every { connection.getDialogmoteStatusendring(moteuuid) } returns mutableListOf(pDialogmoteStatusendring)
                 val oldDialogmotesvar = generateDialogmotesvar(
                     moteuuid = moteuuid,

@@ -59,7 +59,7 @@ class UbesvartMeldingSpek : Spek({
 
                 val personOppgave = database.connection.getPersonOppgaveByReferanseUuid(
                     referanseUuid = referanseUuid,
-                )!!.toPersonOppgave()
+                ).map { it.toPersonOppgave() }.first()
                 personOppgave.publish shouldBeEqualTo false
                 personOppgave.type.name shouldBeEqualTo PersonOppgaveType.BEHANDLERDIALOG_MELDING_UBESVART.name
 
