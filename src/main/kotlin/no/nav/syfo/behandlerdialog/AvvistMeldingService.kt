@@ -41,11 +41,11 @@ class AvvistMeldingService(
 
                 if (existingOppgave != null) {
                     log.info("Received avvist melding for oppgave with uuid ${existingOppgave.uuid}, behandles automatically by system")
-                    personOppgaveService.markOppgaveAsBehandletBySystem(
+                    val behandletOppgave = personOppgaveService.markOppgaveAsBehandletBySystem(
                         personOppgave = existingOppgave,
                         connection = connection,
                     )
-                    existingOppgaverBehandlet.add(existingOppgave)
+                    existingOppgaverBehandlet.add(behandletOppgave)
                 }
             }
             connection.commit()
