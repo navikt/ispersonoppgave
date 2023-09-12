@@ -60,12 +60,12 @@ const val queryGetPersonOppgaverByReferanseUUID =
     WHERE referanse_uuid = ?
     """
 
-fun Connection.getPersonOppgaveByReferanseUuid(referanseUuid: UUID): PPersonOppgave? {
+fun Connection.getPersonOppgaverByReferanseUuid(referanseUuid: UUID): List<PPersonOppgave> {
     return prepareStatement(queryGetPersonOppgaverByReferanseUUID).use {
         it.setString(1, referanseUuid.toString())
         it.executeQuery().toList {
             toPPersonOppgave()
-        }.firstOrNull()
+        }
     }
 }
 

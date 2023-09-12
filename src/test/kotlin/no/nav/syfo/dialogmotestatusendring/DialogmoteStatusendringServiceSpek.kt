@@ -51,12 +51,12 @@ object DialogmoteStatusendringServiceSpek : Spek({
                     sistEndret = HAPPENS_NOW.toLocalDateTimeOslo(),
                     publish = true,
                 )
-                every { connection.getPersonOppgaveByReferanseUuid(dialogmoteUuid) } returns personoppgave
+                every { connection.getPersonOppgaverByReferanseUuid(dialogmoteUuid) } returns listOf(personoppgave)
                 justRun { connection.updatePersonoppgave(any()) }
 
                 processDialogmoteStatusendring(connection, statusendring)
 
-                verify(exactly = 1) { connection.getPersonOppgaveByReferanseUuid(dialogmoteUuid) }
+                verify(exactly = 1) { connection.getPersonOppgaverByReferanseUuid(dialogmoteUuid) }
                 verify(exactly = 1) { connection.updatePersonoppgave(updatePersonoppgave) }
                 verify(exactly = 0) { connection.createBehandletPersonoppgave(any(), any()) }
             }
@@ -80,12 +80,12 @@ object DialogmoteStatusendringServiceSpek : Spek({
                     sistEndret = HAPPENS_NOW.toLocalDateTimeOslo(),
                     publish = true,
                 )
-                every { connection.getPersonOppgaveByReferanseUuid(dialogmoteUuid) } returns personoppgave
+                every { connection.getPersonOppgaverByReferanseUuid(dialogmoteUuid) } returns listOf(personoppgave)
                 justRun { connection.updatePersonoppgave(any()) }
 
                 processDialogmoteStatusendring(connection, statusendring)
 
-                verify(exactly = 1) { connection.getPersonOppgaveByReferanseUuid(dialogmoteUuid) }
+                verify(exactly = 1) { connection.getPersonOppgaverByReferanseUuid(dialogmoteUuid) }
                 verify(exactly = 1) { connection.updatePersonoppgave(updatePersonoppgave) }
                 verify(exactly = 0) { connection.createBehandletPersonoppgave(any(), any()) }
             }
@@ -105,12 +105,12 @@ object DialogmoteStatusendringServiceSpek : Spek({
                     sistEndret = HAPPENS_NOW.toLocalDateTimeOslo(),
                     publish = true,
                 )
-                every { connection.getPersonOppgaveByReferanseUuid(dialogmoteUuid) } returns personoppgave
+                every { connection.getPersonOppgaverByReferanseUuid(dialogmoteUuid) } returns listOf(personoppgave)
                 justRun { connection.updatePersonoppgave(any()) }
 
                 processDialogmoteStatusendring(connection, statusendring)
 
-                verify(exactly = 1) { connection.getPersonOppgaveByReferanseUuid(dialogmoteUuid) }
+                verify(exactly = 1) { connection.getPersonOppgaverByReferanseUuid(dialogmoteUuid) }
                 verify(exactly = 1) { connection.updatePersonoppgave(updatePersonoppgave) }
                 verify(exactly = 0) { connection.createBehandletPersonoppgave(any(), any()) }
             }
@@ -120,12 +120,12 @@ object DialogmoteStatusendringServiceSpek : Spek({
             it("Create finished personoppgave when a dialogmote is created") {
                 val statusendring =
                     generateDialogmotestatusendring(DialogmoteStatusendringType.INNKALT, dialogmoteUuid, HAPPENS_NOW)
-                every { connection.getPersonOppgaveByReferanseUuid(dialogmoteUuid) } returns null
+                every { connection.getPersonOppgaverByReferanseUuid(dialogmoteUuid) } returns emptyList()
                 justRun { connection.createBehandletPersonoppgave(statusendring, any()) }
 
                 processDialogmoteStatusendring(connection, statusendring)
 
-                verify(exactly = 1) { connection.getPersonOppgaveByReferanseUuid(dialogmoteUuid) }
+                verify(exactly = 1) { connection.getPersonOppgaverByReferanseUuid(dialogmoteUuid) }
                 verify(exactly = 1) { connection.createBehandletPersonoppgave(statusendring, any()) }
                 verify(exactly = 0) { connection.updatePersonoppgave(any()) }
             }
@@ -136,11 +136,11 @@ object DialogmoteStatusendringServiceSpek : Spek({
                 val statusendring =
                     generateDialogmotestatusendring(DialogmoteStatusendringType.INNKALT, dialogmoteUuid, ONE_DAY_AGO)
                 val personoppgave = generatePPersonoppgave(dialogmoteUuid, HAPPENS_NOW.toLocalDateTime())
-                every { connection.getPersonOppgaveByReferanseUuid(dialogmoteUuid) } returns personoppgave
+                every { connection.getPersonOppgaverByReferanseUuid(dialogmoteUuid) } returns listOf(personoppgave)
 
                 processDialogmoteStatusendring(connection, statusendring)
 
-                verify(exactly = 1) { connection.getPersonOppgaveByReferanseUuid(dialogmoteUuid) }
+                verify(exactly = 1) { connection.getPersonOppgaverByReferanseUuid(dialogmoteUuid) }
                 verify(exactly = 0) { connection.createBehandletPersonoppgave(any(), any()) }
                 verify(exactly = 0) { connection.updatePersonoppgave(any()) }
             }
@@ -153,11 +153,11 @@ object DialogmoteStatusendringServiceSpek : Spek({
                         ONE_DAY_AGO
                     )
                 val personoppgave = generatePPersonoppgave(dialogmoteUuid, HAPPENS_NOW.toLocalDateTime())
-                every { connection.getPersonOppgaveByReferanseUuid(dialogmoteUuid) } returns personoppgave
+                every { connection.getPersonOppgaverByReferanseUuid(dialogmoteUuid) } returns listOf(personoppgave)
 
                 processDialogmoteStatusendring(connection, statusendring)
 
-                verify(exactly = 1) { connection.getPersonOppgaveByReferanseUuid(dialogmoteUuid) }
+                verify(exactly = 1) { connection.getPersonOppgaverByReferanseUuid(dialogmoteUuid) }
                 verify(exactly = 0) { connection.createBehandletPersonoppgave(any(), any()) }
                 verify(exactly = 0) { connection.updatePersonoppgave(any()) }
             }
@@ -170,12 +170,12 @@ object DialogmoteStatusendringServiceSpek : Spek({
                         ONE_DAY_AGO
                     )
                 val personoppgave = generatePPersonoppgave(dialogmoteUuid, HAPPENS_NOW.toLocalDateTime())
-                every { connection.getPersonOppgaveByReferanseUuid(dialogmoteUuid) } returns personoppgave
+                every { connection.getPersonOppgaverByReferanseUuid(dialogmoteUuid) } returns listOf(personoppgave)
                 justRun { connection.updatePersonoppgave(any()) }
 
                 processDialogmoteStatusendring(connection, statusendring)
 
-                verify(exactly = 1) { connection.getPersonOppgaveByReferanseUuid(dialogmoteUuid) }
+                verify(exactly = 1) { connection.getPersonOppgaverByReferanseUuid(dialogmoteUuid) }
                 verify(exactly = 0) { connection.createBehandletPersonoppgave(any(), any()) }
                 verify(exactly = 1) { connection.updatePersonoppgave(any()) }
             }
