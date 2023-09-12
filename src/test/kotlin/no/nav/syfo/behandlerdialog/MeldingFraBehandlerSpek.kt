@@ -42,7 +42,6 @@ class MeldingFraBehandlerSpek : Spek({
                 personOppgaveService = personOppgaveService,
             )
             val kafkaMeldingFraBehandler = KafkaMeldingFraBehandler(
-                database = database,
                 meldingFraBehandlerService = meldingFraBehandlerService,
             )
 

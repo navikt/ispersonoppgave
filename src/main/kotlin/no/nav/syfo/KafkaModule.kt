@@ -67,7 +67,6 @@ fun launchKafkaTasks(
     )
 
     launchKafkaTaskMeldingFraBehandler(
-        database = database,
         applicationState = applicationState,
         environment = environment,
         meldingFraBehandlerService = meldingFraBehandlerService,
