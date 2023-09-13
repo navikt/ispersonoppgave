@@ -6,7 +6,9 @@ import no.nav.syfo.domain.PersonIdent
 import no.nav.syfo.personoppgave.domain.*
 import no.nav.syfo.personoppgavehendelse.PersonoppgavehendelseProducer
 import no.nav.syfo.personoppgavehendelse.domain.PersonoppgavehendelseType
+import no.nav.syfo.util.Constants
 import org.slf4j.LoggerFactory
+import java.sql.Connection
 import java.util.*
 
 class PersonOppgaveService(
@@ -133,6 +135,17 @@ class PersonOppgaveService(
             personIdent,
             personoppgaveUUID,
         )
+    }
+
+    fun markOppgaveAsBehandletBySystem(
+        personOppgave: PersonOppgave,
+        connection: Connection,
+    ): PersonOppgave {
+        val behandletPersonoppgave = personOppgave.behandle(
+            veilederIdent = Constants.SYSTEM_VEILEDER_IDENT,
+        )
+        connection.updatePersonOppgaveBehandlet(behandletPersonoppgave)
+        return behandletPersonoppgave
     }
 
     companion object {
