@@ -33,7 +33,7 @@ class MeldingFraBehandlerService(
                 handleExistingUbesvartMeldingOppgave(
                     melding = melding,
                     connection = connection,
-                )?.let {
+                )?.also {
                     existingOppgaverBehandlet.add(it)
                 }
                 COUNT_PERSONOPPGAVEHENDELSE_DIALOGMELDING_SVAR_MOTTATT.increment()
@@ -48,7 +48,7 @@ class MeldingFraBehandlerService(
         }
     }
 
-    internal fun processMeldingFraBehandler(
+    private fun processMeldingFraBehandler(
         melding: Melding,
         connection: Connection,
     ) {
@@ -64,7 +64,7 @@ class MeldingFraBehandlerService(
         )
     }
 
-    internal fun handleExistingUbesvartMeldingOppgave(
+    private fun handleExistingUbesvartMeldingOppgave(
         melding: Melding,
         connection: Connection,
     ): PersonOppgave? =

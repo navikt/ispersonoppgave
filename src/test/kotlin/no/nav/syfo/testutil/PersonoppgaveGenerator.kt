@@ -1,5 +1,6 @@
 package no.nav.syfo.testutil
 
+import no.nav.syfo.domain.Virksomhetsnummer
 import no.nav.syfo.personoppgave.domain.PPersonOppgave
 import no.nav.syfo.personoppgave.domain.PersonOppgave
 import no.nav.syfo.personoppgave.domain.PersonOppgaveType
@@ -7,13 +8,16 @@ import java.time.LocalDateTime
 import java.util.*
 
 fun generatePersonoppgave(
-    type: PersonOppgaveType = PersonOppgaveType.DIALOGMOTESVAR
+    uuid: UUID = UUID.randomUUID(),
+    referanseUuid: UUID = UUID.randomUUID(),
+    type: PersonOppgaveType = PersonOppgaveType.DIALOGMOTESVAR,
+    virksomhetsnummer: Virksomhetsnummer? = null,
 ) = PersonOppgave(
     id = 1,
-    uuid = UUID.randomUUID(),
-    referanseUuid = UUID.randomUUID(),
+    uuid = uuid,
+    referanseUuid = referanseUuid,
     personIdent = UserConstants.ARBEIDSTAKER_FNR,
-    virksomhetsnummer = null,
+    virksomhetsnummer = virksomhetsnummer,
     type = type,
     oversikthendelseTidspunkt = null,
     behandletTidspunkt = null,
