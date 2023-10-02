@@ -1,5 +1,6 @@
 package no.nav.syfo
 
+import no.nav.syfo.aktivitetskrav.kafka.launchKafkaTaskForhandsvarselExpiredVarsel
 import no.nav.syfo.behandlerdialog.AvvistMeldingService
 import no.nav.syfo.behandlerdialog.MeldingFraBehandlerService
 import no.nav.syfo.behandlerdialog.UbesvartMeldingService
@@ -97,4 +98,10 @@ fun launchKafkaTasks(
         environment = environment,
         kafkaIdenthendelseConsumerService = kafkaIdenthendelseConsumerService,
     )
+    if (environment.kakfaConsumerForhandsvarselEnabled) {
+        launchKafkaTaskForhandsvarselExpiredVarsel(
+            applicationState = applicationState,
+            environment = environment,
+        )
+    }
 }

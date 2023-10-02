@@ -39,6 +39,7 @@ data class Environment(
     val electorPath: String = getEnvVar("ELECTOR_PATH"),
 
     val outdatedDialogmotesvarCutoff: LocalDate = LocalDate.parse(getEnvVar("OUTDATED_DIALOGMOTESVAR_CUTOFF")),
+    val kakfaConsumerForhandsvarselEnabled: Boolean = getEnvVar("TOGGLE_KAFKA_CONSUMER_FORHANDSVARSEL_ENABLED").toBoolean()
 ) {
     fun jdbcUrl(): String {
         return "jdbc:postgresql://$ispersonoppgaveDbHost:$ispersonoppgaveDbPort/$ispersonoppgaveDbName"
