@@ -98,7 +98,7 @@ fun launchKafkaTasks(
         environment = environment,
         kafkaIdenthendelseConsumerService = kafkaIdenthendelseConsumerService,
     )
-    if (environment.kakfaConsumerAktivitetskravVarselEnabled) {
+    if (environment.kakfaConsumerAktivitetskravExpiredVarselEnabled) {
         launchKafkaTaskAktivitetskravExpiredVarsel(
             applicationState = applicationState,
             environment = environment,

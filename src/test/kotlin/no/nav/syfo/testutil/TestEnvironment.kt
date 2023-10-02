@@ -35,7 +35,7 @@ fun testEnvironment(
     ),
     electorPath = "electorPath",
     outdatedDialogmotesvarCutoff = LocalDate.parse("2022-04-01"),
-    kakfaConsumerAktivitetskravVarselEnabled = true,
+    kakfaConsumerAktivitetskravExpiredVarselEnabled = true,
 )
 
 fun testAppState() = ApplicationState(
