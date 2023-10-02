@@ -3,7 +3,7 @@ package no.nav.syfo.aktivitetskrav.kafka
 import no.nav.syfo.ApplicationState
 import no.nav.syfo.Environment
 import no.nav.syfo.aktivitetskrav.domain.ExpiredVarsel
-import no.nav.syfo.aktivitetskrav.kafka.ForhandsvarselExpiredVarselConsumerService.Companion.AKTIVITETSKRAV_EXPIRED_VARSEL_TOPIC
+import no.nav.syfo.aktivitetskrav.kafka.AktivitetskravExpiredVarselConsumer.Companion.AKTIVITETSKRAV_EXPIRED_VARSEL_TOPIC
 import no.nav.syfo.kafka.KafkaConsumerService
 import no.nav.syfo.kafka.kafkaAivenConsumerConfig
 import no.nav.syfo.kafka.launchKafkaTask
@@ -14,30 +14,30 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.time.Duration
 
-fun launchKafkaTaskForhandsvarselExpiredVarsel(
+fun launchKafkaTaskAktivitetskravExpiredVarsel(
     applicationState: ApplicationState,
     environment: Environment,
 ) {
     val consumerProperties = kafkaAivenConsumerConfig<ExpiredVarselDeserializer>(environment.kafka).apply {
         this[ConsumerConfig.MAX_POLL_RECORDS_CONFIG] = "1"
     }
-    val forhandsvarselExpiredVarselConsumerService = ForhandsvarselExpiredVarselConsumerService()
+    val aktivitetskravExpiredVarselConsumer = AktivitetskravExpiredVarselConsumer()
     launchKafkaTask(
         applicationState = applicationState,
-        kafkaConsumerService = forhandsvarselExpiredVarselConsumerService,
+        kafkaConsumerService = aktivitetskravExpiredVarselConsumer,
         consumerProperties = consumerProperties,
         topic = AKTIVITETSKRAV_EXPIRED_VARSEL_TOPIC,
     )
 }
 
-class ForhandsvarselExpiredVarselConsumerService() : KafkaConsumerService<ExpiredVarsel> {
+class AktivitetskravExpiredVarselConsumer() : KafkaConsumerService<ExpiredVarsel> {
 
     override val pollDurationInMillis: Long = 1000
 
     override fun pollAndProcessRecords(kafkaConsumer: KafkaConsumer<String, ExpiredVarsel>) {
         val records = kafkaConsumer.poll(Duration.ofMillis(pollDurationInMillis))
         if (records.count() > 0) {
-            log.info("ForhandsvarselExpiredVarselConsumerService trace: Received ${records.count()} records")
+            log.info("AktivitetskravExpiredVarselConsumer trace: Received ${records.count()} records")
             processRecords(records = records)
             kafkaConsumer.commitSync()
         }

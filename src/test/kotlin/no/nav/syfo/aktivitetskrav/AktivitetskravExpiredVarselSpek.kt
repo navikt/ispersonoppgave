@@ -3,7 +3,7 @@ package no.nav.syfo.aktivitetskrav
 import io.ktor.server.testing.*
 import io.mockk.*
 import no.nav.syfo.aktivitetskrav.domain.ExpiredVarsel
-import no.nav.syfo.aktivitetskrav.kafka.ForhandsvarselExpiredVarselConsumerService
+import no.nav.syfo.aktivitetskrav.kafka.AktivitetskravExpiredVarselConsumer
 import no.nav.syfo.personoppgavehendelse.PersonoppgavehendelseProducer
 import no.nav.syfo.testutil.*
 import no.nav.syfo.testutil.UserConstants.ARBEIDSTAKER_FNR
@@ -15,18 +15,18 @@ import java.time.Duration
 import java.time.LocalDate
 import java.util.*
 
-class ForhandsvarselFristSpek : Spek({
+class AktivitetskravExpiredVarselSpek : Spek({
     describe("Handle aktivitetskrav-expired-varsel topic") {
 
         with(TestApplicationEngine()) {
             start()
 
-            val topic = ForhandsvarselExpiredVarselConsumerService.AKTIVITETSKRAV_EXPIRED_VARSEL_TOPIC
+            val topic = AktivitetskravExpiredVarselConsumer.AKTIVITETSKRAV_EXPIRED_VARSEL_TOPIC
             val externalMockEnvironment = ExternalMockEnvironment()
             val database = externalMockEnvironment.database
             val kafkaConsumer = mockk<KafkaConsumer<String, ExpiredVarsel>>()
             val personoppgavehendelseProducer = mockk<PersonoppgavehendelseProducer>()
-            val forhandsvarselExpiredVarselConsumerService = ForhandsvarselExpiredVarselConsumerService()
+            val aktivitetskravExpiredVarselConsumer = AktivitetskravExpiredVarselConsumer()
 
             beforeEachTest {
                 every { kafkaConsumer.commitSync() } returns Unit
@@ -57,7 +57,7 @@ class ForhandsvarselFristSpek : Spek({
                         )
                     )
                 )
-                forhandsvarselExpiredVarselConsumerService.pollAndProcessRecords(
+                aktivitetskravExpiredVarselConsumer.pollAndProcessRecords(
                     kafkaConsumer = kafkaConsumer,
                 )
                 verify(exactly = 1) {

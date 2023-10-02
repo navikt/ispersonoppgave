@@ -79,7 +79,7 @@ spec:
       value: "http://syfo-tilgangskontroll"
     - name: OUTDATED_DIALOGMOTESVAR_CUTOFF
       value: "2022-04-01"
-    - name: TOGGLE_KAFKA_CONSUMER_FORHANDSVARSEL_ENABLED
+    - name: TOGGLE_KAFKA_CONSUMER_AKTIVITETSKRAV_VARSEL
       value: "false"
     - name: PDL_CLIENT_ID
       value: "prod-fss.pdl.pdl-api"
