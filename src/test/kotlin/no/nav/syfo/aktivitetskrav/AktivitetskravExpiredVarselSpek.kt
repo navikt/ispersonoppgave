@@ -38,7 +38,7 @@ class AktivitetskravExpiredVarselSpek : Spek({
                 clearMocks(personoppgavehendelseProducer)
             }
 
-            it("Consumes forhandsvarsel frist expired") {
+            it("Consumes expired varsel") {
                 val expiredVarsel = ExpiredVarsel(
                     uuid = UUID.randomUUID(),
                     personIdent = ARBEIDSTAKER_FNR.value,
