@@ -213,14 +213,24 @@ fun Connection.createPersonOppgave( // TODO: send in oppgave instead of dialogmo
 fun Connection.createPersonOppgave(
     melding: Melding,
     personOppgaveType: PersonOppgaveType,
+) = createPersonOppgave(
+    referanseUuid = melding.referanseUuid,
+    personIdent = melding.personIdent,
+    personOppgaveType = personOppgaveType,
+)
+
+fun Connection.createPersonOppgave(
+    referanseUuid: UUID,
+    personIdent: PersonIdent,
+    personOppgaveType: PersonOppgaveType,
 ): UUID {
     val now = Timestamp.from(Instant.now())
     val uuid = UUID.randomUUID()
 
     val personIdList = prepareStatement(queryCreatePersonOppgave).use {
         it.setString(1, uuid.toString())
-        it.setString(2, melding.referanseUuid.toString())
-        it.setString(3, melding.personIdent.value)
+        it.setString(2, referanseUuid.toString())
+        it.setString(3, personIdent.value)
         it.setString(4, "")
         it.setString(5, personOppgaveType.name)
         it.setTimestamp(6, now)
