@@ -66,6 +66,10 @@ fun PersonOppgave.toHendelseType(): PersonoppgavehendelseType {
             if (isUBehandlet()) PersonoppgavehendelseType.BEHANDLERDIALOG_MELDING_AVVIST_MOTTATT
             else PersonoppgavehendelseType.BEHANDLERDIALOG_MELDING_AVVIST_BEHANDLET
         }
+        PersonOppgaveType.AKTIVITETSKRAV_VURDER_STANS -> {
+            if (isUBehandlet()) PersonoppgavehendelseType.AKTIVITETSKRAV_VURDER_STANS_MOTTATT
+            else PersonoppgavehendelseType.AKTIVITETSKRAV_VURDER_STANS_BEHANDLET
+        }
     }
 }
 
