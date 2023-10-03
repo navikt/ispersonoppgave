@@ -124,7 +124,7 @@ class AvvistMeldingSpek : Spek({
 
                 val paaminnelsesOppgave = personOppgaveService.getPersonOppgave(paaminnelsesOppgaveUUID)
                 paaminnelsesOppgave!!.behandletTidspunkt shouldNotBe null
-                paaminnelsesOppgave!!.behandletVeilederIdent shouldBeEqualTo Constants.SYSTEM_VEILEDER_IDENT
+                paaminnelsesOppgave.behandletVeilederIdent shouldBeEqualTo Constants.SYSTEM_VEILEDER_IDENT
             }
             it("stores avvist melding from kafka as oppgave in database but does not publish other ubesvart oppgave exists for same person") {
                 val referanseUuid = UUID.randomUUID()
@@ -175,7 +175,7 @@ class AvvistMeldingSpek : Spek({
 
                 val paaminnelsesOppgave = personOppgaveService.getPersonOppgave(paaminnelsesOppgaveUUID)
                 paaminnelsesOppgave!!.behandletTidspunkt shouldNotBe null
-                paaminnelsesOppgave!!.behandletVeilederIdent shouldBeEqualTo Constants.SYSTEM_VEILEDER_IDENT
+                paaminnelsesOppgave.behandletVeilederIdent shouldBeEqualTo Constants.SYSTEM_VEILEDER_IDENT
             }
             it("will not store avvist melding from kafka when value is null/tombstone") {
                 mockReceiveMeldingDTO(

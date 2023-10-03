@@ -1,13 +1,21 @@
 package no.nav.syfo.aktivitetskrav
 
 import io.ktor.server.testing.*
-import io.mockk.*
+import io.mockk.every
+import io.mockk.mockk
+import io.mockk.verify
 import no.nav.syfo.aktivitetskrav.domain.ExpiredVarsel
 import no.nav.syfo.aktivitetskrav.kafka.AktivitetskravExpiredVarselConsumer
-import no.nav.syfo.personoppgavehendelse.PersonoppgavehendelseProducer
-import no.nav.syfo.testutil.*
+import no.nav.syfo.personoppgave.domain.PersonOppgaveType
+import no.nav.syfo.personoppgave.domain.toPersonOppgave
+import no.nav.syfo.personoppgave.getPersonOppgaverByReferanseUuid
+import no.nav.syfo.testutil.ExternalMockEnvironment
 import no.nav.syfo.testutil.UserConstants.ARBEIDSTAKER_FNR
-import org.apache.kafka.clients.consumer.*
+import no.nav.syfo.testutil.dropData
+import org.amshove.kluent.shouldBeEqualTo
+import org.apache.kafka.clients.consumer.ConsumerRecord
+import org.apache.kafka.clients.consumer.ConsumerRecords
+import org.apache.kafka.clients.consumer.KafkaConsumer
 import org.apache.kafka.common.TopicPartition
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
@@ -25,17 +33,19 @@ class AktivitetskravExpiredVarselSpek : Spek({
             val externalMockEnvironment = ExternalMockEnvironment()
             val database = externalMockEnvironment.database
             val kafkaConsumer = mockk<KafkaConsumer<String, ExpiredVarsel>>()
-            val personoppgavehendelseProducer = mockk<PersonoppgavehendelseProducer>()
-            val aktivitetskravExpiredVarselConsumer = AktivitetskravExpiredVarselConsumer()
+            val vurderStansService = VurderStansService(
+                database = database,
+            )
+            val aktivitetskravExpiredVarselConsumer = AktivitetskravExpiredVarselConsumer(
+                vurderStansService = vurderStansService,
+            )
 
             beforeEachTest {
                 every { kafkaConsumer.commitSync() } returns Unit
-                justRun { personoppgavehendelseProducer.sendPersonoppgavehendelse(any(), any(), any()) }
             }
 
             afterEachTest {
                 database.connection.dropData()
-                clearMocks(personoppgavehendelseProducer)
             }
 
             it("Consumes expired varsel") {
@@ -63,6 +73,13 @@ class AktivitetskravExpiredVarselSpek : Spek({
                 verify(exactly = 1) {
                     kafkaConsumer.commitSync()
                 }
+
+                val personOppgave = database.connection.getPersonOppgaverByReferanseUuid(
+                    referanseUuid = expiredVarsel.uuid,
+                ).map { it.toPersonOppgave() }.first()
+                personOppgave.publish shouldBeEqualTo true
+                personOppgave.type shouldBeEqualTo PersonOppgaveType.AKTIVITETSKRAV_VURDER_STANS
+                personOppgave.personIdent shouldBeEqualTo ARBEIDSTAKER_FNR
             }
         }
     }

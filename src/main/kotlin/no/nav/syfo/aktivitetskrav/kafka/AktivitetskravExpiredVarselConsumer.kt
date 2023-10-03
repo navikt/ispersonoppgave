@@ -2,12 +2,12 @@ package no.nav.syfo.aktivitetskrav.kafka
 
 import no.nav.syfo.ApplicationState
 import no.nav.syfo.Environment
+import no.nav.syfo.aktivitetskrav.VurderStansService
 import no.nav.syfo.aktivitetskrav.domain.ExpiredVarsel
 import no.nav.syfo.aktivitetskrav.kafka.AktivitetskravExpiredVarselConsumer.Companion.AKTIVITETSKRAV_EXPIRED_VARSEL_TOPIC
 import no.nav.syfo.kafka.KafkaConsumerService
 import no.nav.syfo.kafka.kafkaAivenConsumerConfig
 import no.nav.syfo.kafka.launchKafkaTask
-import org.apache.kafka.clients.consumer.ConsumerConfig
 import org.apache.kafka.clients.consumer.ConsumerRecords
 import org.apache.kafka.clients.consumer.KafkaConsumer
 import org.slf4j.Logger
@@ -17,11 +17,12 @@ import java.time.Duration
 fun launchKafkaTaskAktivitetskravExpiredVarsel(
     applicationState: ApplicationState,
     environment: Environment,
+    vurderStansService: VurderStansService,
 ) {
-    val consumerProperties = kafkaAivenConsumerConfig<ExpiredVarselDeserializer>(environment.kafka).apply {
-        this[ConsumerConfig.MAX_POLL_RECORDS_CONFIG] = "1"
-    }
-    val aktivitetskravExpiredVarselConsumer = AktivitetskravExpiredVarselConsumer()
+    val consumerProperties = kafkaAivenConsumerConfig<ExpiredVarselDeserializer>(environment.kafka)
+    val aktivitetskravExpiredVarselConsumer = AktivitetskravExpiredVarselConsumer(
+        vurderStansService = vurderStansService,
+    )
     launchKafkaTask(
         applicationState = applicationState,
         kafkaConsumerService = aktivitetskravExpiredVarselConsumer,
@@ -30,7 +31,9 @@ fun launchKafkaTaskAktivitetskravExpiredVarsel(
     )
 }
 
-class AktivitetskravExpiredVarselConsumer() : KafkaConsumerService<ExpiredVarsel> {
+class AktivitetskravExpiredVarselConsumer(
+    val vurderStansService: VurderStansService,
+) : KafkaConsumerService<ExpiredVarsel> {
 
     override val pollDurationInMillis: Long = 1000
 
@@ -50,11 +53,9 @@ class AktivitetskravExpiredVarselConsumer() : KafkaConsumerService<ExpiredVarsel
             val numberOfTombstones = tombstoneRecords.size
             log.warn("Value of $numberOfTombstones ConsumerRecord are null, most probably due to a tombstone. Contact the owner of the topic if an error is suspected")
         }
-
-        val recordPairs = validRecords.map { record ->
-            Pair(record.key(), record.value())
-        }
-        // TODO: process values
+        vurderStansService.processAktivitetskravExpiredVarsel(
+            expiredVarselList = validRecords.map { record -> record.value() },
+        )
     }
 
     companion object {

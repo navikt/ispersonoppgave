@@ -72,3 +72,10 @@ val COUNT_PERSONOPPGAVEHENDELSE_AVVIST_MELDING_MOTTATT: Counter =
     Counter.builder(PERSONOPPGAVEHENDELSE_AVVIST_MELDING_MOTTATT)
         .description("Counts the number of personoppgavehendelse with PersonoppgavehendelseType BEHANDLERDIALOG_MELDING_AVVIST_MOTTATT created from a KMeldingDTO")
         .register(METRICS_REGISTRY)
+
+const val PERSONOPPGAVEHENDELSE_AKTIVITETSKRAV_EXPIRED_VARSEL_MOTTATT =
+    "${METRICS_NS}_personoppgavehendelse_aktivitetskrav_expired_varsel_mottatt_count"
+val COUNT_PERSONOPPGAVEHENDELSE_AKTIVITETSKRAV_EXPIRED_VARSEL_MOTTATT: Counter =
+    Counter.builder(PERSONOPPGAVEHENDELSE_AKTIVITETSKRAV_EXPIRED_VARSEL_MOTTATT)
+        .description("Counts the number of personoppgavehendelse with PersonoppgavehendelseType AKTIVITETSKRAV_EXPIRED_VARSEL_MOTTATT created")
+        .register(METRICS_REGISTRY)
