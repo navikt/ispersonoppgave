@@ -12,10 +12,9 @@ import org.slf4j.LoggerFactory
 class VurderStansService(
     private val database: DatabaseInterface,
 ) {
-    fun processAktivitetskravExpiredVarsel(recordPairs: List<Pair<String, ExpiredVarsel>>) {
+    fun processAktivitetskravExpiredVarsel(expiredVarselList: List<ExpiredVarsel>) {
         database.connection.use { connection ->
-            recordPairs.forEach { record ->
-                val expiredVarsel = record.second
+            expiredVarselList.forEach { expiredVarsel ->
                 log.info("Received aktivitetskrav expired varsel with uuid=${expiredVarsel.uuid}")
                 connection.createPersonOppgave(
                     referanseUuid = expiredVarsel.uuid,

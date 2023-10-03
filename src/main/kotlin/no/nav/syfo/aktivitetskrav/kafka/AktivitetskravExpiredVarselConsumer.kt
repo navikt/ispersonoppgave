@@ -56,11 +56,9 @@ class AktivitetskravExpiredVarselConsumer(
             val numberOfTombstones = tombstoneRecords.size
             log.warn("Value of $numberOfTombstones ConsumerRecord are null, most probably due to a tombstone. Contact the owner of the topic if an error is suspected")
         }
-
-        val recordPairs = validRecords.map { record ->
-            Pair(record.key(), record.value())
-        }
-        vurderStansService.processAktivitetskravExpiredVarsel(recordPairs)
+        vurderStansService.processAktivitetskravExpiredVarsel(
+            expiredVarselList = validRecords.map { record -> record.value() },
+        )
     }
 
     companion object {
