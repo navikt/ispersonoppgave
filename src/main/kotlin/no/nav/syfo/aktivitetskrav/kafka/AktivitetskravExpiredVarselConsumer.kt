@@ -8,7 +8,6 @@ import no.nav.syfo.aktivitetskrav.kafka.AktivitetskravExpiredVarselConsumer.Comp
 import no.nav.syfo.kafka.KafkaConsumerService
 import no.nav.syfo.kafka.kafkaAivenConsumerConfig
 import no.nav.syfo.kafka.launchKafkaTask
-import org.apache.kafka.clients.consumer.ConsumerConfig
 import org.apache.kafka.clients.consumer.ConsumerRecords
 import org.apache.kafka.clients.consumer.KafkaConsumer
 import org.slf4j.Logger
