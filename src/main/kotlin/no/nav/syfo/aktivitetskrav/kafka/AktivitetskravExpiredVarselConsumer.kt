@@ -2,7 +2,7 @@ package no.nav.syfo.aktivitetskrav.kafka
 
 import no.nav.syfo.ApplicationState
 import no.nav.syfo.Environment
-import no.nav.syfo.aktivitetskrav.VurderStoppService
+import no.nav.syfo.aktivitetskrav.VurderStansService
 import no.nav.syfo.aktivitetskrav.domain.ExpiredVarsel
 import no.nav.syfo.aktivitetskrav.kafka.AktivitetskravExpiredVarselConsumer.Companion.AKTIVITETSKRAV_EXPIRED_VARSEL_TOPIC
 import no.nav.syfo.kafka.KafkaConsumerService
@@ -18,13 +18,13 @@ import java.time.Duration
 fun launchKafkaTaskAktivitetskravExpiredVarsel(
     applicationState: ApplicationState,
     environment: Environment,
-    vurderStoppService: VurderStoppService,
+    vurderStansService: VurderStansService,
 ) {
     val consumerProperties = kafkaAivenConsumerConfig<ExpiredVarselDeserializer>(environment.kafka).apply {
         this[ConsumerConfig.MAX_POLL_RECORDS_CONFIG] = "1"
     }
     val aktivitetskravExpiredVarselConsumer = AktivitetskravExpiredVarselConsumer(
-        vurderStoppService = vurderStoppService,
+        vurderStansService = vurderStansService,
     )
     launchKafkaTask(
         applicationState = applicationState,
@@ -35,7 +35,7 @@ fun launchKafkaTaskAktivitetskravExpiredVarsel(
 }
 
 class AktivitetskravExpiredVarselConsumer(
-    val vurderStoppService: VurderStoppService,
+    val vurderStansService: VurderStansService,
 ) : KafkaConsumerService<ExpiredVarsel> {
 
     override val pollDurationInMillis: Long = 1000
@@ -60,7 +60,7 @@ class AktivitetskravExpiredVarselConsumer(
         val recordPairs = validRecords.map { record ->
             Pair(record.key(), record.value())
         }
-        vurderStoppService.processAktivitetskravExpiredVarsel(recordPairs)
+        vurderStansService.processAktivitetskravExpiredVarsel(recordPairs)
     }
 
     companion object {

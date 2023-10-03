@@ -6,32 +6,23 @@ import no.nav.syfo.domain.PersonIdent
 import no.nav.syfo.metric.COUNT_PERSONOPPGAVEHENDELSE_AKTIVITETSKRAV_EXPIRED_VARSEL_MOTTATT
 import no.nav.syfo.personoppgave.*
 import no.nav.syfo.personoppgave.domain.*
-import no.nav.syfo.personoppgavehendelse.domain.PersonoppgavehendelseType
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
-class VurderStoppService(
+class VurderStansService(
     private val database: DatabaseInterface,
-    private val personOppgaveService: PersonOppgaveService,
 ) {
     fun processAktivitetskravExpiredVarsel(recordPairs: List<Pair<String, ExpiredVarsel>>) {
         database.connection.use { connection ->
             recordPairs.forEach { record ->
                 val expiredVarsel = record.second
-                log.info("Received aktivitetskrav expired varsel with key=${record.first} and uuid=${expiredVarsel.uuid}")
-                val personIdent = PersonIdent(expiredVarsel.personIdent)
-                val oppgaveUuid = connection.createPersonOppgave(
+                log.info("Received aktivitetskrav expired varsel with uuid=${expiredVarsel.uuid}")
+                connection.createPersonOppgave(
                     referanseUuid = expiredVarsel.uuid,
-                    personIdent = personIdent,
+                    personIdent = PersonIdent(expiredVarsel.personIdent),
                     personOppgaveType = PersonOppgaveType.AKTIVITETSKRAV_VURDER_STANS,
+                    publish = true, // cronjob will publish
                 )
-
-                personOppgaveService.publishPersonoppgaveHendelse(
-                    personoppgavehendelseType = PersonoppgavehendelseType.AKTIVITETSKRAV_VURDER_STANS_MOTTATT,
-                    personIdent = personIdent,
-                    personoppgaveUUID = oppgaveUuid,
-                )
-
                 COUNT_PERSONOPPGAVEHENDELSE_AKTIVITETSKRAV_EXPIRED_VARSEL_MOTTATT.increment()
             }
             connection.commit()

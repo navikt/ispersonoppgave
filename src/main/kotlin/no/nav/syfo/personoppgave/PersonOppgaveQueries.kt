@@ -223,6 +223,7 @@ fun Connection.createPersonOppgave(
     referanseUuid: UUID,
     personIdent: PersonIdent,
     personOppgaveType: PersonOppgaveType,
+    publish: Boolean = false,
 ): UUID {
     val now = Timestamp.from(Instant.now())
     val uuid = UUID.randomUUID()
@@ -235,7 +236,7 @@ fun Connection.createPersonOppgave(
         it.setString(5, personOppgaveType.name)
         it.setTimestamp(6, now)
         it.setTimestamp(7, now)
-        it.setBoolean(8, false)
+        it.setBoolean(8, publish)
         it.executeQuery().toList { getInt("id") }
     }
 
@@ -297,14 +298,13 @@ fun Connection.updatePersonoppgave(
     personoppgave: PersonOppgave,
 ) {
     val behandletTidspunkt = personoppgave.behandletTidspunkt?.toTimestamp()
-    val publishedAt = personoppgave.publishedAt?.let { Timestamp.from(it.toInstant()) }
 
     val behandletOppgaver = prepareStatement(queryUpdatePersonoppgave).use {
         it.setTimestamp(1, behandletTidspunkt)
         it.setString(2, personoppgave.behandletVeilederIdent)
         it.setTimestamp(3, Timestamp.valueOf(personoppgave.sistEndret))
         it.setBoolean(4, personoppgave.publish)
-        it.setObject(5, publishedAt)
+        it.setObject(5, personoppgave.publishedAt)
         it.setString(6, personoppgave.uuid.toString())
 
         it.executeUpdate()

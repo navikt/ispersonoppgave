@@ -31,27 +31,19 @@ class AktivitetskravExpiredVarselSpek : Spek({
             val externalMockEnvironment = ExternalMockEnvironment()
             val database = externalMockEnvironment.database
             val kafkaConsumer = mockk<KafkaConsumer<String, ExpiredVarsel>>()
-            val personoppgavehendelseProducer = mockk<PersonoppgavehendelseProducer>()
-            val personOppgaveService = PersonOppgaveService(
+            val vurderStansService = VurderStansService(
                 database = database,
-                personoppgavehendelseProducer = personoppgavehendelseProducer,
-            )
-            val vurderStoppService = VurderStoppService(
-                database = database,
-                personOppgaveService = personOppgaveService,
             )
             val aktivitetskravExpiredVarselConsumer = AktivitetskravExpiredVarselConsumer(
-                vurderStoppService = vurderStoppService,
+                vurderStansService = vurderStansService,
             )
 
             beforeEachTest {
                 every { kafkaConsumer.commitSync() } returns Unit
-                justRun { personoppgavehendelseProducer.sendPersonoppgavehendelse(any(), any(), any()) }
             }
 
             afterEachTest {
                 database.connection.dropData()
-                clearMocks(personoppgavehendelseProducer)
             }
 
             it("Consumes expired varsel") {
@@ -83,17 +75,9 @@ class AktivitetskravExpiredVarselSpek : Spek({
                 val personOppgave = database.connection.getPersonOppgaverByReferanseUuid(
                     referanseUuid = expiredVarsel.uuid,
                 ).map { it.toPersonOppgave() }.first()
-                personOppgave.publish shouldBeEqualTo false
+                personOppgave.publish shouldBeEqualTo true
                 personOppgave.type shouldBeEqualTo PersonOppgaveType.AKTIVITETSKRAV_VURDER_STANS
                 personOppgave.personIdent shouldBeEqualTo ARBEIDSTAKER_FNR
-
-                verify(exactly = 1) {
-                    personoppgavehendelseProducer.sendPersonoppgavehendelse(
-                        hendelsetype = PersonoppgavehendelseType.AKTIVITETSKRAV_VURDER_STANS_MOTTATT,
-                        personIdent = personOppgave.personIdent,
-                        personoppgaveId = personOppgave.uuid,
-                    )
-                }
             }
         }
     }
