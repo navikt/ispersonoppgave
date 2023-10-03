@@ -20,9 +20,7 @@ fun launchKafkaTaskAktivitetskravExpiredVarsel(
     environment: Environment,
     vurderStansService: VurderStansService,
 ) {
-    val consumerProperties = kafkaAivenConsumerConfig<ExpiredVarselDeserializer>(environment.kafka).apply {
-        this[ConsumerConfig.MAX_POLL_RECORDS_CONFIG] = "1"
-    }
+    val consumerProperties = kafkaAivenConsumerConfig<ExpiredVarselDeserializer>(environment.kafka)
     val aktivitetskravExpiredVarselConsumer = AktivitetskravExpiredVarselConsumer(
         vurderStansService = vurderStansService,
     )
