@@ -1,7 +1,6 @@
 package no.nav.syfo.personoppgave.api
 
 import java.time.LocalDateTime
-import java.util.*
 
 data class PersonOppgaveVeileder(
     val uuid: String,

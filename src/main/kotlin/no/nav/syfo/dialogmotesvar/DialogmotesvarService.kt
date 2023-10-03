@@ -10,7 +10,6 @@ import no.nav.syfo.personoppgave.domain.*
 import no.nav.syfo.util.toLocalDateTimeOslo
 import java.sql.Connection
 import java.time.LocalDate
-import java.util.*
 
 fun processDialogmotesvar(
     connection: Connection,
@@ -26,8 +25,7 @@ fun processDialogmotesvar(
         .firstOrNull { it.type == PersonOppgaveType.DIALOGMOTESVAR }
 
     if (personOppgave == null) {
-        val personoppgaveUuid = UUID.randomUUID()
-        connection.createPersonOppgave(dialogmotesvar, personoppgaveUuid)
+        connection.createPersonOppgave(dialogmotesvar)
     } else {
         if (dialogmotesvar happenedAfter personOppgave) {
             val updatedOppgave = personOppgave.copy(
@@ -36,7 +34,7 @@ fun processDialogmotesvar(
                 sistEndret = dialogmotesvar.svarReceivedAt.toLocalDateTimeOslo(),
                 publish = true,
             )
-            connection.updatePersonoppgave(updatedOppgave)
+            connection.updatePersonoppgaveSetBehandlet(updatedOppgave)
             COUNT_DIALOGMOTESVAR_OPPGAVE_UPDATED.increment()
         }
     }

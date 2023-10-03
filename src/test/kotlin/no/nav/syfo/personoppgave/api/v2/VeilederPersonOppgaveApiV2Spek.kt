@@ -119,10 +119,13 @@ class VeilederPersonOppgaveApiV2Spek : Spek({
                 it("returns PersonOppgaveList if there is a PersonOppgave with type OppfolgingsplanLPS for PersonIdent") {
                     val kOppfolgingsplanLPS = generateKOppfolgingsplanLPS
                     val personOppgaveType = PersonOppgaveType.OPPFOLGINGSPLANLPS
-                    database.connection.createPersonOppgave(
-                        kOppfolgingsplanLPS,
-                        personOppgaveType
-                    )
+                    database.connection.use {
+                        it.createPersonOppgave(
+                            kOppfolgingsplanLPS,
+                            personOppgaveType
+                        )
+                        it.commit()
+                    }
 
                     with(
                         handleRequest(HttpMethod.Get, url) {
@@ -155,15 +158,18 @@ class VeilederPersonOppgaveApiV2Spek : Spek({
                     val kOppfolgingsplanLPS2 = generateKOppfolgingsplanLPS2
                     val personOppgaveType = PersonOppgaveType.OPPFOLGINGSPLANLPS
 
-                    val uuid = database.connection.createPersonOppgave(
-                        kOppfolgingsplanLPS,
-                        personOppgaveType
-                    ).second
-
-                    database.connection.createPersonOppgave(
-                        kOppfolgingsplanLPS2,
-                        personOppgaveType
-                    )
+                    val uuid = database.connection.use { connection ->
+                        connection.createPersonOppgave(
+                            kOppfolgingsplanLPS2,
+                            personOppgaveType
+                        )
+                        connection.createPersonOppgave(
+                            kOppfolgingsplanLPS,
+                            personOppgaveType
+                        ).also {
+                            connection.commit()
+                        }
+                    }
 
                     val urlProcess = "$baseUrl/$uuid/behandle"
                     val urlGet = "$baseUrl/personident"
@@ -225,10 +231,12 @@ class VeilederPersonOppgaveApiV2Spek : Spek({
                     val kOppfolgingsplanLPS = generateKOppfolgingsplanLPS
                     val personOppgaveType = PersonOppgaveType.OPPFOLGINGSPLANLPS
 
-                    val uuid = database.connection.createPersonOppgave(
-                        kOppfolgingsplanLPS,
-                        personOppgaveType
-                    ).second
+                    val uuid = database.connection.use { connection ->
+                        connection.createPersonOppgave(
+                            kOppfolgingsplanLPS,
+                            personOppgaveType
+                        ).also { connection.commit() }
+                    }
 
                     val urlProcess = "$baseUrl/$uuid/behandle"
                     val urlGet = "$baseUrl/personident"
@@ -272,12 +280,10 @@ class VeilederPersonOppgaveApiV2Spek : Spek({
 
                 it("returns OK on behandle dialogmotesvar") {
                     val moteUuid = UUID.randomUUID()
-                    val oppgaveUuid = UUID.randomUUID()
                     val dialogmotesvar = generateDialogmotesvar(moteUuid, DialogmoteSvartype.NYTT_TID_STED)
 
-                    database.connection.use { connection ->
-                        connection.createPersonOppgave(dialogmotesvar, oppgaveUuid)
-                        connection.commit()
+                    val oppgaveUuid = database.connection.use { connection ->
+                        connection.createPersonOppgave(dialogmotesvar).also { connection.commit() }
                     }
 
                     val urlProcess = "$baseUrl/$oppgaveUuid/behandle"

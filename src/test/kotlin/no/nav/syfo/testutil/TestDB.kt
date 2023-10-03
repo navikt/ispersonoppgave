@@ -10,7 +10,7 @@ import no.nav.syfo.dialogmotesvar.toPDialogmotesvar
 import no.nav.syfo.domain.PersonIdent
 import no.nav.syfo.personoppgave.domain.*
 import no.nav.syfo.oppfolgingsplanlps.kafka.KOppfolgingsplanLPS
-import no.nav.syfo.personoppgave.queryGetPersonOppgaveListForFnr
+import no.nav.syfo.personoppgave.queryGetPersonOppgaverForFnr
 import no.nav.syfo.personoppgave.toPPersonOppgave
 import no.nav.syfo.util.toOffsetDateTimeUTC
 import org.flywaydb.core.Flyway
@@ -58,7 +58,7 @@ fun Connection.dropData() {
 
 fun Connection.getPersonOppgaveList(fodselnummer: PersonIdent): List<PPersonOppgave> {
     return use { connection ->
-        connection.prepareStatement(queryGetPersonOppgaveListForFnr).use {
+        connection.prepareStatement(queryGetPersonOppgaverForFnr).use {
             it.setString(1, fodselnummer.value)
             it.executeQuery().toList { toPPersonOppgave() }
         }

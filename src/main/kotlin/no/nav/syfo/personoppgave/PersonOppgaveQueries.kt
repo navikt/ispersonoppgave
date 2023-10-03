@@ -6,6 +6,7 @@ import no.nav.syfo.dialogmotestatusendring.domain.DialogmoteStatusendring
 import no.nav.syfo.dialogmotesvar.domain.Dialogmotesvar
 import no.nav.syfo.domain.PersonIdent
 import no.nav.syfo.behandlerdialog.domain.Melding
+import no.nav.syfo.domain.Virksomhetsnummer
 import no.nav.syfo.personoppgave.domain.*
 import no.nav.syfo.oppfolgingsplanlps.kafka.KOppfolgingsplanLPS
 import no.nav.syfo.util.convert
@@ -15,59 +16,6 @@ import java.sql.*
 import java.time.Instant
 import java.time.OffsetDateTime
 import java.util.*
-
-// TODO: flytt get queries over til getPersonOppgaveQueries
-const val queryGetPersonOppgaveListForFnr =
-    """
-    SELECT *
-    FROM PERSON_OPPGAVE
-    WHERE fnr = ?
-    """
-
-fun DatabaseInterface.getPersonOppgaveList(personIdent: PersonIdent): List<PPersonOppgave> {
-    return connection.use { connection ->
-        connection.getPersonOppgaver(personIdent)
-    }
-}
-
-fun Connection.getPersonOppgaver(personIdent: PersonIdent): List<PPersonOppgave> {
-    return prepareStatement(queryGetPersonOppgaveListForFnr).use {
-        it.setString(1, personIdent.value)
-        it.executeQuery().toList { toPPersonOppgave() }
-    }
-}
-
-const val queryGetPersonOppgaveListForUUID =
-    """
-    SELECT *
-    FROM PERSON_OPPGAVE
-    WHERE uuid = ?
-    """
-
-fun DatabaseInterface.getPersonOppgaveList(uuid: UUID): List<PPersonOppgave> {
-    return connection.use { connection ->
-        connection.prepareStatement(queryGetPersonOppgaveListForUUID).use {
-            it.setString(1, uuid.toString())
-            it.executeQuery().toList { toPPersonOppgave() }
-        }
-    }
-}
-
-const val queryGetPersonOppgaverByReferanseUUID =
-    """
-    SELECT *
-    FROM PERSON_OPPGAVE
-    WHERE referanse_uuid = ?
-    """
-
-fun Connection.getPersonOppgaverByReferanseUuid(referanseUuid: UUID): List<PPersonOppgave> {
-    return prepareStatement(queryGetPersonOppgaverByReferanseUUID).use {
-        it.setString(1, referanseUuid.toString())
-        it.executeQuery().toList {
-            toPPersonOppgave()
-        }
-    }
-}
 
 const val queryUpdatePersonOppgaveBehandlet =
     """
@@ -127,18 +75,18 @@ const val queryUpdatePersonOppgaveOversikthendelse =
     """
     UPDATE PERSON_OPPGAVE
     SET oversikthendelse_tidspunkt = ?
-    WHERE id = ?
+    WHERE uuid = ?
     """
 
 fun DatabaseInterface.updatePersonOppgaveOversikthendelse(
-    id: Int
+    uuid: UUID,
 ) {
     val now = Timestamp.from(Instant.now())
 
     connection.use { connection ->
         connection.prepareStatement(queryUpdatePersonOppgaveOversikthendelse).use {
             it.setTimestamp(1, now)
-            it.setInt(2, id)
+            it.setString(2, uuid.toString())
             it.execute()
         }
         connection.commit()
@@ -158,57 +106,25 @@ const val queryCreatePersonOppgave =
         publish) VALUES (DEFAULT, ?, ?, ?, ?, ?, ?, ?, ?) RETURNING id
     """
 
-fun DatabaseInterface.createPersonOppgave(
+fun Connection.createPersonOppgave(
     kOppfolgingsplanLPS: KOppfolgingsplanLPS,
-    type: PersonOppgaveType
-): Pair<Int, UUID> {
-    val uuid = UUID.randomUUID()
-    val now = Timestamp.from(Instant.now())
+    type: PersonOppgaveType,
+) = createPersonOppgave(
+    referanseUuid = UUID.fromString(kOppfolgingsplanLPS.uuid),
+    personIdent = PersonIdent(kOppfolgingsplanLPS.fodselsnummer),
+    virksomhetsnummer = Virksomhetsnummer(kOppfolgingsplanLPS.virksomhetsnummer),
+    personOppgaveType = type,
+)
 
-    connection.use { connection ->
-        val personIdList = connection.prepareStatement(queryCreatePersonOppgave).use {
-            it.setString(1, uuid.toString())
-            it.setString(2, kOppfolgingsplanLPS.uuid)
-            it.setString(3, kOppfolgingsplanLPS.fodselsnummer)
-            it.setString(4, kOppfolgingsplanLPS.virksomhetsnummer)
-            it.setString(5, type.name)
-            it.setTimestamp(6, now)
-            it.setTimestamp(7, now)
-            it.setBoolean(8, false)
-            it.executeQuery().toList { getInt("id") }
-        }
-
-        if (personIdList.size != 1) {
-            throw SQLException("Creating person failed, no rows affected.")
-        }
-        connection.commit()
-
-        return Pair(personIdList.first(), uuid)
-    }
-}
-
-fun Connection.createPersonOppgave( // TODO: send in oppgave instead of dialogmotesvar
+fun Connection.createPersonOppgave(
     dialogmotesvar: Dialogmotesvar,
-    uuid: UUID,
-) {
-    val now = Timestamp.from(Instant.now())
-
-    val personIdList = prepareStatement(queryCreatePersonOppgave).use {
-        it.setString(1, uuid.toString())
-        it.setString(2, dialogmotesvar.moteuuid.toString())
-        it.setString(3, dialogmotesvar.arbeidstakerIdent.value)
-        it.setString(4, "")
-        it.setString(5, PersonOppgaveType.DIALOGMOTESVAR.name)
-        it.setTimestamp(6, now)
-        it.setTimestamp(7, Timestamp.from(dialogmotesvar.svarReceivedAt.toInstant()))
-        it.setBoolean(8, true)
-        it.executeQuery().toList { getInt("id") }
-    }
-
-    if (personIdList.size != 1) {
-        throw SQLException("Creating person failed, no rows affected.")
-    }
-}
+) = createPersonOppgave(
+    referanseUuid = dialogmotesvar.moteuuid,
+    personIdent = dialogmotesvar.arbeidstakerIdent,
+    personOppgaveType = PersonOppgaveType.DIALOGMOTESVAR,
+    sistEndret = Timestamp.from(dialogmotesvar.svarReceivedAt.toInstant()),
+    publish = true,
+)
 
 fun Connection.createPersonOppgave(
     melding: Melding,
@@ -222,20 +138,23 @@ fun Connection.createPersonOppgave(
 fun Connection.createPersonOppgave(
     referanseUuid: UUID,
     personIdent: PersonIdent,
+    virksomhetsnummer: Virksomhetsnummer? = null,
     personOppgaveType: PersonOppgaveType,
+    sistEndret: Timestamp? = null,
     publish: Boolean = false,
 ): UUID {
-    val now = Timestamp.from(Instant.now())
     val uuid = UUID.randomUUID()
+    val now = Timestamp.from(Instant.now())
+    val sistEndretTidspunkt = sistEndret ?: now
 
     val personIdList = prepareStatement(queryCreatePersonOppgave).use {
         it.setString(1, uuid.toString())
         it.setString(2, referanseUuid.toString())
         it.setString(3, personIdent.value)
-        it.setString(4, "")
+        it.setString(4, virksomhetsnummer?.value ?: "")
         it.setString(5, personOppgaveType.name)
         it.setTimestamp(6, now)
-        it.setTimestamp(7, now)
+        it.setTimestamp(7, sistEndretTidspunkt)
         it.setBoolean(8, publish)
         it.executeQuery().toList { getInt("id") }
     }
@@ -294,7 +213,7 @@ const val queryUpdatePersonoppgave =
     WHERE uuid = ?
     """
 
-fun Connection.updatePersonoppgave(
+fun Connection.updatePersonoppgaveSetBehandlet(
     personoppgave: PersonOppgave,
 ) {
     val behandletTidspunkt = personoppgave.behandletTidspunkt?.toTimestamp()

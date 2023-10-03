@@ -1,6 +1,7 @@
 package no.nav.syfo.personoppgavehendelse
 
 import io.mockk.*
+import no.nav.syfo.database.DatabaseInterface
 import no.nav.syfo.domain.PersonIdent
 import no.nav.syfo.personoppgave.*
 import no.nav.syfo.personoppgave.domain.PersonOppgave
@@ -20,8 +21,11 @@ class PublishPersonoppgavehendelseServiceSpek : Spek({
 
     describe("Get and publish correct unpublished oppgavehendelser") {
         val connection = mockk<Connection>(relaxed = true)
+        val database = mockk<DatabaseInterface>(relaxed = true)
+        every { database.connection } returns connection
         val personoppgavehendelseProducer = mockk<PersonoppgavehendelseProducer>()
         val publishPersonoppgavehendelseService = PublishPersonoppgavehendelseService(
+            database = database,
             personoppgavehendelseProducer = personoppgavehendelseProducer,
         )
         beforeEachTest {
@@ -40,7 +44,7 @@ class PublishPersonoppgavehendelseServiceSpek : Spek({
                 val pPersonoppgaver = generatePPersonoppgaver()
                 every { connection.getPersonOppgaverByPublish(publish = true) } returns pPersonoppgaver
 
-                val unpublished = publishPersonoppgavehendelseService.getUnpublishedOppgaver(connection)
+                val unpublished = publishPersonoppgavehendelseService.getUnpublishedOppgaver()
 
                 verify(exactly = 1) { connection.getPersonOppgaverByPublish(publish = true) }
                 unpublished.size shouldBeEqualTo pPersonoppgaver.size
@@ -71,13 +75,13 @@ class PublishPersonoppgavehendelseServiceSpek : Spek({
                     newerPOppgave,
                 )
                 val updatedPersonoppgave = personoppgave.copy(publish = false)
-                justRun { connection.updatePersonoppgave(any()) }
+                justRun { connection.updatePersonoppgaveSetBehandlet(any()) }
 
-                publishPersonoppgavehendelseService.publish(connection, personoppgave,)
+                publishPersonoppgavehendelseService.publish(personoppgave)
 
                 verify(exactly = 0) { personoppgavehendelseProducer.sendPersonoppgavehendelse(any(), any(), any()) }
                 verify(exactly = 1) { connection.getPersonOppgaver(personoppgave.personIdent) }
-                verify(exactly = 1) { connection.updatePersonoppgave(updatedPersonoppgave) }
+                verify(exactly = 1) { connection.updatePersonoppgaveSetBehandlet(updatedPersonoppgave) }
             }
 
             it("publishes an oppgavehendelse if the personoppgave is the newest") {
@@ -102,9 +106,9 @@ class PublishPersonoppgavehendelseServiceSpek : Spek({
                     pPersonOppgave,
                 )
                 justRun { personoppgavehendelseProducer.sendPersonoppgavehendelse(any(), any(), any()) }
-                justRun { connection.updatePersonoppgave(any()) }
+                justRun { connection.updatePersonoppgaveSetBehandlet(any()) }
 
-                publishPersonoppgavehendelseService.publish(connection, personOppgave)
+                publishPersonoppgavehendelseService.publish(personOppgave)
 
                 verify(exactly = 1) { connection.getPersonOppgaver(personOppgave.personIdent) }
                 verify(exactly = 1) {
@@ -115,7 +119,7 @@ class PublishPersonoppgavehendelseServiceSpek : Spek({
                     )
                 }
                 val updatedpersonoppgaveSlot = slot<PersonOppgave>()
-                verify(exactly = 1) { connection.updatePersonoppgave(capture(updatedpersonoppgaveSlot)) }
+                verify(exactly = 1) { connection.updatePersonoppgaveSetBehandlet(capture(updatedpersonoppgaveSlot)) }
                 val updatedPersonoppgave = updatedpersonoppgaveSlot.captured
                 updatedPersonoppgave.publishedAt shouldNotBeEqualTo null
                 updatedPersonoppgave.publish shouldBeEqualTo false

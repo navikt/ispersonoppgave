@@ -29,15 +29,19 @@ class OppfolgingsplanLPSService(
                 .find { it.referanseUuid == UUID.fromString(kOppfolgingsplanLPS.uuid) }
             if (person == null) {
                 log.info("Didn't find person with oppgave based on given referanseUuid: ${kOppfolgingsplanLPS.uuid} creating new Personoppgave")
-                val idPair = database.createPersonOppgave(
-                    kOppfolgingsplanLPS,
-                    PersonOppgaveType.OPPFOLGINGSPLANLPS
-                )
+                val uuid = database.connection.use { connection ->
+                    connection.createPersonOppgave(
+                        kOppfolgingsplanLPS,
+                        PersonOppgaveType.OPPFOLGINGSPLANLPS,
+                    ).also {
+                        connection.commit()
+                    }
+                }
                 COUNT_PERSON_OPPGAVE_OPPFOLGINGSPLANLPS_CREATED.increment()
 
                 val fodselsnummer = PersonIdent(kOppfolgingsplanLPS.fodselsnummer)
-                sendPersonoppgavehendelse(idPair.second, fodselsnummer)
-                database.updatePersonOppgaveOversikthendelse(idPair.first)
+                sendPersonoppgavehendelse(uuid, fodselsnummer)
+                database.updatePersonOppgaveOversikthendelse(uuid)
                 COUNT_PERSONOPPGAVEHENDELSE_OPPFOLGINGSPLANLPS_BISTAND_MOTTATT_SENT.increment()
             } else {
                 log.error("Already create a PersonOppgave for OppfolgingsplanLPS with UUID {}, {}", kOppfolgingsplanLPS.uuid, callIdArgument(callId))

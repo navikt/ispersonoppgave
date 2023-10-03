@@ -79,7 +79,7 @@ class PersonOppgaveService(
             veilederIdent = veilederIdent,
         )
         database.connection.use { connection ->
-            connection.updatePersonoppgave(behandletOppgave)
+            connection.updatePersonoppgaveSetBehandlet(behandletOppgave)
             connection.commit()
         }
     }

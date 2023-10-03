@@ -1,14 +1,15 @@
 package no.nav.syfo.cronjob
 
-import io.ktor.server.application.*
-import no.nav.syfo.*
+import no.nav.syfo.ApplicationState
+import no.nav.syfo.Environment
 import no.nav.syfo.cronjob.leaderelection.LeaderPodClient
-import no.nav.syfo.personoppgavehendelse.cronjob.PublishOppgavehendelseCronjob
-import no.nav.syfo.personoppgavehendelse.PublishPersonoppgavehendelseService
 import no.nav.syfo.database.DatabaseInterface
+import no.nav.syfo.launchBackgroundTask
 import no.nav.syfo.personoppgavehendelse.PersonoppgavehendelseProducer
+import no.nav.syfo.personoppgavehendelse.PublishPersonoppgavehendelseService
+import no.nav.syfo.personoppgavehendelse.cronjob.PublishOppgavehendelseCronjob
 
-fun Application.cronjobModule(
+fun cronjobModule(
     applicationState: ApplicationState,
     database: DatabaseInterface,
     environment: Environment,
@@ -24,11 +25,11 @@ fun Application.cronjobModule(
     )
 
     val publishOppgavehendelseService = PublishPersonoppgavehendelseService(
+        database = database,
         personoppgavehendelseProducer = personoppgavehendelseProducer,
     )
 
     val publishOppgavehendelseCronjob = PublishOppgavehendelseCronjob(
-        database = database,
         publishOppgavehendelseService = publishOppgavehendelseService,
     )
 

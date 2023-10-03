@@ -1,13 +1,18 @@
 ![Build status](https://github.com/navikt/ispersonoppgave/workflows/main/badge.svg?branch=master)
 
-[comment]: <> (TODO: Fiks Readme: Flyt for dialogmotesvar/statusendring. Info om cutoff)
 # ispersonoppgave
 Ispersonoppgave is a backend microservice for handling of Person-Oppgaver by SYFO-veiledere in Syfomodiaperson(https://github.com/navikt/syfomodiaperson) in Modia.
 Person-Oppgave are created based on events and are available to SYFO-veiledere for manual processing.
 Each time a Person-Oppgave is created or processed, an event is produced to notify Syfooversikt of a change in the situation of a person.
 
-The application currently handles one type of Person-Oppgave, which is a received Oppfolgingsplan from LPS that has been shared with NAV and has Bistandsbehov.\
-A future goal is to move the Person-Oppgave for received answers to Motebehov from Syfomotebehov to this application.
+The application currently handles these types of Person-Oppgave:
+
+* Oppfolgingsplan from LPS that has been shared with NAV and has Bistandsbehov.
+* Dialogmoter: status changed or response received
+* Dialogmeldinger: response received
+* Dialogmeldinger: no response after 14 days
+* Dialogmeldinger: negative apprec
+* Aktivitetskrav: expired varsel
 
 ## Technologies Used
 * Docker

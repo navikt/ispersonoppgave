@@ -6,6 +6,59 @@ import no.nav.syfo.domain.PersonIdent
 import no.nav.syfo.personoppgave.domain.PPersonOppgave
 import no.nav.syfo.personoppgave.domain.PersonOppgaveType
 import java.sql.Connection
+import java.util.*
+
+const val queryGetPersonOppgaverForFnr =
+    """
+    SELECT *
+    FROM PERSON_OPPGAVE
+    WHERE fnr = ?
+    """
+
+fun DatabaseInterface.getPersonOppgaveList(personIdent: PersonIdent): List<PPersonOppgave> {
+    return connection.use { connection ->
+        connection.getPersonOppgaver(personIdent)
+    }
+}
+
+fun Connection.getPersonOppgaver(personIdent: PersonIdent): List<PPersonOppgave> {
+    return prepareStatement(queryGetPersonOppgaverForFnr).use {
+        it.setString(1, personIdent.value)
+        it.executeQuery().toList { toPPersonOppgave() }
+    }
+}
+
+const val queryGetPersonOppgaverForUUID =
+    """
+    SELECT *
+    FROM PERSON_OPPGAVE
+    WHERE uuid = ?
+    """
+
+fun DatabaseInterface.getPersonOppgaveList(uuid: UUID): List<PPersonOppgave> {
+    return connection.use { connection ->
+        connection.prepareStatement(queryGetPersonOppgaverForUUID).use {
+            it.setString(1, uuid.toString())
+            it.executeQuery().toList { toPPersonOppgave() }
+        }
+    }
+}
+
+const val queryGetPersonOppgaverByReferanseUUID =
+    """
+    SELECT *
+    FROM PERSON_OPPGAVE
+    WHERE referanse_uuid = ?
+    """
+
+fun Connection.getPersonOppgaverByReferanseUuid(referanseUuid: UUID): List<PPersonOppgave> {
+    return prepareStatement(queryGetPersonOppgaverByReferanseUUID).use {
+        it.setString(1, referanseUuid.toString())
+        it.executeQuery().toList {
+            toPPersonOppgave()
+        }
+    }
+}
 
 const val queryGetPersonOppgaverByPublish =
     """

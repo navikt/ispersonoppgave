@@ -10,7 +10,6 @@ import java.time.OffsetDateTime
 import java.util.*
 
 data class PersonOppgave(
-    val id: Int, // TODO: Fjerne denne, siden den er intern i databasen?
     val uuid: UUID,
     val referanseUuid: UUID,
     val personIdent: PersonIdent,
