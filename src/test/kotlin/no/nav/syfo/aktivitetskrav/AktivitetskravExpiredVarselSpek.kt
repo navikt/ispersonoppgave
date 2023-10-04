@@ -5,7 +5,9 @@ import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
 import no.nav.syfo.aktivitetskrav.domain.ExpiredVarsel
+import no.nav.syfo.aktivitetskrav.domain.VarselType
 import no.nav.syfo.aktivitetskrav.kafka.AktivitetskravExpiredVarselConsumer
+import no.nav.syfo.domain.PersonIdent
 import no.nav.syfo.personoppgave.domain.PersonOppgaveType
 import no.nav.syfo.personoppgave.domain.toPersonOppgave
 import no.nav.syfo.personoppgave.getPersonOppgaverByReferanseUuid
@@ -50,8 +52,10 @@ class AktivitetskravExpiredVarselSpek : Spek({
 
             it("Consumes expired varsel") {
                 val expiredVarsel = ExpiredVarsel(
-                    uuid = UUID.randomUUID(),
-                    personIdent = ARBEIDSTAKER_FNR.value,
+                    varselUuid = UUID.randomUUID(),
+                    createdAt = LocalDate.now().atStartOfDay(),
+                    personIdent = PersonIdent(ARBEIDSTAKER_FNR.value),
+                    varselType = VarselType.FORHANDSVARSEL_STANS_AV_SYKEPENGER,
                     svarfrist = LocalDate.now(),
                 )
                 every { kafkaConsumer.poll(any<Duration>()) } returns ConsumerRecords(
@@ -75,7 +79,7 @@ class AktivitetskravExpiredVarselSpek : Spek({
                 }
 
                 val personOppgave = database.connection.getPersonOppgaverByReferanseUuid(
-                    referanseUuid = expiredVarsel.uuid,
+                    referanseUuid = expiredVarsel.varselUuid,
                 ).map { it.toPersonOppgave() }.first()
                 personOppgave.publish shouldBeEqualTo true
                 personOppgave.type shouldBeEqualTo PersonOppgaveType.AKTIVITETSKRAV_VURDER_STANS
