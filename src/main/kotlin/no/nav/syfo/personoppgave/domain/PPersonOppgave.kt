@@ -23,7 +23,6 @@ data class PPersonOppgave(
 
 fun PPersonOppgave.toPersonOppgave(): PersonOppgave {
     return PersonOppgave(
-        id = this.id,
         uuid = this.uuid,
         referanseUuid = this.referanseUuid,
         personIdent = PersonIdent(this.fnr),

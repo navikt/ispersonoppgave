@@ -35,11 +35,11 @@ fun Route.registerVeilederPersonOppgaveApiV2(
             val fnr = PersonIdent(personIdent)
 
             if (veilederTilgangskontrollClient.hasAccessWithOBO(fnr, token, callId)) {
-                val personOppaveList = personOppgaveService.getPersonOppgaveList(fnr).map {
+                val personoppgaver = personOppgaveService.getPersonOppgaveList(fnr).map {
                     it.toPersonOppgaveVeileder()
                 }
-                if (personOppaveList.isNotEmpty()) {
-                    call.respond(personOppaveList)
+                if (personoppgaver.isNotEmpty()) {
+                    call.respond(personoppgaver)
                 } else call.respond(HttpStatusCode.NoContent)
             } else {
                 val accessDeniedMessage = "Denied Veileder access to PersonIdent with Fodselsnummer"

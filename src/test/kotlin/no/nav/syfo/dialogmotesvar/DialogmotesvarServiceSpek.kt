@@ -25,12 +25,14 @@ class DialogmotesvarServiceSpek : Spek({
         val connection = mockk<Connection>(relaxed = true)
 
         beforeEachTest {
+            mockkStatic("no.nav.syfo.personoppgave.GetPersonOppgaveQueriesKt")
             mockkStatic("no.nav.syfo.personoppgave.PersonOppgaveQueriesKt")
             mockkStatic("no.nav.syfo.dialogmotestatusendring.DialogmoteStatusendringQueriesKt")
         }
 
         afterEachTest {
             clearMocks(connection)
+            unmockkStatic("no.nav.syfo.personoppgave.GetPersonOppgaveQueriesKt")
             unmockkStatic("no.nav.syfo.personoppgave.PersonOppgaveQueriesKt")
         }
 
@@ -46,7 +48,8 @@ class DialogmotesvarServiceSpek : Spek({
                     moteuuid = moteUuid,
                     svartype = DialogmoteSvartype.NYTT_TID_STED,
                 )
-                justRun { connection.createPersonOppgave(dialogmotesvar, any()) }
+                val personOppgaveUuid = UUID.randomUUID()
+                every { connection.createPersonOppgave(dialogmotesvar) } returns personOppgaveUuid
 
                 processDialogmotesvar(
                     connection = connection,
@@ -55,15 +58,16 @@ class DialogmotesvarServiceSpek : Spek({
                 )
 
                 verify(exactly = 1) { connection.getPersonOppgaverByReferanseUuid(dialogmotesvar.moteuuid) }
-                verify(exactly = 1) { connection.createPersonOppgave(dialogmotesvar, any()) }
-                verify(exactly = 0) { connection.updatePersonoppgave(any()) }
+                verify(exactly = 1) { connection.createPersonOppgave(dialogmotesvar) }
+                verify(exactly = 0) { connection.updatePersonoppgaveSetBehandlet(any()) }
             }
 
             it("creates an oppgave if arbeidstaker does not want a dialogmote") {
                 val dialogmotesvar = generateDialogmotesvar(
                     svartype = DialogmoteSvartype.KOMMER_IKKE,
                 )
-                justRun { connection.createPersonOppgave(dialogmotesvar, any()) }
+                val personOppgaveUuid = UUID.randomUUID()
+                every { connection.createPersonOppgave(dialogmotesvar) } returns personOppgaveUuid
 
                 processDialogmotesvar(
                     connection = connection,
@@ -72,8 +76,8 @@ class DialogmotesvarServiceSpek : Spek({
                 )
 
                 verify(exactly = 1) { connection.getPersonOppgaverByReferanseUuid(dialogmotesvar.moteuuid) }
-                verify(exactly = 1) { connection.createPersonOppgave(dialogmotesvar, any()) }
-                verify(exactly = 0) { connection.updatePersonoppgave(any()) }
+                verify(exactly = 1) { connection.createPersonOppgave(dialogmotesvar) }
+                verify(exactly = 0) { connection.updatePersonoppgaveSetBehandlet(any()) }
             }
 
             it("does not create an oppgave if arbeidstaker confirms attendance to dialogmote") {
@@ -89,7 +93,7 @@ class DialogmotesvarServiceSpek : Spek({
 
                 verify(exactly = 0) { connection.getPersonOppgaverByReferanseUuid(any()) }
                 verify(exactly = 0) { connection.createBehandletPersonoppgave(any(), any()) }
-                verify(exactly = 0) { connection.updatePersonoppgave(any()) }
+                verify(exactly = 0) { connection.updatePersonoppgaveSetBehandlet(any()) }
             }
 
             it("does not create an oppgave if svar was sent before cutoff date") {
@@ -106,7 +110,7 @@ class DialogmotesvarServiceSpek : Spek({
 
                 verify(exactly = 0) { connection.getPersonOppgaverByReferanseUuid(any()) }
                 verify(exactly = 0) { connection.createBehandletPersonoppgave(any(), any()) }
-                verify(exactly = 0) { connection.updatePersonoppgave(any()) }
+                verify(exactly = 0) { connection.updatePersonoppgaveSetBehandlet(any()) }
             }
         }
 
@@ -130,7 +134,7 @@ class DialogmotesvarServiceSpek : Spek({
                 )
                 every { connection.getPersonOppgaverByReferanseUuid(moteuuid) } returns listOf(pPersonoppgave)
                 every { connection.getDialogmoteStatusendring(moteuuid) } returns mutableListOf(pDialogmoteStatusendring)
-                justRun { connection.updatePersonoppgave(any()) }
+                justRun { connection.updatePersonoppgaveSetBehandlet(any()) }
 
                 processDialogmotesvar(
                     connection = connection,
@@ -150,7 +154,7 @@ class DialogmotesvarServiceSpek : Spek({
                 verify(exactly = 1) { connection.getPersonOppgaverByReferanseUuid(newDialogmotesvar.moteuuid) }
                 verify(exactly = 1) { connection.getDialogmoteStatusendring(newDialogmotesvar.moteuuid) }
                 verify(exactly = 0) { connection.createBehandletPersonoppgave(any(), any()) }
-                verify(exactly = 1) { connection.updatePersonoppgave(updatePersonoppgave) }
+                verify(exactly = 1) { connection.updatePersonoppgaveSetBehandlet(updatePersonoppgave) }
             }
 
             it("ignores møtesvar for veileder if it happened before the oppgave was sist endret") {
@@ -180,7 +184,7 @@ class DialogmotesvarServiceSpek : Spek({
                 verify(exactly = 1) { connection.getPersonOppgaverByReferanseUuid(oldDialogmotesvar.moteuuid) }
                 verify(exactly = 1) { connection.getDialogmoteStatusendring(oldDialogmotesvar.moteuuid) }
                 verify(exactly = 0) { connection.createBehandletPersonoppgave(any(), any()) }
-                verify(exactly = 0) { connection.updatePersonoppgave(any()) }
+                verify(exactly = 0) { connection.updatePersonoppgaveSetBehandlet(any()) }
             }
 
             it("ignores møtesvar for veileder if current mote is not active") {
@@ -195,7 +199,7 @@ class DialogmotesvarServiceSpek : Spek({
                     uuid = moteuuid,
                 )
                 every { connection.getDialogmoteStatusendring(moteuuid) } returns mutableListOf(pDialogmoteStatusendring)
-                justRun { connection.updatePersonoppgave(any()) }
+                justRun { connection.updatePersonoppgaveSetBehandlet(any()) }
 
                 processDialogmotesvar(
                     connection = connection,
@@ -206,7 +210,7 @@ class DialogmotesvarServiceSpek : Spek({
                 verify(exactly = 0) { connection.getPersonOppgaverByReferanseUuid(newDialogmotesvar.moteuuid) }
                 verify(exactly = 1) { connection.getDialogmoteStatusendring(newDialogmotesvar.moteuuid) }
                 verify(exactly = 0) { connection.createBehandletPersonoppgave(any(), any()) }
-                verify(exactly = 0) { connection.updatePersonoppgave(any()) }
+                verify(exactly = 0) { connection.updatePersonoppgaveSetBehandlet(any()) }
             }
         }
     }

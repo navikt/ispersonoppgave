@@ -13,7 +13,6 @@ fun generatePersonoppgave(
     type: PersonOppgaveType = PersonOppgaveType.DIALOGMOTESVAR,
     virksomhetsnummer: Virksomhetsnummer? = null,
 ) = PersonOppgave(
-    id = 1,
     uuid = uuid,
     referanseUuid = referanseUuid,
     personIdent = UserConstants.ARBEIDSTAKER_FNR,

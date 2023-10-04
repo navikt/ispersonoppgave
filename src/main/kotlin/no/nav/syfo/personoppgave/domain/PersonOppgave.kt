@@ -10,7 +10,6 @@ import java.time.OffsetDateTime
 import java.util.*
 
 data class PersonOppgave(
-    val id: Int, // TODO: Fjerne denne, siden den er intern i databasen?
     val uuid: UUID,
     val referanseUuid: UUID,
     val personIdent: PersonIdent,
@@ -30,7 +29,7 @@ fun PersonOppgave.toPersonOppgaveVeileder(): PersonOppgaveVeileder {
         uuid = this.uuid.toString(),
         referanseUuid = this.referanseUuid.toString(),
         fnr = this.personIdent.value,
-        virksomhetsnummer = "", // TODO: Virksomhetsnummer skal fjernes, håndter det i frontend
+        virksomhetsnummer = "",
         type = this.type.name,
         behandletTidspunkt = this.behandletTidspunkt,
         behandletVeilederIdent = this.behandletVeilederIdent,

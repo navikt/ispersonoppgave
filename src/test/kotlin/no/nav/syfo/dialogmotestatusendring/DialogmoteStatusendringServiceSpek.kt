@@ -15,6 +15,7 @@ object DialogmoteStatusendringServiceSpek : Spek({
     val ONE_DAY_AGO = OffsetDateTime.now().minusDays(1)
     val TEN_DAYS_AGO = OffsetDateTime.now().minusDays(10)
     val HAPPENS_NOW = OffsetDateTime.now()
+    val GET_PERSONOPPGAVE_QUERIES_PATH = "no.nav.syfo.personoppgave.GetPersonOppgaveQueriesKt"
     val PERSONOPPGAVE_QUERIES_PATH = "no.nav.syfo.personoppgave.PersonOppgaveQueriesKt"
 
     describe("Finish personoppgave when receiving an endring in dialogmotestatus") {
@@ -22,11 +23,13 @@ object DialogmoteStatusendringServiceSpek : Spek({
         val connection = mockk<Connection>(relaxed = true)
 
         beforeEachTest {
+            mockkStatic(GET_PERSONOPPGAVE_QUERIES_PATH)
             mockkStatic(PERSONOPPGAVE_QUERIES_PATH)
         }
 
         afterEachTest {
             clearMocks(connection)
+            unmockkStatic(GET_PERSONOPPGAVE_QUERIES_PATH)
             unmockkStatic(PERSONOPPGAVE_QUERIES_PATH)
         }
 
@@ -52,12 +55,12 @@ object DialogmoteStatusendringServiceSpek : Spek({
                     publish = true,
                 )
                 every { connection.getPersonOppgaverByReferanseUuid(dialogmoteUuid) } returns listOf(personoppgave)
-                justRun { connection.updatePersonoppgave(any()) }
+                justRun { connection.updatePersonoppgaveSetBehandlet(any()) }
 
                 processDialogmoteStatusendring(connection, statusendring)
 
                 verify(exactly = 1) { connection.getPersonOppgaverByReferanseUuid(dialogmoteUuid) }
-                verify(exactly = 1) { connection.updatePersonoppgave(updatePersonoppgave) }
+                verify(exactly = 1) { connection.updatePersonoppgaveSetBehandlet(updatePersonoppgave) }
                 verify(exactly = 0) { connection.createBehandletPersonoppgave(any(), any()) }
             }
 
@@ -81,12 +84,12 @@ object DialogmoteStatusendringServiceSpek : Spek({
                     publish = true,
                 )
                 every { connection.getPersonOppgaverByReferanseUuid(dialogmoteUuid) } returns listOf(personoppgave)
-                justRun { connection.updatePersonoppgave(any()) }
+                justRun { connection.updatePersonoppgaveSetBehandlet(any()) }
 
                 processDialogmoteStatusendring(connection, statusendring)
 
                 verify(exactly = 1) { connection.getPersonOppgaverByReferanseUuid(dialogmoteUuid) }
-                verify(exactly = 1) { connection.updatePersonoppgave(updatePersonoppgave) }
+                verify(exactly = 1) { connection.updatePersonoppgaveSetBehandlet(updatePersonoppgave) }
                 verify(exactly = 0) { connection.createBehandletPersonoppgave(any(), any()) }
             }
 
@@ -106,12 +109,12 @@ object DialogmoteStatusendringServiceSpek : Spek({
                     publish = true,
                 )
                 every { connection.getPersonOppgaverByReferanseUuid(dialogmoteUuid) } returns listOf(personoppgave)
-                justRun { connection.updatePersonoppgave(any()) }
+                justRun { connection.updatePersonoppgaveSetBehandlet(any()) }
 
                 processDialogmoteStatusendring(connection, statusendring)
 
                 verify(exactly = 1) { connection.getPersonOppgaverByReferanseUuid(dialogmoteUuid) }
-                verify(exactly = 1) { connection.updatePersonoppgave(updatePersonoppgave) }
+                verify(exactly = 1) { connection.updatePersonoppgaveSetBehandlet(updatePersonoppgave) }
                 verify(exactly = 0) { connection.createBehandletPersonoppgave(any(), any()) }
             }
         }
@@ -127,7 +130,7 @@ object DialogmoteStatusendringServiceSpek : Spek({
 
                 verify(exactly = 1) { connection.getPersonOppgaverByReferanseUuid(dialogmoteUuid) }
                 verify(exactly = 1) { connection.createBehandletPersonoppgave(statusendring, any()) }
-                verify(exactly = 0) { connection.updatePersonoppgave(any()) }
+                verify(exactly = 0) { connection.updatePersonoppgaveSetBehandlet(any()) }
             }
         }
 
@@ -142,7 +145,7 @@ object DialogmoteStatusendringServiceSpek : Spek({
 
                 verify(exactly = 1) { connection.getPersonOppgaverByReferanseUuid(dialogmoteUuid) }
                 verify(exactly = 0) { connection.createBehandletPersonoppgave(any(), any()) }
-                verify(exactly = 0) { connection.updatePersonoppgave(any()) }
+                verify(exactly = 0) { connection.updatePersonoppgaveSetBehandlet(any()) }
             }
 
             it("Do nothing if a dialogmøte was moved status happened before personoppgave was sist endret") {
@@ -159,7 +162,7 @@ object DialogmoteStatusendringServiceSpek : Spek({
 
                 verify(exactly = 1) { connection.getPersonOppgaverByReferanseUuid(dialogmoteUuid) }
                 verify(exactly = 0) { connection.createBehandletPersonoppgave(any(), any()) }
-                verify(exactly = 0) { connection.updatePersonoppgave(any()) }
+                verify(exactly = 0) { connection.updatePersonoppgaveSetBehandlet(any()) }
             }
 
             it("Close oppgave if a dialogmøte was finished even if it happened before personoppgave was sist endret") {
@@ -171,13 +174,13 @@ object DialogmoteStatusendringServiceSpek : Spek({
                     )
                 val personoppgave = generatePPersonoppgave(dialogmoteUuid, HAPPENS_NOW.toLocalDateTime())
                 every { connection.getPersonOppgaverByReferanseUuid(dialogmoteUuid) } returns listOf(personoppgave)
-                justRun { connection.updatePersonoppgave(any()) }
+                justRun { connection.updatePersonoppgaveSetBehandlet(any()) }
 
                 processDialogmoteStatusendring(connection, statusendring)
 
                 verify(exactly = 1) { connection.getPersonOppgaverByReferanseUuid(dialogmoteUuid) }
                 verify(exactly = 0) { connection.createBehandletPersonoppgave(any(), any()) }
-                verify(exactly = 1) { connection.updatePersonoppgave(any()) }
+                verify(exactly = 1) { connection.updatePersonoppgaveSetBehandlet(any()) }
             }
         }
     }

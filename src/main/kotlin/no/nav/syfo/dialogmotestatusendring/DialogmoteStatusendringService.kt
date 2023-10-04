@@ -30,7 +30,7 @@ fun processDialogmoteStatusendring(
                 sistEndret = statusendring.endringTidspunkt.toLocalDateTimeOslo(),
                 publish = true,
             )
-            connection.updatePersonoppgave(updatedOppgave)
+            connection.updatePersonoppgaveSetBehandlet(updatedOppgave)
         }
     }
 }

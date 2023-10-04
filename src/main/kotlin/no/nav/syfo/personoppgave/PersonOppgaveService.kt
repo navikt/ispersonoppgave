@@ -18,21 +18,14 @@ class PersonOppgaveService(
     fun getPersonOppgaveList(
         personIdent: PersonIdent
     ): List<PersonOppgave> {
-        return database.getPersonOppgaveList(personIdent).map {
+        return database.getPersonOppgaver(personIdent).map {
             it.toPersonOppgave()
         }
     }
 
     fun getPersonOppgave(
         uuid: UUID,
-    ): PersonOppgave? {
-        val oppgaveList = database.getPersonOppgaveList(uuid)
-        return if (oppgaveList.isEmpty()) {
-            null
-        } else {
-            oppgaveList.first().toPersonOppgave()
-        }
-    }
+    ) = database.getPersonOppgaveByUuid(uuid)?.toPersonOppgave()
 
     fun behandlePersonOppgave(
         personoppgave: PersonOppgave,
@@ -79,7 +72,7 @@ class PersonOppgaveService(
             veilederIdent = veilederIdent,
         )
         database.connection.use { connection ->
-            connection.updatePersonoppgave(behandletOppgave)
+            connection.updatePersonoppgaveSetBehandlet(behandletOppgave)
             connection.commit()
         }
     }

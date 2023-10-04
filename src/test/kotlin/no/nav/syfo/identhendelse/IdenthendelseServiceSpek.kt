@@ -9,7 +9,7 @@ import no.nav.syfo.dialogmotestatusendring.getDialogmoteStatusendring
 import no.nav.syfo.dialogmotesvar.createDialogmotesvar
 import no.nav.syfo.dialogmotesvar.getDialogmotesvar
 import no.nav.syfo.personoppgave.domain.PersonOppgaveType
-import no.nav.syfo.personoppgave.getPersonOppgaveList
+import no.nav.syfo.personoppgave.getPersonOppgaver
 import no.nav.syfo.testutil.*
 import org.amshove.kluent.internal.assertFailsWith
 import org.amshove.kluent.shouldBeEqualTo
@@ -154,7 +154,7 @@ object IdenthendelseServiceSpek : Spek({
                         )
                     }
 
-                    val currentPersonOppgave = database.getPersonOppgaveList(oldIdent)
+                    val currentPersonOppgave = database.getPersonOppgaver(oldIdent)
                     currentPersonOppgave.size shouldBeEqualTo 1
 
                     runBlocking {
