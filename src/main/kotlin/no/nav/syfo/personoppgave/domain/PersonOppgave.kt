@@ -29,7 +29,7 @@ fun PersonOppgave.toPersonOppgaveVeileder(): PersonOppgaveVeileder {
         uuid = this.uuid.toString(),
         referanseUuid = this.referanseUuid.toString(),
         fnr = this.personIdent.value,
-        virksomhetsnummer = "", // TODO: Virksomhetsnummer skal fjernes, håndter det i frontend
+        virksomhetsnummer = "",
         type = this.type.name,
         behandletTidspunkt = this.behandletTidspunkt,
         behandletVeilederIdent = this.behandletVeilederIdent,

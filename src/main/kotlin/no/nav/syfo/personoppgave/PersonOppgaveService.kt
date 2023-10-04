@@ -25,14 +25,7 @@ class PersonOppgaveService(
 
     fun getPersonOppgave(
         uuid: UUID,
-    ): PersonOppgave? {
-        val oppgaveList = database.getPersonOppgaveList(uuid)
-        return if (oppgaveList.isEmpty()) {
-            null
-        } else {
-            oppgaveList.first().toPersonOppgave()
-        }
-    }
+    ) = database.getPersonOppgaveByUuid(uuid)?.toPersonOppgave()
 
     fun behandlePersonOppgave(
         personoppgave: PersonOppgave,

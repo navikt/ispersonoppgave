@@ -11,7 +11,7 @@ class PublishOppgavehendelseCronjob(
 ) : Cronjob {
 
     override val initialDelayMinutes: Long = 2
-    override val intervalDelayMinutes: Long = 1 // TODO: test which value this should be. It probably should be less than a minute
+    override val intervalDelayMinutes: Long = 1
 
     override suspend fun run() {
         publishOppgavehendelserJob()

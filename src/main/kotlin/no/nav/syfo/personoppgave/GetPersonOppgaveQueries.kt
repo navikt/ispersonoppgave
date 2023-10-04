@@ -35,11 +35,11 @@ const val queryGetPersonOppgaverForUUID =
     WHERE uuid = ?
     """
 
-fun DatabaseInterface.getPersonOppgaveList(uuid: UUID): List<PPersonOppgave> {
+fun DatabaseInterface.getPersonOppgaveByUuid(uuid: UUID): PPersonOppgave? {
     return connection.use { connection ->
         connection.prepareStatement(queryGetPersonOppgaverForUUID).use {
             it.setString(1, uuid.toString())
-            it.executeQuery().toList { toPPersonOppgave() }
+            it.executeQuery().toList { toPPersonOppgave() }.firstOrNull()
         }
     }
 }
