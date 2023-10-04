@@ -25,7 +25,7 @@ class OppfolgingsplanLPSService(
         callId: String = ""
     ) {
         if (kOppfolgingsplanLPS.behovForBistandFraNav) {
-            val person: PPersonOppgave? = database.getPersonOppgaveList(PersonIdent(kOppfolgingsplanLPS.fodselsnummer))
+            val person: PPersonOppgave? = database.getPersonOppgaver(PersonIdent(kOppfolgingsplanLPS.fodselsnummer))
                 .find { it.referanseUuid == UUID.fromString(kOppfolgingsplanLPS.uuid) }
             if (person == null) {
                 log.info("Didn't find person with oppgave based on given referanseUuid: ${kOppfolgingsplanLPS.uuid} creating new Personoppgave")

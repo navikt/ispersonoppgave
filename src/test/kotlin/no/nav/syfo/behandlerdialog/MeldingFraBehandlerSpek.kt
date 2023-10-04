@@ -10,7 +10,7 @@ import no.nav.syfo.personoppgave.PersonOppgaveService
 import no.nav.syfo.personoppgave.domain.PersonOppgaveType
 import no.nav.syfo.personoppgave.domain.toPersonOppgave
 import no.nav.syfo.personoppgave.getPersonOppgaverByReferanseUuid
-import no.nav.syfo.personoppgave.getPersonOppgaveList
+import no.nav.syfo.personoppgave.getPersonOppgaver
 import no.nav.syfo.personoppgavehendelse.PersonoppgavehendelseProducer
 import no.nav.syfo.personoppgavehendelse.domain.PersonoppgavehendelseType
 import no.nav.syfo.testutil.*
@@ -102,7 +102,7 @@ class MeldingFraBehandlerSpek : Spek({
                 )
                 kafkaMeldingFraBehandler.pollAndProcessRecords(kafkaConsumer)
 
-                val personoppgaveList = database.getPersonOppgaveList(
+                val personoppgaveList = database.getPersonOppgaver(
                     personIdent = PersonIdent(kUbesvartMeldingDTO.personIdent),
                 ).map { it.toPersonOppgave() }
                 personoppgaveList.size shouldBeEqualTo 2
@@ -163,7 +163,7 @@ class MeldingFraBehandlerSpek : Spek({
                 )
                 kafkaMeldingFraBehandler.pollAndProcessRecords(kafkaConsumer)
 
-                val personoppgaveList = database.getPersonOppgaveList(
+                val personoppgaveList = database.getPersonOppgaver(
                     personIdent = PersonIdent(kUbesvartMeldingDTO.personIdent),
                 ).map { it.toPersonOppgave() }
                 personoppgaveList.size shouldBeEqualTo 3

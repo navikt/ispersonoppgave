@@ -186,7 +186,7 @@ class AvvistMeldingSpek : Spek({
                     kafkaConsumer = kafkaConsumer,
                 )
 
-                val pPersonOppgaver = database.getPersonOppgaveList(
+                val pPersonOppgaver = database.getPersonOppgaver(
                     personIdent = UserConstants.ARBEIDSTAKER_FNR
                 )
                 pPersonOppgaver.size shouldBeEqualTo 0

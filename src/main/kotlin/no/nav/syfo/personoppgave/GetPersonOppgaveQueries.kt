@@ -8,27 +8,27 @@ import no.nav.syfo.personoppgave.domain.PersonOppgaveType
 import java.sql.Connection
 import java.util.*
 
-const val queryGetPersonOppgaverForFnr =
+const val queryGetPersonOppgaverByFnr =
     """
     SELECT *
     FROM PERSON_OPPGAVE
     WHERE fnr = ?
     """
 
-fun DatabaseInterface.getPersonOppgaveList(personIdent: PersonIdent): List<PPersonOppgave> {
+fun DatabaseInterface.getPersonOppgaver(personIdent: PersonIdent): List<PPersonOppgave> {
     return connection.use { connection ->
         connection.getPersonOppgaver(personIdent)
     }
 }
 
 fun Connection.getPersonOppgaver(personIdent: PersonIdent): List<PPersonOppgave> {
-    return prepareStatement(queryGetPersonOppgaverForFnr).use {
+    return prepareStatement(queryGetPersonOppgaverByFnr).use {
         it.setString(1, personIdent.value)
         it.executeQuery().toList { toPPersonOppgave() }
     }
 }
 
-const val queryGetPersonOppgaverForUUID =
+const val queryGetPersonOppgaverByUUID =
     """
     SELECT *
     FROM PERSON_OPPGAVE
@@ -37,7 +37,7 @@ const val queryGetPersonOppgaverForUUID =
 
 fun DatabaseInterface.getPersonOppgaveByUuid(uuid: UUID): PPersonOppgave? {
     return connection.use { connection ->
-        connection.prepareStatement(queryGetPersonOppgaverForUUID).use {
+        connection.prepareStatement(queryGetPersonOppgaverByUUID).use {
             it.setString(1, uuid.toString())
             it.executeQuery().toList { toPPersonOppgave() }.firstOrNull()
         }

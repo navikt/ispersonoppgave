@@ -18,7 +18,7 @@ class PersonOppgaveService(
     fun getPersonOppgaveList(
         personIdent: PersonIdent
     ): List<PersonOppgave> {
-        return database.getPersonOppgaveList(personIdent).map {
+        return database.getPersonOppgaver(personIdent).map {
             it.toPersonOppgave()
         }
     }

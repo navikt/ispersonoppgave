@@ -11,7 +11,7 @@ import no.nav.syfo.personoppgavehendelse.domain.*
 import no.nav.syfo.personoppgave.api.PersonOppgaveVeileder
 import no.nav.syfo.personoppgave.createPersonOppgave
 import no.nav.syfo.personoppgave.domain.PersonOppgaveType
-import no.nav.syfo.personoppgave.getPersonOppgaveList
+import no.nav.syfo.personoppgave.getPersonOppgaver
 import no.nav.syfo.personoppgave.updatePersonOppgaveBehandlet
 import no.nav.syfo.testutil.*
 import no.nav.syfo.testutil.UserConstants.ARBEIDSTAKER_FNR
@@ -443,7 +443,7 @@ class VeilederPersonOppgaveApiV2Spek : Spek({
                         ) {
                             response.status() shouldBeEqualTo HttpStatusCode.OK
 
-                            val personoppgaver = database.getPersonOppgaveList(
+                            val personoppgaver = database.getPersonOppgaver(
                                 personIdent = PersonIdent(requestDTO.personIdent),
                             )
                             personoppgaver.size shouldBeEqualTo 2
@@ -481,7 +481,7 @@ class VeilederPersonOppgaveApiV2Spek : Spek({
                         ) {
                             response.status() shouldBeEqualTo HttpStatusCode.OK
 
-                            val personoppgaver = database.getPersonOppgaveList(
+                            val personoppgaver = database.getPersonOppgaver(
                                 personIdent = PersonIdent(requestDTO.personIdent),
                             )
                             val personoppgaverBehandlerdialog = personoppgaver.filter {
@@ -522,7 +522,7 @@ class VeilederPersonOppgaveApiV2Spek : Spek({
                         ) {
                             response.status() shouldBeEqualTo HttpStatusCode.OK
 
-                            val personoppgaver = database.getPersonOppgaveList(
+                            val personoppgaver = database.getPersonOppgaver(
                                 personIdent = PersonIdent(requestDTO.personIdent),
                             )
                             val alreadyBehandletPersonoppgaveTidspunkt = personoppgaver.first {
