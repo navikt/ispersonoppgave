@@ -1,6 +1,7 @@
 package no.nav.syfo.aktivitetskrav
 
 import io.ktor.server.testing.*
+import io.mockk.clearMocks
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
@@ -45,6 +46,7 @@ class AktivitetskravExpiredVarselSpek : Spek({
 
             afterEachTest {
                 database.dropData()
+                clearMocks(kafkaConsumer)
             }
 
             it("Consumes expired varsel") {
@@ -69,6 +71,35 @@ class AktivitetskravExpiredVarselSpek : Spek({
                 val personOppgave = database.connection.getPersonOppgaverByReferanseUuid(
                     referanseUuid = expiredVarsel.varselUuid,
                 ).map { it.toPersonOppgave() }.first()
+                personOppgave.publish shouldBeEqualTo true
+                personOppgave.type shouldBeEqualTo PersonOppgaveType.AKTIVITETSKRAV_VURDER_STANS
+                personOppgave.personIdent shouldBeEqualTo ARBEIDSTAKER_FNR
+            }
+            it("Consumes expired varsel creates personoppgave but not duplicate") {
+                val expiredVarsel = ExpiredVarsel(
+                    varselUuid = UUID.randomUUID(),
+                    createdAt = LocalDate.now().atStartOfDay(),
+                    personIdent = PersonIdent(ARBEIDSTAKER_FNR.value),
+                    varselType = VarselType.FORHANDSVARSEL_STANS_AV_SYKEPENGER,
+                    svarfrist = LocalDate.now(),
+                )
+                kafkaConsumer.mockPollConsumerRecords(
+                    recordValue = expiredVarsel,
+                    recordValue2 = expiredVarsel.copy(),
+                    topic = topic,
+                )
+                aktivitetskravExpiredVarselConsumer.pollAndProcessRecords(
+                    kafkaConsumer = kafkaConsumer,
+                )
+                verify(exactly = 1) {
+                    kafkaConsumer.commitSync()
+                }
+
+                val personOppgaver = database.connection.getPersonOppgaverByReferanseUuid(
+                    referanseUuid = expiredVarsel.varselUuid,
+                ).map { it.toPersonOppgave() }
+                personOppgaver.size shouldBeEqualTo 1
+                val personOppgave = personOppgaver.first()
                 personOppgave.publish shouldBeEqualTo true
                 personOppgave.type shouldBeEqualTo PersonOppgaveType.AKTIVITETSKRAV_VURDER_STANS
                 personOppgave.personIdent shouldBeEqualTo ARBEIDSTAKER_FNR

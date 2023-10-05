@@ -10,7 +10,9 @@ import java.util.*
 
 fun <ConsumerRecordValue> KafkaConsumer<String, ConsumerRecordValue>.mockPollConsumerRecords(
     recordValue: ConsumerRecordValue?,
+    recordValue2: ConsumerRecordValue? = null,
     recordKey: String = UUID.randomUUID().toString(),
+    recordKey2: String = UUID.randomUUID().toString(),
     topic: String = "topic",
 ) {
     val topicPartition = TopicPartition(
@@ -22,8 +24,17 @@ fun <ConsumerRecordValue> KafkaConsumer<String, ConsumerRecordValue>.mockPollCon
         0,
         1,
         recordKey,
-        recordValue
+        recordValue,
     )
-    val consumerRecords = ConsumerRecords(mapOf(topicPartition to listOf(consumerRecord)))
+    val consumerRecord2 = if (recordValue2 == null) null else
+        ConsumerRecord(
+            topic,
+            0,
+            2,
+            recordKey2,
+            recordValue2,
+        )
+    val consumerRecordList = if (consumerRecord2 == null) listOf(consumerRecord) else listOf(consumerRecord, consumerRecord2)
+    val consumerRecords = ConsumerRecords(mapOf(topicPartition to consumerRecordList))
     every { this@mockPollConsumerRecords.poll(any<Duration>()) } returns consumerRecords
 }
