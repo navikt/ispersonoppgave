@@ -45,7 +45,7 @@ class OppfolgingsplanLPSServiceSpek : Spek({
             )
 
             afterEachTest {
-                database.connection.dropData()
+                database.dropData()
             }
 
             beforeGroup {

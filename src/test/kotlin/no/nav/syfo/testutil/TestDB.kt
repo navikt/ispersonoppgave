@@ -48,10 +48,22 @@ class TestDatabaseNotResponding : DatabaseInterface {
     }
 }
 
-fun Connection.dropData() {
-    val query = "DELETE FROM PERSON_OPPGAVE"
-    use { connection ->
-        connection.prepareStatement(query).executeUpdate()
+fun DatabaseInterface.dropData() {
+    val queryList = listOf(
+        """
+        DELETE FROM PERSON_OPPGAVE
+        """.trimIndent(),
+        """
+        DELETE FROM MOTESVAR
+        """.trimIndent(),
+        """
+        DELETE FROM DIALOGMOTE_STATUSENDRING
+        """.trimIndent(),
+    )
+    this.connection.use { connection ->
+        queryList.forEach { query ->
+            connection.prepareStatement(query).execute()
+        }
         connection.commit()
     }
 }

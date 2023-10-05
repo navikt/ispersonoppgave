@@ -14,14 +14,11 @@ import no.nav.syfo.personoppgave.getPersonOppgaverByReferanseUuid
 import no.nav.syfo.testutil.ExternalMockEnvironment
 import no.nav.syfo.testutil.UserConstants.ARBEIDSTAKER_FNR
 import no.nav.syfo.testutil.dropData
+import no.nav.syfo.testutil.mock.mockPollConsumerRecords
 import org.amshove.kluent.shouldBeEqualTo
-import org.apache.kafka.clients.consumer.ConsumerRecord
-import org.apache.kafka.clients.consumer.ConsumerRecords
 import org.apache.kafka.clients.consumer.KafkaConsumer
-import org.apache.kafka.common.TopicPartition
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
-import java.time.Duration
 import java.time.LocalDate
 import java.util.*
 
@@ -47,7 +44,7 @@ class AktivitetskravExpiredVarselSpek : Spek({
             }
 
             afterEachTest {
-                database.connection.dropData()
+                database.dropData()
             }
 
             it("Consumes expired varsel") {
@@ -58,18 +55,9 @@ class AktivitetskravExpiredVarselSpek : Spek({
                     varselType = VarselType.FORHANDSVARSEL_STANS_AV_SYKEPENGER,
                     svarfrist = LocalDate.now(),
                 )
-                every { kafkaConsumer.poll(any<Duration>()) } returns ConsumerRecords(
-                    mapOf(
-                        TopicPartition(topic, 0) to listOf(
-                            ConsumerRecord(
-                                topic,
-                                0,
-                                1,
-                                UUID.randomUUID().toString(),
-                                expiredVarsel,
-                            ),
-                        )
-                    )
+                kafkaConsumer.mockPollConsumerRecords(
+                    recordValue = expiredVarsel,
+                    topic = topic,
                 )
                 aktivitetskravExpiredVarselConsumer.pollAndProcessRecords(
                     kafkaConsumer = kafkaConsumer,

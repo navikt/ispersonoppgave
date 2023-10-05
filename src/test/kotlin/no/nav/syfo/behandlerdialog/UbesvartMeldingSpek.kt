@@ -11,7 +11,7 @@ import no.nav.syfo.personoppgave.getPersonOppgaverByReferanseUuid
 import no.nav.syfo.personoppgavehendelse.PersonoppgavehendelseProducer
 import no.nav.syfo.personoppgavehendelse.domain.PersonoppgavehendelseType
 import no.nav.syfo.testutil.*
-import no.nav.syfo.testutil.mock.mockReceiveMeldingDTO
+import no.nav.syfo.testutil.mock.mockPollConsumerRecords
 import org.amshove.kluent.shouldBeEqualTo
 import org.apache.kafka.clients.consumer.*
 import org.spekframework.spek2.Spek
@@ -40,16 +40,15 @@ class UbesvartMeldingSpek : Spek({
             }
 
             afterEachTest {
-                database.connection.dropData()
+                database.dropData()
                 clearMocks(personoppgavehendelseProducer)
             }
 
             it("stores ubesvart melding from kafka as oppgave in database and publish as new oppgave") {
                 val referanseUuid = UUID.randomUUID()
                 val kMeldingDTO = generateKMeldingDTO(referanseUuid)
-                mockReceiveMeldingDTO(
-                    kMeldingDTO = kMeldingDTO,
-                    kafkaConsumer = kafkaConsumer,
+                kafkaConsumer.mockPollConsumerRecords(
+                    recordValue = kMeldingDTO,
                 )
                 justRun { personoppgavehendelseProducer.sendPersonoppgavehendelse(any(), any(), any()) }
 

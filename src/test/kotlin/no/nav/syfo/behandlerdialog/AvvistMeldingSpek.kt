@@ -11,7 +11,7 @@ import no.nav.syfo.personoppgavehendelse.domain.KPersonoppgavehendelse
 import no.nav.syfo.personoppgavehendelse.domain.PersonoppgavehendelseType
 import no.nav.syfo.testutil.*
 import no.nav.syfo.testutil.createPersonOppgave
-import no.nav.syfo.testutil.mock.mockReceiveMeldingDTO
+import no.nav.syfo.testutil.mock.mockPollConsumerRecords
 import no.nav.syfo.util.Constants
 import org.amshove.kluent.*
 import org.apache.kafka.clients.consumer.*
@@ -50,16 +50,15 @@ class AvvistMeldingSpek : Spek({
             }
 
             afterEachTest {
-                database.connection.dropData()
+                database.dropData()
                 clearMocks(producer, kafkaConsumer)
             }
 
             it("stores avvist melding from kafka as oppgave in database and publish as new oppgave") {
                 val referanseUuid = UUID.randomUUID()
                 val kMeldingDTO = generateKMeldingDTO(referanseUuid)
-                mockReceiveMeldingDTO(
-                    kMeldingDTO = kMeldingDTO,
-                    kafkaConsumer = kafkaConsumer,
+                kafkaConsumer.mockPollConsumerRecords(
+                    recordValue = kMeldingDTO,
                 )
 
                 avvistMeldingConsumerService.pollAndProcessRecords(
@@ -97,9 +96,8 @@ class AvvistMeldingSpek : Spek({
                 }
 
                 val kMeldingDTO = generateKMeldingDTO(referanseUuid)
-                mockReceiveMeldingDTO(
-                    kMeldingDTO = kMeldingDTO,
-                    kafkaConsumer = kafkaConsumer,
+                kafkaConsumer.mockPollConsumerRecords(
+                    recordValue = kMeldingDTO,
                 )
 
                 avvistMeldingConsumerService.pollAndProcessRecords(
@@ -148,9 +146,8 @@ class AvvistMeldingSpek : Spek({
                 }
 
                 val kMeldingDTO = generateKMeldingDTO(referanseUuid)
-                mockReceiveMeldingDTO(
-                    kMeldingDTO = kMeldingDTO,
-                    kafkaConsumer = kafkaConsumer,
+                kafkaConsumer.mockPollConsumerRecords(
+                    recordValue = kMeldingDTO,
                 )
 
                 avvistMeldingConsumerService.pollAndProcessRecords(
@@ -178,9 +175,8 @@ class AvvistMeldingSpek : Spek({
                 paaminnelsesOppgave.behandletVeilederIdent shouldBeEqualTo Constants.SYSTEM_VEILEDER_IDENT
             }
             it("will not store avvist melding from kafka when value is null/tombstone") {
-                mockReceiveMeldingDTO(
-                    kMeldingDTO = null,
-                    kafkaConsumer = kafkaConsumer,
+                kafkaConsumer.mockPollConsumerRecords(
+                    recordValue = null,
                 )
                 avvistMeldingConsumerService.pollAndProcessRecords(
                     kafkaConsumer = kafkaConsumer,

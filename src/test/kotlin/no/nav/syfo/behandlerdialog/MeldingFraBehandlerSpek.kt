@@ -14,7 +14,7 @@ import no.nav.syfo.personoppgave.getPersonOppgaver
 import no.nav.syfo.personoppgavehendelse.PersonoppgavehendelseProducer
 import no.nav.syfo.personoppgavehendelse.domain.PersonoppgavehendelseType
 import no.nav.syfo.testutil.*
-import no.nav.syfo.testutil.mock.mockReceiveMeldingDTO
+import no.nav.syfo.testutil.mock.mockPollConsumerRecords
 import no.nav.syfo.util.Constants
 import org.amshove.kluent.shouldBeEqualTo
 import org.amshove.kluent.shouldNotBeEqualTo
@@ -51,16 +51,15 @@ class MeldingFraBehandlerSpek : Spek({
             }
 
             afterEachTest {
-                database.connection.dropData()
+                database.dropData()
                 clearMocks(personoppgavehendelseProducer)
             }
 
             it("stores melding fra behandler from kafka in database and publish as new oppgave") {
                 val referanseUuid = UUID.randomUUID()
                 val kMeldingFraBehandler = generateKMeldingDTO(referanseUuid)
-                mockReceiveMeldingDTO(
-                    kMeldingDTO = kMeldingFraBehandler,
-                    kafkaConsumer = kafkaConsumer,
+                kafkaConsumer.mockPollConsumerRecords(
+                    recordValue = kMeldingFraBehandler,
                 )
 
                 kafkaMeldingFraBehandler.pollAndProcessRecords(
@@ -89,16 +88,13 @@ class MeldingFraBehandlerSpek : Spek({
                 val kUbesvartMeldingDTO = generateKMeldingDTO(uuid = referanseUuid)
                 val kMeldingFraBehandlerDTO = generateKMeldingDTO(parentRef = referanseUuid)
 
-                mockReceiveMeldingDTO(
-                    kMeldingDTO = kUbesvartMeldingDTO,
-                    kafkaConsumer = kafkaConsumer,
+                kafkaConsumer.mockPollConsumerRecords(
+                    recordValue = kUbesvartMeldingDTO,
                 )
-
                 kafkaUbesvartMelding.pollAndProcessRecords(kafkaConsumer)
 
-                mockReceiveMeldingDTO(
-                    kMeldingDTO = kMeldingFraBehandlerDTO,
-                    kafkaConsumer = kafkaConsumer,
+                kafkaConsumer.mockPollConsumerRecords(
+                    recordValue = kMeldingFraBehandlerDTO,
                 )
                 kafkaMeldingFraBehandler.pollAndProcessRecords(kafkaConsumer)
 
@@ -146,20 +142,18 @@ class MeldingFraBehandlerSpek : Spek({
                 val otherKUbesvartMeldingDTO = generateKMeldingDTO(uuid = otherReferanseUuid)
                 val kMeldingFraBehandlerDTO = generateKMeldingDTO(parentRef = referanseUuid)
 
-                mockReceiveMeldingDTO(
-                    kMeldingDTO = kUbesvartMeldingDTO,
-                    kafkaConsumer = kafkaConsumer,
-                )
-                kafkaUbesvartMelding.pollAndProcessRecords(kafkaConsumer)
-                mockReceiveMeldingDTO(
-                    kMeldingDTO = otherKUbesvartMeldingDTO,
-                    kafkaConsumer = kafkaConsumer,
+                kafkaConsumer.mockPollConsumerRecords(
+                    recordValue = kUbesvartMeldingDTO,
                 )
                 kafkaUbesvartMelding.pollAndProcessRecords(kafkaConsumer)
 
-                mockReceiveMeldingDTO(
-                    kMeldingDTO = kMeldingFraBehandlerDTO,
-                    kafkaConsumer = kafkaConsumer,
+                kafkaConsumer.mockPollConsumerRecords(
+                    recordValue = otherKUbesvartMeldingDTO,
+                )
+                kafkaUbesvartMelding.pollAndProcessRecords(kafkaConsumer)
+
+                kafkaConsumer.mockPollConsumerRecords(
+                    recordValue = kMeldingFraBehandlerDTO,
                 )
                 kafkaMeldingFraBehandler.pollAndProcessRecords(kafkaConsumer)
 

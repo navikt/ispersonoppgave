@@ -6,10 +6,10 @@ import io.mockk.mockk
 import no.nav.syfo.dialogmotesvar.domain.*
 import no.nav.syfo.dialogmotesvar.kafka.KafkaDialogmotesvarConsumer
 import no.nav.syfo.testutil.*
+import no.nav.syfo.testutil.mock.mockPollConsumerRecords
 import org.amshove.kluent.shouldBe
 import org.amshove.kluent.shouldBeEqualTo
 import org.apache.kafka.clients.consumer.*
-import org.apache.kafka.common.TopicPartition
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
 import java.time.*
@@ -33,7 +33,7 @@ class DialogmotesvarSpek : Spek({
             }
 
             afterEachTest {
-                database.connection.dropData()
+                database.dropData()
             }
 
             it("stores dialogmøtesvar from kafka in database") {
@@ -43,10 +43,9 @@ class DialogmotesvarSpek : Spek({
                     brevSentAt = offsetNow,
                     svarReceivedAt = offsetNow,
                 )
-                mockReceiveDialogmotesvar(
-                    kDialogmotesvar = kDialogmotesvar,
-                    mockKafkaDialogmotesvar = kafkaConsumer,
-                    moteUuid = moteUuid,
+                kafkaConsumer.mockPollConsumerRecords(
+                    recordValue = kDialogmotesvar,
+                    recordKey = moteUuid.toString(),
                 )
 
                 kafkaDialogmotesvarConsumer.pollAndProcessRecords(
@@ -68,36 +67,3 @@ class DialogmotesvarSpek : Spek({
         }
     }
 })
-
-fun mockReceiveDialogmotesvar(
-    kDialogmotesvar: KDialogmotesvar,
-    mockKafkaDialogmotesvar: KafkaConsumer<String, KDialogmotesvar>,
-    moteUuid: UUID,
-) {
-    every { mockKafkaDialogmotesvar.poll(any<Duration>()) } returns ConsumerRecords(
-        mapOf(
-            dialogmotesvarTopicPartition() to listOf(
-                dialogmotesvarRecord(
-                    kDialogmotesvar,
-                    moteUuid,
-                ),
-            )
-        )
-    )
-}
-
-fun dialogmotesvarTopicPartition() = TopicPartition(
-    "topicnavn",
-    0
-)
-
-fun dialogmotesvarRecord(
-    kDialogmotesvar: KDialogmotesvar,
-    moteUuid: UUID,
-) = ConsumerRecord(
-    "topicnavn",
-    0,
-    1,
-    moteUuid.toString(),
-    kDialogmotesvar
-)

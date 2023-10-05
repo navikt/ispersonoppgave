@@ -46,7 +46,7 @@ object IdenthendelseServiceSpek : Spek({
             )
 
             afterEachTest {
-                database.connection.dropData()
+                database.dropData()
             }
 
             describe("Happy path") {

@@ -7,9 +7,9 @@ import no.nav.syfo.dialogmote.avro.KDialogmoteStatusEndring
 import no.nav.syfo.dialogmotestatusendring.domain.DialogmoteStatusendringType
 import no.nav.syfo.dialogmotestatusendring.kafka.KafkaDialogmoteStatusendring
 import no.nav.syfo.testutil.*
+import no.nav.syfo.testutil.mock.mockPollConsumerRecords
 import org.amshove.kluent.shouldBeEqualTo
 import org.apache.kafka.clients.consumer.*
-import org.apache.kafka.common.TopicPartition
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
 import java.time.*
@@ -33,7 +33,7 @@ class DialogmoteStatusendringSpek : Spek({
             }
 
             afterEachTest {
-                database.connection.dropData()
+                database.dropData()
             }
 
             it("stores dialogmøtesvar from kafka in database") {
@@ -57,10 +57,9 @@ class DialogmoteStatusendringSpek : Spek({
                     .setArbeidsgiver(true)
                     .setSykmelder(true).build()
 
-                mockReceiveDialogmoteStatusendring(
-                    kDialogmoteStatusendring = kDialogmoteStatusendring,
-                    mockKafkaDialogmoteStatusendring = kafkaConsumer,
-                    moteUuid = moteUuid,
+                kafkaConsumer.mockPollConsumerRecords(
+                    recordValue = kDialogmoteStatusendring,
+                    recordKey = moteUuid.toString()
                 )
 
                 kafkaDialogmoteStatusendring.pollAndProcessRecords(
@@ -81,36 +80,3 @@ class DialogmoteStatusendringSpek : Spek({
         }
     }
 })
-
-fun mockReceiveDialogmoteStatusendring(
-    kDialogmoteStatusendring: KDialogmoteStatusEndring,
-    mockKafkaDialogmoteStatusendring: KafkaConsumer<String, KDialogmoteStatusEndring>,
-    moteUuid: UUID,
-) {
-    every { mockKafkaDialogmoteStatusendring.poll(any<Duration>()) } returns ConsumerRecords(
-        mapOf(
-            topicPartition() to listOf(
-                dialogmotesvarRecord(
-                    kDialogmoteStatusendring,
-                    moteUuid,
-                ),
-            )
-        )
-    )
-}
-
-fun topicPartition() = TopicPartition(
-    "topicnavn",
-    0
-)
-
-fun dialogmotesvarRecord(
-    kDialogmoteStatusendring: KDialogmoteStatusEndring,
-    moteUuid: UUID,
-) = ConsumerRecord(
-    "topicnavn",
-    0,
-    1,
-    moteUuid.toString(),
-    kDialogmoteStatusendring
-)
