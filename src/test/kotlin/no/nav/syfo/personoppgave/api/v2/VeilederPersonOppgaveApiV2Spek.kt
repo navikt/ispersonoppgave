@@ -52,7 +52,7 @@ class VeilederPersonOppgaveApiV2Spek : Spek({
             )
 
             afterEachTest {
-                database.connection.dropData()
+                database.dropData()
             }
 
             beforeGroup {
