@@ -70,9 +70,11 @@ class AktivitetskravExpiredVarselSpek : Spek({
                     kafkaConsumer.commitSync()
                 }
 
-                val personOppgave = database.connection.getPersonOppgaverByReferanseUuid(
-                    referanseUuid = expiredVarsel.varselUuid,
-                ).map { it.toPersonOppgave() }.first()
+                val personOppgave = database.connection.use { connection ->
+                    connection.getPersonOppgaverByReferanseUuid(
+                        referanseUuid = expiredVarsel.varselUuid,
+                    ).map { it.toPersonOppgave() }.first()
+                }
                 personOppgave.publish shouldBeEqualTo true
                 personOppgave.type shouldBeEqualTo PersonOppgaveType.AKTIVITETSKRAV_VURDER_STANS
                 personOppgave.personIdent shouldBeEqualTo ARBEIDSTAKER_FNR
@@ -97,9 +99,11 @@ class AktivitetskravExpiredVarselSpek : Spek({
                     kafkaConsumer.commitSync()
                 }
 
-                val personOppgaver = database.connection.getPersonOppgaverByReferanseUuid(
-                    referanseUuid = expiredVarsel.varselUuid,
-                ).map { it.toPersonOppgave() }
+                val personOppgaver = database.connection.use { connection ->
+                    connection.getPersonOppgaverByReferanseUuid(
+                        referanseUuid = expiredVarsel.varselUuid,
+                    ).map { it.toPersonOppgave() }
+                }
                 personOppgaver.size shouldBeEqualTo 1
                 val personOppgave = personOppgaver.first()
                 personOppgave.publish shouldBeEqualTo true
@@ -136,10 +140,12 @@ class AktivitetskravExpiredVarselSpek : Spek({
                     kafkaConsumer = kafkaConsumer,
                 )
 
-                val personOppgaver = database.connection.getUbehandledePersonOppgaver(
-                    personIdent = PersonIdent(ARBEIDSTAKER_FNR.value),
-                    personOppgaveType = PersonOppgaveType.AKTIVITETSKRAV_VURDER_STANS,
-                ).map { it.toPersonOppgave() }
+                val personOppgaver = database.connection.use { connection ->
+                    connection.getUbehandledePersonOppgaver(
+                        personIdent = PersonIdent(ARBEIDSTAKER_FNR.value),
+                        personOppgaveType = PersonOppgaveType.AKTIVITETSKRAV_VURDER_STANS,
+                    ).map { it.toPersonOppgave() }
+                }
                 personOppgaver.size shouldBeEqualTo 1
                 val personOppgave = personOppgaver.first()
                 personOppgave.publish shouldBeEqualTo true

@@ -65,9 +65,11 @@ class AvvistMeldingSpek : Spek({
                     kafkaConsumer = kafkaConsumer,
                 )
 
-                val personOppgave = database.connection.getPersonOppgaverByReferanseUuid(
-                    referanseUuid = referanseUuid,
-                ).map { it.toPersonOppgave() }.first()
+                val personOppgave = database.connection.use { connection ->
+                    connection.getPersonOppgaverByReferanseUuid(
+                        referanseUuid = referanseUuid,
+                    ).map { it.toPersonOppgave() }.first()
+                }
                 personOppgave.publish shouldBeEqualTo false
                 personOppgave.type.name shouldBeEqualTo PersonOppgaveType.BEHANDLERDIALOG_MELDING_AVVIST.name
 
@@ -104,10 +106,11 @@ class AvvistMeldingSpek : Spek({
                     kafkaConsumer = kafkaConsumer,
                 )
 
-                val personOppgave = database.connection.getPersonOppgaverByReferanseUuid(
-                    referanseUuid = referanseUuid,
-                ).map { it.toPersonOppgave() }.first { it.type == PersonOppgaveType.BEHANDLERDIALOG_MELDING_AVVIST }
-
+                val personOppgave = database.connection.use { connection ->
+                    connection.getPersonOppgaverByReferanseUuid(
+                        referanseUuid = referanseUuid,
+                    ).map { it.toPersonOppgave() }.first { it.type == PersonOppgaveType.BEHANDLERDIALOG_MELDING_AVVIST }
+                }
                 personOppgave.publish shouldBeEqualTo false
                 personOppgave.type.name shouldBeEqualTo PersonOppgaveType.BEHANDLERDIALOG_MELDING_AVVIST.name
 
@@ -154,10 +157,11 @@ class AvvistMeldingSpek : Spek({
                     kafkaConsumer = kafkaConsumer,
                 )
 
-                val personOppgave = database.connection.getPersonOppgaverByReferanseUuid(
-                    referanseUuid = referanseUuid,
-                ).map { it.toPersonOppgave() }.first { it.type == PersonOppgaveType.BEHANDLERDIALOG_MELDING_AVVIST }
-
+                val personOppgave = database.connection.use { connection ->
+                    connection.getPersonOppgaverByReferanseUuid(
+                        referanseUuid = referanseUuid,
+                    ).map { it.toPersonOppgave() }.first { it.type == PersonOppgaveType.BEHANDLERDIALOG_MELDING_AVVIST }
+                }
                 personOppgave.publish shouldBeEqualTo false
                 personOppgave.type.name shouldBeEqualTo PersonOppgaveType.BEHANDLERDIALOG_MELDING_AVVIST.name
 

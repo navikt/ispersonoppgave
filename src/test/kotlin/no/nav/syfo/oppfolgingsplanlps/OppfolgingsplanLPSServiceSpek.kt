@@ -64,7 +64,7 @@ class OppfolgingsplanLPSServiceSpek : Spek({
                         oppfolgingsplanLPSService.receiveOppfolgingsplanLPS(kOppfolgingsplanLPS)
                     }
 
-                    val personListe = database.connection.getPersonOppgaveList(ARBEIDSTAKER_FNR)
+                    val personListe = database.getPersonOppgaveList(ARBEIDSTAKER_FNR)
 
                     personListe.size shouldBe 1
                     personListe[0].fnr shouldBeEqualTo kOppfolgingsplanLPS.fodselsnummer
@@ -91,7 +91,7 @@ class OppfolgingsplanLPSServiceSpek : Spek({
                         oppfolgingsplanLPSService.receiveOppfolgingsplanLPS(kOppfolgingsplanLPS)
                     }
 
-                    val personListe = database.connection.getPersonOppgaveList(ARBEIDSTAKER_FNR)
+                    val personListe = database.getPersonOppgaveList(ARBEIDSTAKER_FNR)
 
                     personListe.size shouldBe 0
 
