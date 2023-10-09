@@ -90,10 +90,13 @@ const val queryGetUbehandledePersonOppgaver =
 
 fun DatabaseInterface.getUbehandledePersonOppgaver(personIdent: PersonIdent, personOppgaveType: PersonOppgaveType): List<PPersonOppgave> {
     return connection.use { connection ->
-        connection.prepareStatement(queryGetUbehandledePersonOppgaver).use {
-            it.setString(1, personIdent.value)
-            it.setString(2, personOppgaveType.name)
-            it.executeQuery().toList { toPPersonOppgave() }
-        }
+        connection.getUbehandledePersonOppgaver(personIdent, personOppgaveType)
     }
 }
+
+fun Connection.getUbehandledePersonOppgaver(personIdent: PersonIdent, personOppgaveType: PersonOppgaveType) =
+    prepareStatement(queryGetUbehandledePersonOppgaver).use {
+        it.setString(1, personIdent.value)
+        it.setString(2, personOppgaveType.name)
+        it.executeQuery().toList { toPPersonOppgave() }
+    }
