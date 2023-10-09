@@ -22,8 +22,8 @@ class VurderStansService(
                     val existingPersonOppgaver = connection.getPersonOppgaver(expiredVarsel.personIdent)
                         .map { it.toPersonOppgave() }
                         .filter { personOppgave ->
-                            personOppgave.type == PersonOppgaveType.AKTIVITETSKRAV_VURDER_STANS
-                                    && personOppgave.behandletTidspunkt == null
+                            personOppgave.type == PersonOppgaveType.AKTIVITETSKRAV_VURDER_STANS &&
+                                personOppgave.behandletTidspunkt == null
                         }
                     if (existingPersonOppgaver.isEmpty()) {
                         connection.createPersonOppgave(
