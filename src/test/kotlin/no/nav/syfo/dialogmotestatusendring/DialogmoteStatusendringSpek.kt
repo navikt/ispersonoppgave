@@ -66,9 +66,11 @@ class DialogmoteStatusendringSpek : Spek({
                     kafkaConsumer = kafkaConsumer,
                 )
 
-                val allPDialogmoteStatusendring = database.connection.getDialogmoteStatusendring(
-                    moteUuid = moteUuid
-                )
+                val allPDialogmoteStatusendring = database.connection.use { connection ->
+                    connection.getDialogmoteStatusendring(
+                        moteUuid = moteUuid
+                    )
+                }
                 allPDialogmoteStatusendring.size shouldBeEqualTo 1
                 val pDialogmoteStatusendring = allPDialogmoteStatusendring[0]
                 pDialogmoteStatusendring.moteUuid shouldBeEqualTo moteUuid.toString()

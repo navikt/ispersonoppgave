@@ -70,7 +70,7 @@ object IdenthendelseServiceSpek : Spek({
                         identhendelseService.handleIdenthendelse(kafkaIdenthendelseDTO)
                     }
 
-                    val allPersonoppgaver = database.connection.getAllPersonoppgaver()
+                    val allPersonoppgaver = database.getAllPersonoppgaver()
                     allPersonoppgaver.size shouldBeEqualTo 3
                     allPersonoppgaver.filter { it.fnr == personOppgaveOldIdent.personIdent.value }.size shouldBeEqualTo 0
                     allPersonoppgaver.filter { it.fnr == personOppgaveNewIdent.personIdent.value }.size shouldBeEqualTo 2
@@ -92,14 +92,16 @@ object IdenthendelseServiceSpek : Spek({
                         it.createDialogmotesvar(dialogmotesvarOtherIdent)
                         it.commit()
                     }
-                    val oldDialogmotesvar = database.connection.getDialogmotesvar(dialogmotesvarOldIdent.moteuuid)
+                    val oldDialogmotesvar = database.connection.use {
+                        it.getDialogmotesvar(dialogmotesvarOldIdent.moteuuid)
+                    }
                     val oldIdentUpdatedAt = oldDialogmotesvar.first().updatedAt
 
                     runBlocking {
                         identhendelseService.handleIdenthendelse(kafkaIdenthendelseDTO)
                     }
 
-                    val allMotesvar = database.connection.getAllMotesvar()
+                    val allMotesvar = database.getAllMotesvar()
                     allMotesvar.size shouldBeEqualTo 3
                     allMotesvar.filter { it.arbeidstakerIdent == dialogmotesvarOldIdent.arbeidstakerIdent.value }.size shouldBeEqualTo 0
                     allMotesvar.filter { it.arbeidstakerIdent == dialogmotesvarNewIdent.arbeidstakerIdent.value }.size shouldBeEqualTo 2
@@ -130,7 +132,7 @@ object IdenthendelseServiceSpek : Spek({
                         identhendelseService.handleIdenthendelse(kafkaIdenthendelseDTO)
                     }
 
-                    val allDialogmotestatusendring = database.connection.getAllDialogmoteStatusendring()
+                    val allDialogmotestatusendring = database.getAllDialogmoteStatusendring()
                     allDialogmotestatusendring.size shouldBeEqualTo 3
                     allDialogmotestatusendring.filter { it.arbeidstakerIdent == dialogmotestatusendringOldIdent.personIdent.value }.size shouldBeEqualTo 0
                     allDialogmotestatusendring.filter { it.arbeidstakerIdent == dialogmotestatusendringNewIdent.personIdent.value }.size shouldBeEqualTo 2
@@ -147,12 +149,10 @@ object IdenthendelseServiceSpek : Spek({
                     val oldIdent = kafkaIdenthendelseDTO.getInactivePersonidenter().first()
 
                     val kOppfolgingsplanLPS = generateKOppfolgingsplanLPS.copy(fodselsnummer = oldIdent.value)
-                    database.connection.use { connection ->
-                        connection.createPersonOppgave(
-                            kOppfolgingsplanLPS = kOppfolgingsplanLPS,
-                            type = PersonOppgaveType.OPPFOLGINGSPLANLPS,
-                        )
-                    }
+                    database.createPersonOppgave(
+                        kOppfolgingsplanLPS = kOppfolgingsplanLPS,
+                        type = PersonOppgaveType.OPPFOLGINGSPLANLPS,
+                    )
 
                     val currentPersonOppgave = database.getPersonOppgaver(oldIdent)
                     currentPersonOppgave.size shouldBeEqualTo 1

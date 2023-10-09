@@ -68,8 +68,8 @@ fun DatabaseInterface.dropData() {
     }
 }
 
-fun Connection.getPersonOppgaveList(fodselnummer: PersonIdent): List<PPersonOppgave> {
-    return use { connection ->
+fun DatabaseInterface.getPersonOppgaveList(fodselnummer: PersonIdent): List<PPersonOppgave> {
+    return connection.use { connection ->
         connection.prepareStatement(queryGetPersonOppgaverByFnr).use {
             it.setString(1, fodselnummer.value)
             it.executeQuery().toList { toPPersonOppgave() }
@@ -77,41 +77,40 @@ fun Connection.getPersonOppgaveList(fodselnummer: PersonIdent): List<PPersonOppg
     }
 }
 
-fun Connection.getAllPersonoppgaver(): List<PPersonOppgave> {
+fun DatabaseInterface.getAllPersonoppgaver(): List<PPersonOppgave> {
     val query = "SELECT * FROM person_oppgave"
-    return use { connection ->
+    return connection.use { connection ->
         connection.prepareStatement(query).use {
             it.executeQuery().toList { toPPersonOppgave() }
         }
     }
 }
 
-fun Connection.getAllMotesvar(): List<PDialogmotesvar> {
+fun DatabaseInterface.getAllMotesvar(): List<PDialogmotesvar> {
     val query = "SELECT * FROM motesvar"
-    return use { connection ->
+    return connection.use { connection ->
         connection.prepareStatement(query).use {
             it.executeQuery().toList { toPDialogmotesvar() }
         }
     }
 }
 
-fun Connection.getAllDialogmoteStatusendring(): List<PDialogmoteStatusendring> {
+fun DatabaseInterface.getAllDialogmoteStatusendring(): List<PDialogmoteStatusendring> {
     val query = "SELECT * FROM dialogmote_statusendring"
-    return use { connection ->
+    return connection.use { connection ->
         connection.prepareStatement(query).use {
             it.executeQuery().toList { toPDialogmoteStatusendring() }
         }
     }
 }
 
-fun Connection.createPersonOppgave(
+fun DatabaseInterface.createPersonOppgave(
     kOppfolgingsplanLPS: KOppfolgingsplanLPS,
     type: PersonOppgaveType
 ): Pair<Int, UUID> {
-    val uuid = UUID.randomUUID().toString()
-    val now = Timestamp.from(Instant.now())
-
-    use { connection ->
+    return connection.use { connection ->
+        val uuid = UUID.randomUUID().toString()
+        val now = Timestamp.from(Instant.now())
         val personIdList = connection.prepareStatement(queryCreatePersonOppgave).use {
             it.setString(1, uuid)
             it.setString(2, kOppfolgingsplanLPS.uuid)
@@ -123,13 +122,11 @@ fun Connection.createPersonOppgave(
             it.setBoolean(8, false)
             it.executeQuery().toList { getInt("id") }
         }
-
         if (personIdList.size != 1) {
             throw SQLException("Creating person failed, no rows affected.")
         }
         connection.commit()
-
-        return Pair(personIdList.first(), UUID.fromString(uuid))
+        Pair(personIdList.first(), UUID.fromString(uuid))
     }
 }
 

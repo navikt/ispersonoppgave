@@ -52,9 +52,11 @@ class DialogmotesvarSpek : Spek({
                     kafkaConsumer = kafkaConsumer,
                 )
 
-                val allPMotesvar = database.connection.getDialogmotesvar(
-                    moteUuid = moteUuid,
-                )
+                val allPMotesvar = database.connection.use { connection ->
+                    connection.getDialogmotesvar(
+                        moteUuid = moteUuid,
+                    )
+                }
                 allPMotesvar.size shouldBeEqualTo 1
                 val pMotesvar = allPMotesvar[0]
                 pMotesvar.moteUuid shouldBeEqualTo moteUuid.toString()
