@@ -6,6 +6,7 @@ import java.time.LocalDateTime
 import java.util.UUID
 
 data class ExpiredVarsel(
+    val aktivitetskravUuid: UUID,
     val varselUuid: UUID,
     val createdAt: LocalDateTime,
     val personIdent: PersonIdent,
