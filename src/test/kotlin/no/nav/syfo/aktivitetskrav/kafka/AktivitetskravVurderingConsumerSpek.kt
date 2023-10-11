@@ -64,18 +64,21 @@ class AktivitetskravVurderingConsumerSpek : Spek({
                 val ubehandletVurderStansOppgave = generatePersonoppgave(
                     personIdent = ARBEIDSTAKER_FNR,
                     type = PersonOppgaveType.AKTIVITETSKRAV_VURDER_STANS,
-                    opprettet = LocalDateTime.now().minusDays(1),
-                    sistEndret = LocalDateTime.now().minusDays(1),
+                    opprettet = LocalDateTime.now().minusHours(1),
+                    sistEndret = LocalDateTime.now().minusHours(1),
                 )
-                fun createOppgave(oppgave: PersonOppgave) {
-                    database.connection.use { connection ->
-                        connection.createPersonOppgave(oppgave)
-                        connection.commit()
+
+                fun createPersonoppgaver(vararg oppgaver: PersonOppgave) {
+                    database.connection.use {
+                        oppgaver.forEach { oppgave ->
+                            it.createPersonOppgave(oppgave)
+                        }
+                        it.commit()
                     }
                 }
 
-                it("Will behandle existing vurder_stans oppgave when status is UNNTAK") {
-                    createOppgave(ubehandletVurderStansOppgave)
+                it("Will behandle existing ubehandlet vurder_stans oppgave when status is a final state (here: UNNTAK)") {
+                    createPersonoppgaver(ubehandletVurderStansOppgave)
                     kafkaConsumer.mockPollConsumerRecords(
                         recordValue = vurderingUnntak,
                         topic = topic,
@@ -88,7 +91,7 @@ class AktivitetskravVurderingConsumerSpek : Spek({
                         kafkaConsumer.commitSync()
                     }
 
-                    val personOppgave = database.connection.getPersonOppgaver(
+                    val personOppgave = database.getPersonOppgaver(
                         personIdent = PersonIdent(vurderingUnntak.personIdent),
                     ).map { it.toPersonOppgave() }.first()
                     personOppgave.personIdent.value shouldBeEqualTo vurderingUnntak.personIdent
@@ -111,7 +114,7 @@ class AktivitetskravVurderingConsumerSpek : Spek({
                         kafkaConsumer.commitSync()
                     }
 
-                    val pPersonOppgaver = database.connection.getPersonOppgaver(
+                    val pPersonOppgaver = database.getPersonOppgaver(
                         personIdent = PersonIdent(vurderingUnntak.personIdent),
                     )
                     pPersonOppgaver.size shouldBeEqualTo 0
@@ -119,10 +122,10 @@ class AktivitetskravVurderingConsumerSpek : Spek({
 
                 it("Will not behandle when vurder-stans oppgave already behandlet") {
                     val originalVeileder = VEILEDER_IDENT
+                    val alreadyBehandletVurderStansOppgave = ubehandletVurderStansOppgave.behandle(originalVeileder)
                     database.connection.use { connection ->
-                        connection.createPersonOppgave(ubehandletVurderStansOppgave)
-                        val behandletVurderStansOppgave = ubehandletVurderStansOppgave.behandle(originalVeileder)
-                        connection.updatePersonoppgaveSetBehandlet(behandletVurderStansOppgave)
+                        connection.createPersonOppgave(alreadyBehandletVurderStansOppgave)
+                        connection.updatePersonoppgaveSetBehandlet(alreadyBehandletVurderStansOppgave)
                         connection.commit()
                     }
                     val vurderingUnntakByOtherVeileder = vurderingUnntak.copy(updatedBy = "X000000")
@@ -139,18 +142,18 @@ class AktivitetskravVurderingConsumerSpek : Spek({
                         kafkaConsumer.commitSync()
                     }
 
-                    val personOppgave = database.connection.getPersonOppgaver(
-                        personIdent = PersonIdent(vurderingUnntakByOtherVeileder.personIdent),
+                    val personOppgave = database.getPersonOppgaver(
+                        personIdent = alreadyBehandletVurderStansOppgave.personIdent,
                     ).map { it.toPersonOppgave() }.first()
-                    personOppgave.personIdent.value shouldBeEqualTo vurderingUnntakByOtherVeileder.personIdent
+                    personOppgave.personIdent shouldBeEqualTo alreadyBehandletVurderStansOppgave.personIdent
                     personOppgave.publish shouldBeEqualTo false
                     personOppgave.type shouldBeEqualTo PersonOppgaveType.AKTIVITETSKRAV_VURDER_STANS
                     personOppgave.behandletTidspunkt shouldNotBe null
-                    personOppgave.behandletVeilederIdent shouldBeEqualTo originalVeileder
+                    personOppgave.behandletVeilederIdent shouldBeEqualTo alreadyBehandletVurderStansOppgave.behandletVeilederIdent
                 }
 
                 it("Will not behandle when status for vurdering is not a final state for aktivitetskrav") {
-                    createOppgave(ubehandletVurderStansOppgave)
+                    createPersonoppgaver(ubehandletVurderStansOppgave)
                     val vurderingAvvent = vurderingUnntak.copy(status = AktivitetskravStatus.AVVENT.name)
                     kafkaConsumer.mockPollConsumerRecords(
                         recordValue = vurderingAvvent,
@@ -164,10 +167,10 @@ class AktivitetskravVurderingConsumerSpek : Spek({
                         kafkaConsumer.commitSync()
                     }
 
-                    val personOppgave = database.connection.getPersonOppgaver(
-                        personIdent = PersonIdent(vurderingAvvent.personIdent),
+                    val personOppgave = database.getPersonOppgaver(
+                        personIdent = ubehandletVurderStansOppgave.personIdent,
                     ).map { it.toPersonOppgave() }.first()
-                    personOppgave.personIdent.value shouldBeEqualTo vurderingAvvent.personIdent
+                    personOppgave.personIdent shouldBeEqualTo ubehandletVurderStansOppgave.personIdent
                     personOppgave.publish shouldBeEqualTo false
                     personOppgave.type shouldBeEqualTo PersonOppgaveType.AKTIVITETSKRAV_VURDER_STANS
                     personOppgave.behandletTidspunkt shouldBeEqualTo null
@@ -175,7 +178,7 @@ class AktivitetskravVurderingConsumerSpek : Spek({
                 }
 
                 it("Will not behandle when vurdering has neither sistVurdert nor updatedBy (eg. has status NY)") {
-                    createOppgave(ubehandletVurderStansOppgave)
+                    createPersonoppgaver(ubehandletVurderStansOppgave)
                     val vurderingNyUtenSistVurdert = vurderingUnntak.copy(
                         status = AktivitetskravStatus.NY.name,
                         sistVurdert = null,
@@ -193,10 +196,10 @@ class AktivitetskravVurderingConsumerSpek : Spek({
                         kafkaConsumer.commitSync()
                     }
 
-                    val personOppgave = database.connection.getPersonOppgaver(
-                        personIdent = PersonIdent(vurderingNyUtenSistVurdert.personIdent),
+                    val personOppgave = database.getPersonOppgaver(
+                        personIdent = ubehandletVurderStansOppgave.personIdent,
                     ).map { it.toPersonOppgave() }.first()
-                    personOppgave.personIdent.value shouldBeEqualTo vurderingNyUtenSistVurdert.personIdent
+                    personOppgave.personIdent shouldBeEqualTo ubehandletVurderStansOppgave.personIdent
                     personOppgave.publish shouldBeEqualTo false
                     personOppgave.type shouldBeEqualTo PersonOppgaveType.AKTIVITETSKRAV_VURDER_STANS
                     personOppgave.behandletTidspunkt shouldBeEqualTo null
@@ -204,9 +207,9 @@ class AktivitetskravVurderingConsumerSpek : Spek({
                 }
 
                 it("Will not behandle when vurdering is older than existing oppgave") {
-                    createOppgave(ubehandletVurderStansOppgave)
+                    createPersonoppgaver(ubehandletVurderStansOppgave)
                     val vurderingOlderThanOppgave = vurderingUnntak.copy(
-                        sistVurdert = OffsetDateTime.now().minusDays(1).minusMinutes(1),
+                        sistVurdert = OffsetDateTime.now().minusDays(1),
                     )
                     kafkaConsumer.mockPollConsumerRecords(
                         recordValue = vurderingOlderThanOppgave,
@@ -220,10 +223,10 @@ class AktivitetskravVurderingConsumerSpek : Spek({
                         kafkaConsumer.commitSync()
                     }
 
-                    val personOppgave = database.connection.getPersonOppgaver(
-                        personIdent = PersonIdent(vurderingOlderThanOppgave.personIdent),
+                    val personOppgave = database.getPersonOppgaver(
+                        personIdent = ubehandletVurderStansOppgave.personIdent,
                     ).map { it.toPersonOppgave() }.first()
-                    personOppgave.personIdent.value shouldBeEqualTo vurderingOlderThanOppgave.personIdent
+                    personOppgave.personIdent shouldBeEqualTo ubehandletVurderStansOppgave.personIdent
                     personOppgave.publish shouldBeEqualTo false
                     personOppgave.type shouldBeEqualTo PersonOppgaveType.AKTIVITETSKRAV_VURDER_STANS
                     personOppgave.behandletTidspunkt shouldBeEqualTo null
@@ -232,7 +235,7 @@ class AktivitetskravVurderingConsumerSpek : Spek({
 
                 it("Will not behandle if existing oppgave is not vurder-stans") {
                     val otherUbehandletPersonoppgave = ubehandletVurderStansOppgave.copy(type = PersonOppgaveType.BEHANDLERDIALOG_SVAR)
-                    createOppgave(otherUbehandletPersonoppgave)
+                    createPersonoppgaver(otherUbehandletPersonoppgave)
                     kafkaConsumer.mockPollConsumerRecords(
                         recordValue = vurderingUnntak,
                         topic = topic,
@@ -245,19 +248,19 @@ class AktivitetskravVurderingConsumerSpek : Spek({
                         kafkaConsumer.commitSync()
                     }
 
-                    val personOppgave = database.connection.getPersonOppgaver(
-                        personIdent = PersonIdent(vurderingUnntak.personIdent),
+                    val personOppgave = database.getPersonOppgaver(
+                        personIdent = otherUbehandletPersonoppgave.personIdent,
                     ).map { it.toPersonOppgave() }.first()
-                    personOppgave.personIdent.value shouldBeEqualTo vurderingUnntak.personIdent
+                    personOppgave.personIdent shouldBeEqualTo otherUbehandletPersonoppgave.personIdent
                     personOppgave.publish shouldBeEqualTo false
                     personOppgave.type shouldNotBeEqualTo PersonOppgaveType.AKTIVITETSKRAV_VURDER_STANS
                     personOppgave.behandletTidspunkt shouldBeEqualTo null
                     personOppgave.behandletVeilederIdent shouldBeEqualTo null
                 }
 
-                it("Will throw error in consumer when more than one vurder-stans oppgave for person") {
-                    createOppgave(ubehandletVurderStansOppgave)
-                    createOppgave(
+                it("Will throw error in consumer when more than one ubehandlet vurder-stans oppgave for person") {
+                    createPersonoppgaver(
+                        ubehandletVurderStansOppgave,
                         ubehandletVurderStansOppgave.copy(
                             uuid = UUID.randomUUID(),
                             referanseUuid = UUID.randomUUID(),

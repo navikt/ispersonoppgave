@@ -4,7 +4,7 @@ import no.nav.syfo.aktivitetskrav.domain.AktivitetskravVurdering
 import no.nav.syfo.aktivitetskrav.domain.ExpiredVarsel
 import no.nav.syfo.aktivitetskrav.domain.VarselType
 import no.nav.syfo.database.DatabaseInterface
-import no.nav.syfo.metric.COUNT_AKTIVITETSKRAV_EXPIRED_VARSEL_MOTTATT
+import no.nav.syfo.metric.COUNT_AKTIVITETSKRAV_EXPIRED_VARSEL_PERSON_OPPGAVE_CREATED
 import no.nav.syfo.metric.COUNT_PERSONOPPGAVE_UPDATED_FROM_AKTIVITETSKRAV_VURDERING
 import no.nav.syfo.personoppgave.createPersonOppgave
 import no.nav.syfo.personoppgave.domain.PersonOppgaveType
@@ -12,7 +12,6 @@ import no.nav.syfo.personoppgave.domain.behandleAndReadyForPublish
 import no.nav.syfo.personoppgave.domain.toPersonOppgaver
 import no.nav.syfo.personoppgave.getUbehandledePersonOppgaver
 import no.nav.syfo.personoppgave.updatePersonoppgaveSetBehandlet
-import no.nav.syfo.util.toLocalDateTimeOslo
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
@@ -35,7 +34,7 @@ class VurderStansService(
                             personOppgaveType = PersonOppgaveType.AKTIVITETSKRAV_VURDER_STANS,
                             publish = true, // cronjob will publish
                         )
-                        COUNT_AKTIVITETSKRAV_EXPIRED_VARSEL_MOTTATT.increment()
+                        COUNT_AKTIVITETSKRAV_EXPIRED_VARSEL_PERSON_OPPGAVE_CREATED.increment()
                     } else {
                         log.info("Personoppgave already exists for uuid=${expiredVarsel.varselUuid} with type ${expiredVarsel.varselType}")
                     }
@@ -53,13 +52,13 @@ class VurderStansService(
                     personIdent = vurdering.personIdent,
                     personOppgaveType = PersonOppgaveType.AKTIVITETSKRAV_VURDER_STANS,
                 ).toPersonOppgaver()
-                if (ubehandledeVurderStansOppgaver.size > 1) throw IllegalStateException("Cannot have more than one AKTIVITETSKRAV_VURDER_STANS oppgave per personident")
+                if (ubehandledeVurderStansOppgaver.size > 1) throw IllegalStateException("Cannot have more than one ubehandlet AKTIVITETSKRAV_VURDER_STANS oppgave per personident")
 
                 val vurderStansOppgave = ubehandledeVurderStansOppgaver.firstOrNull()
                 if (
                     vurderStansOppgave != null &&
                     vurdering.isFinalVurdering() &&
-                    vurderStansOppgave.opprettet < vurdering.sistVurdert.toLocalDateTimeOslo() // Teste NY og dato
+                    vurdering happenedAfter vurderStansOppgave
                 ) {
                     val behandletOppgave = vurderStansOppgave.behandleAndReadyForPublish(veilederIdent = vurdering.vurdertAv)
                     connection.updatePersonoppgaveSetBehandlet(behandletOppgave)

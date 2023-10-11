@@ -65,24 +65,37 @@ class PublishOppgavehendelseCronjobSpek : Spek({
                 }
             }
 
-            it("Will publish unpublished personoppgave") {
-                createPersonoppgaver(unpublishedUbehandletPersonoppgave)
+            it("Will publish unpublished personoppgaver") {
+                createPersonoppgaver(
+                    unpublishedUbehandletPersonoppgave,
+                    unpublishedUbehandletPersonoppgave.copy(
+                        uuid = UUID.randomUUID(),
+                        referanseUuid = UUID.randomUUID(),
+                        type = PersonOppgaveType.BEHANDLERDIALOG_SVAR,
+                    ),
+                )
 
                 runBlocking {
                     val result = publishOppgavehendelseCronjob.publishOppgavehendelserJob()
 
                     result.failed shouldBeEqualTo 0
-                    result.updated shouldBeEqualTo 1
+                    result.updated shouldBeEqualTo 2
                 }
 
-                val kafkaRecordSlot = slot<ProducerRecord<String, KPersonoppgavehendelse>>()
-                verify(exactly = 1) {
-                    kafkaProducer.send(capture(kafkaRecordSlot))
+                val kafkaRecordSlot1 = slot<ProducerRecord<String, KPersonoppgavehendelse>>()
+                val kafkaRecordSlot2 = slot<ProducerRecord<String, KPersonoppgavehendelse>>()
+                verifyOrder {
+                    kafkaProducer.send(capture(kafkaRecordSlot1))
+                    kafkaProducer.send(capture(kafkaRecordSlot2))
                 }
 
-                val kafkaPersonoppgavehendelse = kafkaRecordSlot.captured.value()
-                kafkaPersonoppgavehendelse.personident shouldBeEqualTo unpublishedUbehandletPersonoppgave.personIdent.value
-                kafkaPersonoppgavehendelse.hendelsetype shouldBeEqualTo PersonoppgavehendelseType.AKTIVITETSKRAV_VURDER_STANS_MOTTATT.name
+                val kafkaPersonoppgavehendelse1 = kafkaRecordSlot1.captured.value()
+                kafkaPersonoppgavehendelse1.personident shouldBeEqualTo unpublishedUbehandletPersonoppgave.personIdent.value
+                kafkaPersonoppgavehendelse1.hendelsetype shouldBeEqualTo PersonoppgavehendelseType.AKTIVITETSKRAV_VURDER_STANS_MOTTATT.name
+
+                val kafkaPersonoppgavehendelse2 = kafkaRecordSlot2.captured.value()
+                kafkaPersonoppgavehendelse2.personident shouldBeEqualTo unpublishedUbehandletPersonoppgave.personIdent.value
+                kafkaPersonoppgavehendelse2.hendelsetype shouldBeEqualTo PersonoppgavehendelseType.BEHANDLERDIALOG_SVAR_MOTTATT.name
             }
 
             it("Will only publish newest unpublished personoppgave of same type") {
