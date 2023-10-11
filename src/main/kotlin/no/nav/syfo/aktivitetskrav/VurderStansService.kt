@@ -4,7 +4,8 @@ import no.nav.syfo.aktivitetskrav.domain.AktivitetskravVurdering
 import no.nav.syfo.aktivitetskrav.domain.ExpiredVarsel
 import no.nav.syfo.aktivitetskrav.domain.VarselType
 import no.nav.syfo.database.DatabaseInterface
-import no.nav.syfo.metric.COUNT_PERSONOPPGAVEHENDELSE_AKTIVITETSKRAV_EXPIRED_VARSEL_MOTTATT
+import no.nav.syfo.metric.COUNT_AKTIVITETSKRAV_EXPIRED_VARSEL_MOTTATT
+import no.nav.syfo.metric.COUNT_PERSONOPPGAVE_UPDATED_FROM_AKTIVITETSKRAV_VURDERING
 import no.nav.syfo.personoppgave.createPersonOppgave
 import no.nav.syfo.personoppgave.domain.PersonOppgaveType
 import no.nav.syfo.personoppgave.domain.behandleAndReadyForPublish
@@ -34,10 +35,10 @@ class VurderStansService(
                             personOppgaveType = PersonOppgaveType.AKTIVITETSKRAV_VURDER_STANS,
                             publish = true, // cronjob will publish
                         )
+                        COUNT_AKTIVITETSKRAV_EXPIRED_VARSEL_MOTTATT.increment()
                     } else {
                         log.info("Personoppgave already exists for uuid=${expiredVarsel.varselUuid} with type ${expiredVarsel.varselType}")
                     }
-                    COUNT_PERSONOPPGAVEHENDELSE_AKTIVITETSKRAV_EXPIRED_VARSEL_MOTTATT.increment()
                 }
             }
             connection.commit()
@@ -62,6 +63,7 @@ class VurderStansService(
                 ) {
                     val behandletOppgave = vurderStansOppgave.behandleAndReadyForPublish(veilederIdent = vurdering.vurdertAv)
                     connection.updatePersonoppgaveSetBehandlet(behandletOppgave)
+                    COUNT_PERSONOPPGAVE_UPDATED_FROM_AKTIVITETSKRAV_VURDERING.increment()
                 }
             }
             connection.commit()
