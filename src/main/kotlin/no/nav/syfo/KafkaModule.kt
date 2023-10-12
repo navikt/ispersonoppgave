@@ -111,11 +111,9 @@ fun launchKafkaTasks(
             vurderStansService = vurderStansService,
         )
     }
-    if (environment.isAktivitetskravVurderingConsumerEnabled) {
-        launchKafkaTaskAktivitetskravVurdering(
-            applicationState = applicationState,
-            environment = environment,
-            vurderStansService = vurderStansService,
-        )
-    }
+    launchKafkaTaskAktivitetskravVurdering(
+        applicationState = applicationState,
+        environment = environment,
+        vurderStansService = vurderStansService,
+    )
 }

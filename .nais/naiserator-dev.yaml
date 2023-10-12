@@ -85,5 +85,3 @@ spec:
       value: "dev-fss.pdl.pdl-api"
     - name: PDL_URL
       value: "https://pdl-api.dev-fss-pub.nais.io/graphql"
-    - name: IS_AKTIVITETSKRAV_VURDERING_CONSUMER_ENABLED
-      value: "true"
