@@ -104,13 +104,11 @@ fun launchKafkaTasks(
     val vurderStansService = VurderStansService(
         database = database,
     )
-    if (environment.kakfaConsumerAktivitetskravExpiredVarselEnabled) {
-        launchKafkaTaskAktivitetskravExpiredVarsel(
-            applicationState = applicationState,
-            environment = environment,
-            vurderStansService = vurderStansService,
-        )
-    }
+    launchKafkaTaskAktivitetskravExpiredVarsel(
+        applicationState = applicationState,
+        environment = environment,
+        vurderStansService = vurderStansService,
+    )
     launchKafkaTaskAktivitetskravVurdering(
         applicationState = applicationState,
         environment = environment,
