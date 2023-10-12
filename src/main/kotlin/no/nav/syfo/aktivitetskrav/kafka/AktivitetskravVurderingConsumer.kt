@@ -24,7 +24,7 @@ fun launchKafkaTaskAktivitetskravVurdering(
     consumerProperties.apply {
         this[ConsumerConfig.AUTO_OFFSET_RESET_CONFIG] = "latest"
     }
-    val aktivitetskravVurderingConsumer = AktivitetskravExpiredVarselConsumer(
+    val aktivitetskravVurderingConsumer = AktivitetskravVurderingConsumer(
         vurderStansService = vurderStansService,
     )
     launchKafkaTask(
