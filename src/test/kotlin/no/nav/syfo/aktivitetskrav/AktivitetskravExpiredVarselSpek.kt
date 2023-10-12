@@ -6,7 +6,6 @@ import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
 import no.nav.syfo.aktivitetskrav.domain.ExpiredVarsel
-import no.nav.syfo.aktivitetskrav.domain.VarselType
 import no.nav.syfo.aktivitetskrav.kafka.AktivitetskravExpiredVarselConsumer
 import no.nav.syfo.domain.PersonIdent
 import no.nav.syfo.personoppgave.domain.PersonOppgaveType
@@ -17,13 +16,12 @@ import no.nav.syfo.personoppgave.updatePersonoppgaveSetBehandlet
 import no.nav.syfo.testutil.ExternalMockEnvironment
 import no.nav.syfo.testutil.UserConstants.ARBEIDSTAKER_FNR
 import no.nav.syfo.testutil.dropData
+import no.nav.syfo.testutil.generateExpiredVarsel
 import no.nav.syfo.testutil.mock.mockPollConsumerRecords
 import org.amshove.kluent.shouldBeEqualTo
 import org.apache.kafka.clients.consumer.KafkaConsumer
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
-import java.time.LocalDate
-import java.util.*
 
 class AktivitetskravExpiredVarselSpek : Spek({
     describe("Handle aktivitetskrav-expired-varsel topic") {
@@ -51,14 +49,9 @@ class AktivitetskravExpiredVarselSpek : Spek({
                 clearMocks(kafkaConsumer)
             }
 
+            val expiredVarsel = generateExpiredVarsel()
+
             it("Consumes expired varsel") {
-                val expiredVarsel = ExpiredVarsel(
-                    varselUuid = UUID.randomUUID(),
-                    createdAt = LocalDate.now().atStartOfDay(),
-                    personIdent = PersonIdent(ARBEIDSTAKER_FNR.value),
-                    varselType = VarselType.FORHANDSVARSEL_STANS_AV_SYKEPENGER,
-                    svarfrist = LocalDate.now(),
-                )
                 kafkaConsumer.mockPollConsumerRecords(
                     recordValue = expiredVarsel,
                     topic = topic,
@@ -80,13 +73,6 @@ class AktivitetskravExpiredVarselSpek : Spek({
                 personOppgave.personIdent shouldBeEqualTo ARBEIDSTAKER_FNR
             }
             it("Consumes expired varsel creates personoppgave but not duplicate") {
-                val expiredVarsel = ExpiredVarsel(
-                    varselUuid = UUID.randomUUID(),
-                    createdAt = LocalDate.now().atStartOfDay(),
-                    personIdent = PersonIdent(ARBEIDSTAKER_FNR.value),
-                    varselType = VarselType.FORHANDSVARSEL_STANS_AV_SYKEPENGER,
-                    svarfrist = LocalDate.now(),
-                )
                 kafkaConsumer.mockPollConsumerRecords(
                     recordValue = expiredVarsel,
                     recordValue2 = expiredVarsel.copy(),
@@ -111,13 +97,6 @@ class AktivitetskravExpiredVarselSpek : Spek({
                 personOppgave.personIdent shouldBeEqualTo ARBEIDSTAKER_FNR
             }
             it("Consumes expired varsel creates personoppgave if existing is behandlet") {
-                val expiredVarsel = ExpiredVarsel(
-                    varselUuid = UUID.randomUUID(),
-                    createdAt = LocalDate.now().atStartOfDay(),
-                    personIdent = PersonIdent(ARBEIDSTAKER_FNR.value),
-                    varselType = VarselType.FORHANDSVARSEL_STANS_AV_SYKEPENGER,
-                    svarfrist = LocalDate.now(),
-                )
                 kafkaConsumer.mockPollConsumerRecords(
                     recordValue = expiredVarsel,
                     topic = topic,
