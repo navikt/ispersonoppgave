@@ -1,12 +1,17 @@
 package no.nav.syfo.aktivitetskrav
 
+import no.nav.syfo.aktivitetskrav.domain.AktivitetskravVurdering
 import no.nav.syfo.aktivitetskrav.domain.ExpiredVarsel
 import no.nav.syfo.aktivitetskrav.domain.VarselType
 import no.nav.syfo.database.DatabaseInterface
-import no.nav.syfo.metric.COUNT_PERSONOPPGAVEHENDELSE_AKTIVITETSKRAV_EXPIRED_VARSEL_MOTTATT
+import no.nav.syfo.metric.COUNT_AKTIVITETSKRAV_EXPIRED_VARSEL_PERSON_OPPGAVE_CREATED
+import no.nav.syfo.metric.COUNT_PERSONOPPGAVE_UPDATED_FROM_AKTIVITETSKRAV_VURDERING
 import no.nav.syfo.personoppgave.createPersonOppgave
 import no.nav.syfo.personoppgave.domain.PersonOppgaveType
+import no.nav.syfo.personoppgave.domain.behandleAndReadyForPublish
+import no.nav.syfo.personoppgave.domain.toPersonOppgaver
 import no.nav.syfo.personoppgave.getUbehandledePersonOppgaver
+import no.nav.syfo.personoppgave.updatePersonoppgaveSetBehandlet
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
@@ -29,10 +34,35 @@ class VurderStansService(
                             personOppgaveType = PersonOppgaveType.AKTIVITETSKRAV_VURDER_STANS,
                             publish = true, // cronjob will publish
                         )
+                        COUNT_AKTIVITETSKRAV_EXPIRED_VARSEL_PERSON_OPPGAVE_CREATED.increment()
                     } else {
                         log.info("Personoppgave already exists for uuid=${expiredVarsel.varselUuid} with type ${expiredVarsel.varselType}")
                     }
-                    COUNT_PERSONOPPGAVEHENDELSE_AKTIVITETSKRAV_EXPIRED_VARSEL_MOTTATT.increment()
+                }
+            }
+            connection.commit()
+        }
+    }
+
+    fun processAktivitetskravVurdering(aktivitetskravVurderinger: List<AktivitetskravVurdering>) {
+        database.connection.use { connection ->
+            aktivitetskravVurderinger.forEach { vurdering ->
+                log.info("Received aktivitetskravVurdering with uuid=${vurdering.uuid} and status=${vurdering.status}")
+                val ubehandledeVurderStansOppgaver = connection.getUbehandledePersonOppgaver(
+                    personIdent = vurdering.personIdent,
+                    personOppgaveType = PersonOppgaveType.AKTIVITETSKRAV_VURDER_STANS,
+                ).toPersonOppgaver()
+                if (ubehandledeVurderStansOppgaver.size > 1) throw IllegalStateException("Cannot have more than one ubehandlet AKTIVITETSKRAV_VURDER_STANS oppgave per personident")
+
+                val vurderStansOppgave = ubehandledeVurderStansOppgaver.firstOrNull()
+                if (
+                    vurderStansOppgave != null &&
+                    vurdering.isFinalVurdering() &&
+                    vurdering happenedAfter vurderStansOppgave
+                ) {
+                    val behandletOppgave = vurderStansOppgave.behandleAndReadyForPublish(veilederIdent = vurdering.vurdertAv)
+                    connection.updatePersonoppgaveSetBehandlet(behandletOppgave)
+                    COUNT_PERSONOPPGAVE_UPDATED_FROM_AKTIVITETSKRAV_VURDERING.increment()
                 }
             }
             connection.commit()
