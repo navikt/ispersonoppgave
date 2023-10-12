@@ -40,7 +40,6 @@ data class Environment(
 
     val outdatedDialogmotesvarCutoff: LocalDate = LocalDate.parse(getEnvVar("OUTDATED_DIALOGMOTESVAR_CUTOFF")),
     val kakfaConsumerAktivitetskravExpiredVarselEnabled: Boolean = getEnvVar("TOGGLE_KAFKA_CONSUMER_AKTIVITETSKRAV_EXPIRED_VARSEL").toBoolean(),
-    val isAktivitetskravVurderingConsumerEnabled: Boolean = getEnvVar("IS_AKTIVITETSKRAV_VURDERING_CONSUMER_ENABLED").toBoolean(),
 ) {
     fun jdbcUrl(): String {
         return "jdbc:postgresql://$ispersonoppgaveDbHost:$ispersonoppgaveDbPort/$ispersonoppgaveDbName"
