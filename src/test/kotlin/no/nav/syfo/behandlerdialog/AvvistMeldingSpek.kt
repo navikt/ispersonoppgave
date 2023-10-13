@@ -11,6 +11,8 @@ import no.nav.syfo.personoppgavehendelse.domain.KPersonoppgavehendelse
 import no.nav.syfo.personoppgavehendelse.domain.PersonoppgavehendelseType
 import no.nav.syfo.testutil.*
 import no.nav.syfo.testutil.createPersonOppgave
+import no.nav.syfo.testutil.generators.generateKMeldingDTO
+import no.nav.syfo.testutil.generators.generatePersonoppgave
 import no.nav.syfo.testutil.mock.mockPollConsumerRecords
 import no.nav.syfo.util.Constants
 import org.amshove.kluent.*

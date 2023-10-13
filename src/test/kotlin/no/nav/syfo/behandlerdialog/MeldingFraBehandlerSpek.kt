@@ -14,6 +14,7 @@ import no.nav.syfo.personoppgave.getPersonOppgaver
 import no.nav.syfo.personoppgavehendelse.PersonoppgavehendelseProducer
 import no.nav.syfo.personoppgavehendelse.domain.PersonoppgavehendelseType
 import no.nav.syfo.testutil.*
+import no.nav.syfo.testutil.generators.generateKMeldingDTO
 import no.nav.syfo.testutil.mock.mockPollConsumerRecords
 import no.nav.syfo.util.Constants
 import org.amshove.kluent.shouldBeEqualTo

@@ -11,6 +11,7 @@ import no.nav.syfo.personoppgave.getPersonOppgaverByReferanseUuid
 import no.nav.syfo.personoppgavehendelse.PersonoppgavehendelseProducer
 import no.nav.syfo.personoppgavehendelse.domain.PersonoppgavehendelseType
 import no.nav.syfo.testutil.*
+import no.nav.syfo.testutil.generators.generateKMeldingDTO
 import no.nav.syfo.testutil.mock.mockPollConsumerRecords
 import org.amshove.kluent.shouldBeEqualTo
 import org.apache.kafka.clients.consumer.*

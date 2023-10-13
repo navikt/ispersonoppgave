@@ -1,4 +1,4 @@
-package no.nav.syfo.testutil
+package no.nav.syfo.testutil.generators
 
 import no.nav.syfo.oppfolgingsplanlps.kafka.KOppfolgingsplanLPS
 import no.nav.syfo.testutil.UserConstants.ARBEIDSTAKER_FNR

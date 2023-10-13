@@ -1,8 +1,8 @@
 package no.nav.syfo.aktivitetskrav
 
 import no.nav.syfo.aktivitetskrav.domain.AktivitetskravVurdering
-import no.nav.syfo.aktivitetskrav.domain.ExpiredVarsel
-import no.nav.syfo.aktivitetskrav.domain.VarselType
+import no.nav.syfo.aktivitetskrav.kafka.domain.ExpiredVarsel
+import no.nav.syfo.aktivitetskrav.kafka.domain.VarselType
 import no.nav.syfo.database.DatabaseInterface
 import no.nav.syfo.metric.COUNT_AKTIVITETSKRAV_EXPIRED_VARSEL_PERSON_OPPGAVE_CREATED
 import no.nav.syfo.metric.COUNT_PERSONOPPGAVE_UPDATED_FROM_AKTIVITETSKRAV_VURDERING

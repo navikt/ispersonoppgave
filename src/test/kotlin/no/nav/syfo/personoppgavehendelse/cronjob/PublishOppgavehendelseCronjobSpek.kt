@@ -11,6 +11,7 @@ import no.nav.syfo.personoppgavehendelse.PublishPersonoppgavehendelseService
 import no.nav.syfo.personoppgavehendelse.domain.KPersonoppgavehendelse
 import no.nav.syfo.personoppgavehendelse.domain.PersonoppgavehendelseType
 import no.nav.syfo.testutil.*
+import no.nav.syfo.testutil.generators.generatePersonoppgave
 import org.amshove.kluent.*
 import org.apache.kafka.clients.producer.KafkaProducer
 import org.apache.kafka.clients.producer.ProducerRecord
