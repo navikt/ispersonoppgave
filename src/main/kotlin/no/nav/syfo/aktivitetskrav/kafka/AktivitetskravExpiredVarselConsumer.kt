@@ -3,7 +3,7 @@ package no.nav.syfo.aktivitetskrav.kafka
 import no.nav.syfo.ApplicationState
 import no.nav.syfo.Environment
 import no.nav.syfo.aktivitetskrav.VurderStansService
-import no.nav.syfo.aktivitetskrav.domain.ExpiredVarsel
+import no.nav.syfo.aktivitetskrav.kafka.domain.ExpiredVarsel
 import no.nav.syfo.aktivitetskrav.kafka.AktivitetskravExpiredVarselConsumer.Companion.AKTIVITETSKRAV_EXPIRED_VARSEL_TOPIC
 import no.nav.syfo.kafka.KafkaConsumerService
 import no.nav.syfo.kafka.kafkaAivenConsumerConfig

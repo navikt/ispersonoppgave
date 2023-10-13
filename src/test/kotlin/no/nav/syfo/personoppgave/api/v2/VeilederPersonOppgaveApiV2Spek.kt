@@ -16,6 +16,7 @@ import no.nav.syfo.personoppgave.updatePersonOppgaveBehandlet
 import no.nav.syfo.testutil.*
 import no.nav.syfo.testutil.UserConstants.ARBEIDSTAKER_FNR
 import no.nav.syfo.testutil.UserConstants.VEILEDER_IDENT
+import no.nav.syfo.testutil.generators.*
 import no.nav.syfo.util.*
 import org.amshove.kluent.*
 import org.apache.kafka.clients.consumer.KafkaConsumer

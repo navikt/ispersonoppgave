@@ -6,7 +6,9 @@ import no.nav.syfo.domain.PersonIdent
 import no.nav.syfo.personoppgave.*
 import no.nav.syfo.personoppgave.domain.PersonOppgave
 import no.nav.syfo.personoppgavehendelse.domain.PersonoppgavehendelseType
-import no.nav.syfo.testutil.*
+import no.nav.syfo.testutil.generators.generatePPersonoppgave
+import no.nav.syfo.testutil.generators.generatePPersonoppgaver
+import no.nav.syfo.testutil.generators.generatePersonoppgave
 import org.amshove.kluent.shouldBeEqualTo
 import org.amshove.kluent.shouldNotBeEqualTo
 import org.spekframework.spek2.Spek

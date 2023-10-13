@@ -1,8 +1,9 @@
-package no.nav.syfo.testutil
+package no.nav.syfo.testutil.generators
 
 import no.nav.syfo.dialogmotestatusendring.domain.DialogmoteStatusendring
 import no.nav.syfo.dialogmotestatusendring.domain.DialogmoteStatusendringType
 import no.nav.syfo.dialogmotestatusendring.domain.PDialogmoteStatusendring
+import no.nav.syfo.testutil.UserConstants
 import java.time.OffsetDateTime
 import java.util.*
 

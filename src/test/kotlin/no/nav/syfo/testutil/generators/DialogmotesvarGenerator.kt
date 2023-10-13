@@ -1,6 +1,7 @@
-package no.nav.syfo.testutil
+package no.nav.syfo.testutil.generators
 
 import no.nav.syfo.dialogmotesvar.domain.*
+import no.nav.syfo.testutil.UserConstants
 import java.time.OffsetDateTime
 import java.util.*
 

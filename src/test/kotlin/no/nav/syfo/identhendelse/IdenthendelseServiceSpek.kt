@@ -11,6 +11,7 @@ import no.nav.syfo.dialogmotesvar.getDialogmotesvar
 import no.nav.syfo.personoppgave.domain.PersonOppgaveType
 import no.nav.syfo.personoppgave.getPersonOppgaver
 import no.nav.syfo.testutil.*
+import no.nav.syfo.testutil.generators.*
 import org.amshove.kluent.internal.assertFailsWith
 import org.amshove.kluent.shouldBeEqualTo
 import org.amshove.kluent.shouldBeGreaterThan

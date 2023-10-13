@@ -6,6 +6,7 @@ import io.mockk.mockk
 import no.nav.syfo.dialogmotesvar.domain.*
 import no.nav.syfo.dialogmotesvar.kafka.KafkaDialogmotesvarConsumer
 import no.nav.syfo.testutil.*
+import no.nav.syfo.testutil.generators.generateKDialogmotesvar
 import no.nav.syfo.testutil.mock.mockPollConsumerRecords
 import org.amshove.kluent.shouldBe
 import org.amshove.kluent.shouldBeEqualTo

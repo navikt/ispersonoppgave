@@ -20,7 +20,7 @@ import no.nav.syfo.testutil.UserConstants.ARBEIDSTAKER_FNR
 import no.nav.syfo.testutil.UserConstants.VEILEDER_IDENT
 import no.nav.syfo.testutil.createPersonOppgave
 import no.nav.syfo.testutil.dropData
-import no.nav.syfo.testutil.generatePersonoppgave
+import no.nav.syfo.testutil.generators.generatePersonoppgave
 import no.nav.syfo.testutil.generators.generateKafkaAktivitetskravVurdering
 import no.nav.syfo.testutil.mock.mockPollConsumerRecords
 import org.amshove.kluent.*

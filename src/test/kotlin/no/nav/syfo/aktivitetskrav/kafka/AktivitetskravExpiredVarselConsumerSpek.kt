@@ -1,12 +1,12 @@
-package no.nav.syfo.aktivitetskrav
+package no.nav.syfo.aktivitetskrav.kafka
 
 import io.ktor.server.testing.*
 import io.mockk.clearMocks
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
-import no.nav.syfo.aktivitetskrav.domain.ExpiredVarsel
-import no.nav.syfo.aktivitetskrav.kafka.AktivitetskravExpiredVarselConsumer
+import no.nav.syfo.aktivitetskrav.VurderStansService
+import no.nav.syfo.aktivitetskrav.kafka.domain.ExpiredVarsel
 import no.nav.syfo.domain.PersonIdent
 import no.nav.syfo.personoppgave.domain.PersonOppgaveType
 import no.nav.syfo.personoppgave.domain.toPersonOppgave
@@ -16,14 +16,14 @@ import no.nav.syfo.personoppgave.updatePersonoppgaveSetBehandlet
 import no.nav.syfo.testutil.ExternalMockEnvironment
 import no.nav.syfo.testutil.UserConstants.ARBEIDSTAKER_FNR
 import no.nav.syfo.testutil.dropData
-import no.nav.syfo.testutil.generateExpiredVarsel
+import no.nav.syfo.testutil.generators.generateExpiredVarsel
 import no.nav.syfo.testutil.mock.mockPollConsumerRecords
 import org.amshove.kluent.shouldBeEqualTo
 import org.apache.kafka.clients.consumer.KafkaConsumer
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
 
-class AktivitetskravExpiredVarselSpek : Spek({
+class AktivitetskravExpiredVarselConsumerSpek : Spek({
     describe("Handle aktivitetskrav-expired-varsel topic") {
 
         with(TestApplicationEngine()) {

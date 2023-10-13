@@ -5,7 +5,10 @@ import no.nav.syfo.dialogmotestatusendring.domain.DialogmoteStatusendringType
 import no.nav.syfo.dialogmotestatusendring.getDialogmoteStatusendring
 import no.nav.syfo.dialogmotesvar.domain.DialogmoteSvartype
 import no.nav.syfo.personoppgave.*
-import no.nav.syfo.testutil.*
+import no.nav.syfo.testutil.generators.generateDialogmotesvar
+import no.nav.syfo.testutil.generators.generatePDialogmotestatusendring
+import no.nav.syfo.testutil.generators.generatePPersonoppgave
+import no.nav.syfo.testutil.generators.generatePersonoppgave
 import no.nav.syfo.util.toLocalDateTimeOslo
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe

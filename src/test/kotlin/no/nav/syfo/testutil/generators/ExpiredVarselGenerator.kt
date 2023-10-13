@@ -1,8 +1,9 @@
-package no.nav.syfo.testutil
+package no.nav.syfo.testutil.generators
 
-import no.nav.syfo.aktivitetskrav.domain.ExpiredVarsel
-import no.nav.syfo.aktivitetskrav.domain.VarselType
+import no.nav.syfo.aktivitetskrav.kafka.domain.ExpiredVarsel
+import no.nav.syfo.aktivitetskrav.kafka.domain.VarselType
 import no.nav.syfo.domain.PersonIdent
+import no.nav.syfo.testutil.UserConstants
 import java.time.LocalDate
 import java.util.*
 

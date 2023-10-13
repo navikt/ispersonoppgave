@@ -8,6 +8,8 @@ import no.nav.syfo.personoppgavehendelse.domain.*
 import no.nav.syfo.personoppgave.domain.PersonOppgaveType
 import no.nav.syfo.testutil.*
 import no.nav.syfo.testutil.UserConstants.ARBEIDSTAKER_FNR
+import no.nav.syfo.testutil.generators.generateKOppfolgingsplanLPS
+import no.nav.syfo.testutil.generators.generateKOppfolgingsplanLPSNoBehovforForBistand
 import no.nav.syfo.util.configuredJacksonMapper
 import org.amshove.kluent.*
 import org.spekframework.spek2.Spek
