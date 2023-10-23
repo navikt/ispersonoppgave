@@ -3,6 +3,7 @@ package no.nav.syfo
 import no.nav.syfo.aktivitetskrav.VurderStansService
 import no.nav.syfo.aktivitetskrav.kafka.launchKafkaTaskAktivitetskravExpiredVarsel
 import no.nav.syfo.aktivitetskrav.kafka.launchKafkaTaskAktivitetskravVurdering
+import no.nav.syfo.behandler.kafka.sykmelding.launchKafkaTaskSykmelding
 import no.nav.syfo.behandlerdialog.AvvistMeldingService
 import no.nav.syfo.behandlerdialog.MeldingFraBehandlerService
 import no.nav.syfo.behandlerdialog.UbesvartMeldingService
@@ -113,5 +114,9 @@ fun launchKafkaTasks(
         applicationState = applicationState,
         environment = environment,
         vurderStansService = vurderStansService,
+    )
+    launchKafkaTaskSykmelding(
+        applicationState = applicationState,
+        environment = environment,
     )
 }
