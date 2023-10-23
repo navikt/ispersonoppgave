@@ -2,7 +2,7 @@ package no.nav.syfo.behandler.kafka.sykmelding
 
 import no.nav.syfo.ApplicationState
 import no.nav.syfo.Environment
-import no.nav.syfo.database.database
+import no.nav.syfo.database.DatabaseInterface
 import no.nav.syfo.domain.*
 import no.nav.syfo.kafka.kafkaAivenConsumerConfig
 import no.nav.syfo.personoppgave.createPersonOppgave
@@ -18,6 +18,7 @@ const val SYKMELDING_TOPIC = "teamsykmelding.ok-sykmelding"
 fun launchKafkaTaskSykmelding(
     applicationState: ApplicationState,
     environment: Environment,
+    database: DatabaseInterface,
 ) {
     val consumerProperties = kafkaAivenConsumerConfig<ReceivedSykmeldingDTO>(environment.kafka).apply {
         this[ConsumerConfig.AUTO_OFFSET_RESET_CONFIG] = "latest"
@@ -29,17 +30,20 @@ fun launchKafkaTaskSykmelding(
     )
     while (applicationState.ready) {
         pollAndProcessSykmelding(
+            database = database,
             kafkaConsumerSykmelding = kafkaConsumerSykmelding,
         )
     }
 }
 
 fun pollAndProcessSykmelding(
+    database: DatabaseInterface,
     kafkaConsumerSykmelding: KafkaConsumer<String, ReceivedSykmeldingDTO>,
 ) {
     val records = kafkaConsumerSykmelding.poll(Duration.ofMillis(1000))
     if (records.count() > 0) {
         processSykmelding(
+            database = database,
             consumerRecords = records,
         )
         kafkaConsumerSykmelding.commitSync()
@@ -47,6 +51,7 @@ fun pollAndProcessSykmelding(
 }
 
 fun processSykmelding(
+    database: DatabaseInterface,
     consumerRecords: ConsumerRecords<String, ReceivedSykmeldingDTO>,
 ) {
     database.connection.use { connection ->

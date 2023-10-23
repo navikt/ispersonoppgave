@@ -119,6 +119,7 @@ fun launchKafkaTasks(
         launchKafkaTaskSykmelding(
             applicationState = applicationState,
             environment = environment,
+            database = database,
         )
     }
 }
