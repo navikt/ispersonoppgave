@@ -101,5 +101,6 @@ fun PersonOppgave.shouldPublishOppgaveHendelseNow(): Boolean {
     return type == PersonOppgaveType.OPPFOLGINGSPLANLPS ||
         type == PersonOppgaveType.BEHANDLERDIALOG_SVAR ||
         type == PersonOppgaveType.BEHANDLERDIALOG_MELDING_UBESVART ||
-        type == PersonOppgaveType.BEHANDLERDIALOG_MELDING_AVVIST
+        type == PersonOppgaveType.BEHANDLERDIALOG_MELDING_AVVIST ||
+        type == PersonOppgaveType.BEHANDLER_BER_OM_BISTAND
 }
