@@ -115,8 +115,10 @@ fun launchKafkaTasks(
         environment = environment,
         vurderStansService = vurderStansService,
     )
-    launchKafkaTaskSykmelding(
-        applicationState = applicationState,
-        environment = environment,
-    )
+    if (environment.toggleConsumeSykmelding) {
+        launchKafkaTaskSykmelding(
+            applicationState = applicationState,
+            environment = environment,
+        )
+    }
 }

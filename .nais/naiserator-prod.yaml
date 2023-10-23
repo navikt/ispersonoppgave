@@ -83,3 +83,5 @@ spec:
       value: "prod-fss.pdl.pdl-api"
     - name: PDL_URL
       value: "https://pdl-api.prod-fss-pub.nais.io/graphql"
+    - name: TOGGLE_CONSUME_SYKMELDING
+      value: "false"

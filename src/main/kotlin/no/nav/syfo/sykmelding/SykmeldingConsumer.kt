@@ -53,10 +53,7 @@ fun processSykmelding(
         consumerRecords.forEach {
             it.value()?.let { receivedSykmeldingDTO ->
                 COUNT_MOTTATT_SYKMELDING.increment()
-                if (
-                    receivedSykmeldingDTO.sykmelding.meldingTilNAV != null &&
-                    receivedSykmeldingDTO.sykmelding.meldingTilNAV.beskrivBistand != null
-                ) {
+                if (receivedSykmeldingDTO.sykmelding.meldingTilNAV?.beskrivBistand != null) {
                     createPersonoppgave(
                         connection = connection,
                         receivedSykmeldingDTO = receivedSykmeldingDTO,
@@ -72,7 +69,7 @@ private fun createPersonoppgave(
     connection: Connection,
     receivedSykmeldingDTO: ReceivedSykmeldingDTO,
 ) {
-    val referanseUuid = UUID.fromString(receivedSykmeldingDTO.msgId)
+    val referanseUuid = UUID.fromString(receivedSykmeldingDTO.sykmelding.id)
     val arbeidstakerPersonident = PersonIdent(receivedSykmeldingDTO.personNrPasient)
     val hasExistingUbehandlet = connection.getPersonOppgaverByReferanseUuid(referanseUuid)
         .any { it.behandletTidspunkt == null }
