@@ -54,7 +54,7 @@ class SykmeldingConsumerSpek : Spek({
                     )
 
                     kafkaSykmeldingConsumer.pollAndProcessRecords(
-                        kafkaConsumerSykmelding = kafkaConsumer,
+                        kafkaConsumer = kafkaConsumer,
                     )
                     verify(exactly = 1) {
                         kafkaConsumer.commitSync()

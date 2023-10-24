@@ -40,15 +40,15 @@ class KafkaSykmeldingConsumer(
     override val pollDurationInMillis: Long = 1000
 
     override fun pollAndProcessRecords(
-        kafkaConsumerSykmelding: KafkaConsumer<String, ReceivedSykmeldingDTO>,
+        kafkaConsumer: KafkaConsumer<String, ReceivedSykmeldingDTO>,
     ) {
-        val records = kafkaConsumerSykmelding.poll(Duration.ofMillis(1000))
+        val records = kafkaConsumer.poll(Duration.ofMillis(1000))
         if (records.count() > 0) {
             processSykmelding(
                 database = database,
                 consumerRecords = records,
             )
-            kafkaConsumerSykmelding.commitSync()
+            kafkaConsumer.commitSync()
         }
     }
 
