@@ -35,6 +35,7 @@ fun testEnvironment(
     ),
     electorPath = "electorPath",
     outdatedDialogmotesvarCutoff = LocalDate.parse("2022-04-01"),
+    toggleConsumeSykmelding = true,
 )
 
 fun testAppState() = ApplicationState(

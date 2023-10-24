@@ -413,6 +413,65 @@ class VeilederPersonOppgaveApiV2Spek : Spek({
                 }
             }
 
+            describe("Behandle behandler_ber_om_bistand-oppgave") {
+                it("returns OK on behandle and sends Personoppgavehendelse if no other behandler_ber_om_bistand-oppgave") {
+                    val sykmeldingId = UUID.randomUUID()
+                    var oppgaveUuid: UUID
+                    database.connection.use { connection ->
+                        oppgaveUuid = connection.createPersonOppgave(
+                            referanseUuid = sykmeldingId,
+                            personIdent = ARBEIDSTAKER_FNR,
+                            personOppgaveType = PersonOppgaveType.BEHANDLER_BER_OM_BISTAND,
+                        )
+                        connection.commit()
+                    }
+
+                    val urlProcess = "$baseUrl/$oppgaveUuid/behandle"
+                    with(
+                        handleRequest(HttpMethod.Post, urlProcess) {
+                            addHeader(HttpHeaders.Authorization, bearerHeader(validToken))
+                        }
+                    ) {
+                        response.status() shouldBeEqualTo HttpStatusCode.OK
+
+                        val records = getRecordsFromTopic(consumerPersonoppgavehendelse)
+                        records.size shouldBeEqualTo 1
+                        records.first().hendelsetype shouldBeEqualTo PersonoppgavehendelseType.BEHANDLER_BER_OM_BISTAND_BEHANDLET.name
+                    }
+                }
+
+                it("returns OK on behandle and do NOT send Personoppgavehendelse when there are other ubehandlede behandler_ber_om_bistand-oppgaver") {
+                    val sykmeldingId = UUID.randomUUID()
+                    val otherSykmeldingId = UUID.randomUUID()
+                    var oppgaveUuid: UUID
+                    database.connection.use { connection ->
+                        oppgaveUuid = connection.createPersonOppgave(
+                            referanseUuid = sykmeldingId,
+                            personIdent = ARBEIDSTAKER_FNR,
+                            personOppgaveType = PersonOppgaveType.BEHANDLER_BER_OM_BISTAND,
+                        )
+                        connection.createPersonOppgave(
+                            referanseUuid = otherSykmeldingId,
+                            personIdent = ARBEIDSTAKER_FNR,
+                            personOppgaveType = PersonOppgaveType.BEHANDLER_BER_OM_BISTAND,
+                        )
+                        connection.commit()
+                    }
+
+                    val urlProcess = "$baseUrl/$oppgaveUuid/behandle"
+                    with(
+                        handleRequest(HttpMethod.Post, urlProcess) {
+                            addHeader(HttpHeaders.Authorization, bearerHeader(validToken))
+                        }
+                    ) {
+                        response.status() shouldBeEqualTo HttpStatusCode.OK
+
+                        val records = getRecordsFromTopic(consumerPersonoppgavehendelse)
+                        records.size shouldBeEqualTo 0
+                    }
+                }
+            }
+
             describe("Process several personoppgaver") {
                 val url = "$baseUrl/behandle"
                 val personoppgaveBehandlerdialog = generatePersonoppgave(
