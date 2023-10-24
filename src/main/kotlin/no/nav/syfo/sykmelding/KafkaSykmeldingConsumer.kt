@@ -11,7 +11,9 @@ import no.nav.syfo.personoppgave.createPersonOppgave
 import no.nav.syfo.personoppgave.domain.PersonOppgaveType
 import no.nav.syfo.personoppgave.getPersonOppgaverByReferanseUuid
 import no.nav.syfo.sykmelding.ReceivedSykmeldingDTO
+import no.nav.syfo.util.configuredJacksonMapper
 import org.apache.kafka.clients.consumer.*
+import org.apache.kafka.common.serialization.Deserializer
 import java.sql.Connection
 import java.time.*
 import java.util.*
@@ -23,7 +25,7 @@ fun launchKafkaTaskSykmelding(
     environment: Environment,
     database: DatabaseInterface,
 ) {
-    val consumerProperties = kafkaAivenConsumerConfig<ReceivedSykmeldingDTO>(environment.kafka).apply {
+    val consumerProperties = kafkaAivenConsumerConfig<ReceivedSykmeldingDTODeserializer>(environment.kafka).apply {
         this[ConsumerConfig.AUTO_OFFSET_RESET_CONFIG] = "latest"
     }
     launchKafkaTask(
@@ -91,4 +93,10 @@ class KafkaSykmeldingConsumer(
             COUNT_MOTTATT_SYKMELDING_SUCCESS.increment()
         }
     }
+}
+
+class ReceivedSykmeldingDTODeserializer : Deserializer<ReceivedSykmeldingDTO> {
+    private val mapper = configuredJacksonMapper()
+    override fun deserialize(topic: String, data: ByteArray): ReceivedSykmeldingDTO =
+        mapper.readValue(data, ReceivedSykmeldingDTO::class.java)
 }
