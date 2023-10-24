@@ -1,4 +1,4 @@
-package no.nav.syfo.behandler.kafka.sykmelding
+package no.nav.syfo.sykmelding
 
 import java.time.LocalDate
 import java.time.LocalDateTime

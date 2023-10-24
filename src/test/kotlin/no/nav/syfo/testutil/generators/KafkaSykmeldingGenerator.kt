@@ -1,6 +1,6 @@
 package no.nav.syfo.testutil.generators
 
-import no.nav.syfo.behandler.kafka.sykmelding.*
+import no.nav.syfo.sykmelding.*
 import no.nav.syfo.testutil.UserConstants
 import java.time.LocalDate
 import java.time.LocalDateTime

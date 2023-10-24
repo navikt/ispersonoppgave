@@ -6,7 +6,6 @@ import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
 import no.nav.syfo.behandler.kafka.sykmelding.KafkaSykmeldingConsumer
-import no.nav.syfo.behandler.kafka.sykmelding.ReceivedSykmeldingDTO
 import no.nav.syfo.behandler.kafka.sykmelding.SYKMELDING_TOPIC
 import no.nav.syfo.domain.PersonIdent
 import no.nav.syfo.personoppgave.domain.PersonOppgaveType

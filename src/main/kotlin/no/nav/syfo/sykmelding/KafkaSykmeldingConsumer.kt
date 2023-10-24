@@ -10,6 +10,7 @@ import no.nav.syfo.kafka.launchKafkaTask
 import no.nav.syfo.personoppgave.createPersonOppgave
 import no.nav.syfo.personoppgave.domain.PersonOppgaveType
 import no.nav.syfo.personoppgave.getPersonOppgaverByReferanseUuid
+import no.nav.syfo.sykmelding.ReceivedSykmeldingDTO
 import org.apache.kafka.clients.consumer.*
 import java.sql.Connection
 import java.time.*
