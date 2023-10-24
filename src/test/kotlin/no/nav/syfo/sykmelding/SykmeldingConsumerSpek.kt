@@ -5,9 +5,9 @@ import io.mockk.clearMocks
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
+import no.nav.syfo.behandler.kafka.sykmelding.KafkaSykmeldingConsumer
 import no.nav.syfo.behandler.kafka.sykmelding.ReceivedSykmeldingDTO
 import no.nav.syfo.behandler.kafka.sykmelding.SYKMELDING_TOPIC
-import no.nav.syfo.behandler.kafka.sykmelding.pollAndProcessSykmelding
 import no.nav.syfo.domain.PersonIdent
 import no.nav.syfo.personoppgave.domain.PersonOppgaveType
 import no.nav.syfo.personoppgave.domain.toPersonOppgave
@@ -32,6 +32,7 @@ class SykmeldingConsumerSpek : Spek({
             val externalMockEnvironment = ExternalMockEnvironment()
             val database = externalMockEnvironment.database
             val kafkaConsumer = mockk<KafkaConsumer<String, ReceivedSykmeldingDTO>>()
+            val kafkaSykmeldingConsumer = KafkaSykmeldingConsumer(database = database)
 
             beforeEachTest {
                 every { kafkaConsumer.commitSync() } returns Unit
@@ -52,8 +53,7 @@ class SykmeldingConsumerSpek : Spek({
                         topic = topic,
                     )
 
-                    pollAndProcessSykmelding(
-                        database = database,
+                    kafkaSykmeldingConsumer.pollAndProcessRecords(
                         kafkaConsumerSykmelding = kafkaConsumer,
                     )
                     verify(exactly = 1) {
