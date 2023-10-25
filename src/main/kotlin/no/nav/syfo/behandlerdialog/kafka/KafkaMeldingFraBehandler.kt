@@ -27,7 +27,7 @@ fun launchKafkaTaskMeldingFraBehandler(
         applicationState = applicationState,
         kafkaConsumerService = kafkaMeldingFraBehandler,
         consumerProperties = consumerProperties,
-        topic = MELDING_FRA_BEHANDLER_TOPIC,
+        topics = listOf(MELDING_FRA_BEHANDLER_TOPIC),
     )
 }
 

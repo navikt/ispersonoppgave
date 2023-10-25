@@ -27,7 +27,7 @@ fun launchKafkaTaskAktivitetskravExpiredVarsel(
         applicationState = applicationState,
         kafkaConsumerService = aktivitetskravExpiredVarselConsumer,
         consumerProperties = consumerProperties,
-        topic = AKTIVITETSKRAV_EXPIRED_VARSEL_TOPIC,
+        topics = listOf(AKTIVITETSKRAV_EXPIRED_VARSEL_TOPIC),
     )
 }
 

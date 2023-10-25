@@ -26,7 +26,7 @@ fun launchKafkaTaskOppfolgingsplanLPS(
         applicationState = applicationState,
         kafkaConsumerService = kafkaOppfolgingsplanLPS,
         consumerProperties = consumerProperties,
-        topic = OPPFOLGINGSPLAN_LPS_NAV_TOPIC,
+        topics = listOf(OPPFOLGINGSPLAN_LPS_NAV_TOPIC),
     )
 }
 
