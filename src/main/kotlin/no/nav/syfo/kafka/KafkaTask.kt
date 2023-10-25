@@ -11,17 +11,16 @@ val log: Logger = LoggerFactory.getLogger("no.nav.syfo")
 
 inline fun <reified ConsumerRecordValue> launchKafkaTask(
     applicationState: ApplicationState,
-    topic: String,
+    topics: List<String>,
     consumerProperties: Properties,
     kafkaConsumerService: KafkaConsumerService<ConsumerRecordValue>,
 ) {
     launchBackgroundTask(
         applicationState = applicationState
     ) {
-        log.info("Setting up kafka consumer ${kafkaConsumerService::class.simpleName} for topic $topic")
+        log.info("Setting up kafka consumer ${kafkaConsumerService::class.simpleName} for topics $topics")
 
         val kafkaConsumer = KafkaConsumer<String, ConsumerRecordValue>(consumerProperties)
-        val topics = listOf(topic)
         kafkaConsumer.subscribe(topics)
 
         while (applicationState.ready) {

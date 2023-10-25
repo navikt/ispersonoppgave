@@ -24,7 +24,7 @@ fun launchKafkaTaskDialogmotesvar(
     launchKafkaTask(
         applicationState = applicationState,
         consumerProperties = consumerProperties,
-        topic = DIALOGMOTESVAR_TOPIC,
+        topics = listOf(DIALOGMOTESVAR_TOPIC),
         kafkaConsumerService = KafkaDialogmotesvarConsumer(
             database = database,
             cutoffDate = environment.outdatedDialogmotesvarCutoff,

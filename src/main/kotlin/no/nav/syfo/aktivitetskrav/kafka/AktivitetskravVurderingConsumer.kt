@@ -31,7 +31,7 @@ fun launchKafkaTaskAktivitetskravVurdering(
         applicationState = applicationState,
         kafkaConsumerService = aktivitetskravVurderingConsumer,
         consumerProperties = consumerProperties,
-        topic = AKTIVITETSKRAV_VURDERING_TOPIC,
+        topics = listOf(AKTIVITETSKRAV_VURDERING_TOPIC),
     )
 }
 

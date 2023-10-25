@@ -26,7 +26,7 @@ fun launchKafkaTaskDialogmotestatusendring(
     launchKafkaTask(
         applicationState = applicationState,
         consumerProperties = consumerProperties,
-        topic = DIALOGMOTE_STATUSENDRING_TOPIC,
+        topics = listOf(DIALOGMOTE_STATUSENDRING_TOPIC),
         kafkaConsumerService = kafkaDialogmoteStatusendring,
     )
 }

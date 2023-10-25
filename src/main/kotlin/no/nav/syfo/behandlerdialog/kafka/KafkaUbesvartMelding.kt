@@ -32,7 +32,7 @@ fun launchKafkaTaskUbesvartMelding(
         applicationState = applicationState,
         kafkaConsumerService = kafkaUbesvartMelding,
         consumerProperties = consumerProperties,
-        topic = UBESVART_MELDING_TOPIC,
+        topics = listOf(UBESVART_MELDING_TOPIC),
     )
 }
 

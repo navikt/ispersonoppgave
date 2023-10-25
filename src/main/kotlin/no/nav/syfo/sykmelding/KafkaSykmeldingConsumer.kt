@@ -19,6 +19,7 @@ import java.time.*
 import java.util.*
 
 const val SYKMELDING_TOPIC = "teamsykmelding.ok-sykmelding"
+const val MANUELL_SYKMELDING_TOPIC = "teamsykmelding.manuell-behandling-sykmelding"
 
 fun launchKafkaTaskSykmelding(
     applicationState: ApplicationState,
@@ -32,7 +33,7 @@ fun launchKafkaTaskSykmelding(
         applicationState = applicationState,
         kafkaConsumerService = KafkaSykmeldingConsumer(database),
         consumerProperties = consumerProperties,
-        topic = SYKMELDING_TOPIC,
+        topics = listOf(SYKMELDING_TOPIC, MANUELL_SYKMELDING_TOPIC),
     )
 }
 

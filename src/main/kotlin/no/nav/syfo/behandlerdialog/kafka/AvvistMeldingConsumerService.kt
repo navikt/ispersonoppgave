@@ -31,7 +31,7 @@ fun launchKafkaTaskAvvistMelding(
         applicationState = applicationState,
         kafkaConsumerService = kafkaAvvistMelding,
         consumerProperties = consumerProperties,
-        topic = AvvistMeldingConsumerService.AVVIST_MELDING_TOPIC,
+        topics = listOf(AvvistMeldingConsumerService.AVVIST_MELDING_TOPIC),
     )
 }
 

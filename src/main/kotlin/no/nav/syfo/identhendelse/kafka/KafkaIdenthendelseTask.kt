@@ -15,7 +15,7 @@ fun launchKafkaTaskIdenthendelse(
     launchKafkaTask(
         applicationState = applicationState,
         consumerProperties = consumerProperties,
-        topic = PDL_AKTOR_TOPIC,
+        topics = listOf(PDL_AKTOR_TOPIC),
         kafkaConsumerService = kafkaIdenthendelseConsumerService,
     )
 }
