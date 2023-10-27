@@ -56,7 +56,7 @@ class KafkaSykmeldingConsumer(
         }
     }
 
-    fun processSykmelding(
+    private fun processSykmelding(
         database: DatabaseInterface,
         consumerRecords: ConsumerRecords<String, ReceivedSykmeldingDTO>,
     ) {
@@ -64,7 +64,7 @@ class KafkaSykmeldingConsumer(
             consumerRecords.forEach {
                 it.value()?.let { receivedSykmeldingDTO ->
                     COUNT_MOTTATT_SYKMELDING.increment()
-                    if (receivedSykmeldingDTO.sykmelding.meldingTilNAV?.beskrivBistand != null) {
+                    if (!receivedSykmeldingDTO.sykmelding.meldingTilNAV?.beskrivBistand.isNullOrEmpty()) {
                         createPersonoppgave(
                             connection = connection,
                             receivedSykmeldingDTO = receivedSykmeldingDTO,
