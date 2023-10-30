@@ -43,10 +43,15 @@ class SykmeldingConsumerSpek : Spek({
             }
 
             describe("Consume sykmelding") {
-                val sykmelding = generateKafkaSykmelding(
-                    uuid = UUID.randomUUID()
-                )
-                it("Consumes sykmelding and creates oppgave") {
+                it("Creates oppgave if beskrivBistand has text") {
+                    val sykmeldingId = UUID.randomUUID()
+                    val sykmelding = generateKafkaSykmelding(
+                        sykmeldingId = sykmeldingId,
+                        meldingTilNAV = MeldingTilNAV(
+                            bistandUmiddelbart = false,
+                            beskrivBistand = "Bistand påkrevet",
+                        )
+                    )
                     kafkaConsumer.mockPollConsumerRecords(
                         recordValue = sykmelding,
                         topic = topic,
@@ -66,6 +71,79 @@ class SykmeldingConsumerSpek : Spek({
                     personOppgave.publish shouldBeEqualTo true
                     personOppgave.type shouldBeEqualTo PersonOppgaveType.BEHANDLER_BER_OM_BISTAND
                     personOppgave.behandletTidspunkt shouldBe null
+                    personOppgave.referanseUuid shouldBeEqualTo sykmeldingId
+                }
+                it("Does not create oppgave if meldingTilNAV is null") {
+                    val sykmeldingId = UUID.randomUUID()
+                    val sykmelding = generateKafkaSykmelding(
+                        sykmeldingId = sykmeldingId,
+                        meldingTilNAV = null,
+                    )
+                    kafkaConsumer.mockPollConsumerRecords(
+                        recordValue = sykmelding,
+                        topic = topic,
+                    )
+
+                    kafkaSykmeldingConsumer.pollAndProcessRecords(
+                        kafkaConsumer = kafkaConsumer,
+                    )
+                    verify(exactly = 1) {
+                        kafkaConsumer.commitSync()
+                    }
+
+                    database.getPersonOppgaver(
+                        personIdent = PersonIdent(sykmelding.personNrPasient),
+                    ).shouldBeEmpty()
+                }
+                it("Does not create oppgave if beskrivBistand is null") {
+                    val sykmeldingId = UUID.randomUUID()
+                    val sykmelding = generateKafkaSykmelding(
+                        sykmeldingId = sykmeldingId,
+                        meldingTilNAV = MeldingTilNAV(
+                            bistandUmiddelbart = false,
+                            beskrivBistand = null,
+                        )
+                    )
+                    kafkaConsumer.mockPollConsumerRecords(
+                        recordValue = sykmelding,
+                        topic = topic,
+                    )
+
+                    kafkaSykmeldingConsumer.pollAndProcessRecords(
+                        kafkaConsumer = kafkaConsumer,
+                    )
+                    verify(exactly = 1) {
+                        kafkaConsumer.commitSync()
+                    }
+
+                    database.getPersonOppgaver(
+                        personIdent = PersonIdent(sykmelding.personNrPasient),
+                    ).shouldBeEmpty()
+                }
+                it("Does not create oppgave if beskrivBistand is empty") {
+                    val sykmeldingId = UUID.randomUUID()
+                    val sykmelding = generateKafkaSykmelding(
+                        sykmeldingId = sykmeldingId,
+                        meldingTilNAV = MeldingTilNAV(
+                            bistandUmiddelbart = false,
+                            beskrivBistand = "",
+                        )
+                    )
+                    kafkaConsumer.mockPollConsumerRecords(
+                        recordValue = sykmelding,
+                        topic = topic,
+                    )
+
+                    kafkaSykmeldingConsumer.pollAndProcessRecords(
+                        kafkaConsumer = kafkaConsumer,
+                    )
+                    verify(exactly = 1) {
+                        kafkaConsumer.commitSync()
+                    }
+
+                    database.getPersonOppgaver(
+                        personIdent = PersonIdent(sykmelding.personNrPasient),
+                    ).shouldBeEmpty()
                 }
             }
         }

@@ -7,7 +7,7 @@ import java.time.LocalDateTime
 import java.util.*
 
 fun generateKafkaSykmelding(
-    uuid: UUID,
+    sykmeldingId: UUID,
     mottattTidspunkt: LocalDateTime = LocalDateTime.now(),
     behandletTidspunkt: LocalDateTime = LocalDateTime.now(),
     personNrPasient: String = UserConstants.ARBEIDSTAKER_FNR.value,
@@ -22,9 +22,10 @@ fun generateKafkaSykmelding(
     partnerreferanse: String? = "123",
     avsenderSystemNavn: String = "EPJ-systemet",
     kontorHerId: String = "404",
+    meldingTilNAV: MeldingTilNAV?,
 ) = ReceivedSykmeldingDTO(
     sykmelding = Sykmelding(
-        id = UUID.randomUUID().toString(),
+        id = sykmeldingId.toString(),
         msgId = UUID.randomUUID().toString(),
         medisinskVurdering = MedisinskVurdering(
             hovedDiagnose = null,
@@ -54,10 +55,7 @@ fun generateKafkaSykmelding(
         syketilfelleStartDato = LocalDate.now(),
         signaturDato = LocalDateTime.now(),
         navnFastlege = "",
-        meldingTilNAV = MeldingTilNAV(
-            bistandUmiddelbart = true,
-            beskrivBistand = "Bistand påkrevet",
-        ),
+        meldingTilNAV = meldingTilNAV,
         andreTiltak = "",
         meldingTilArbeidsgiver = "",
         tiltakNAV = "",
@@ -67,7 +65,7 @@ fun generateKafkaSykmelding(
     legeHelsepersonellkategori = legeHelsepersonellkategori,
     legeHprNr = hprId,
     navLogId = "",
-    msgId = uuid.toString(),
+    msgId = UUID.randomUUID().toString(),
     legekontorOrgNr = null,
     legekontorHerId = kontorHerId,
     legekontorOrgName = "",
