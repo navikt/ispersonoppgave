@@ -39,7 +39,6 @@ data class Environment(
     val electorPath: String = getEnvVar("ELECTOR_PATH"),
 
     val outdatedDialogmotesvarCutoff: LocalDate = LocalDate.parse(getEnvVar("OUTDATED_DIALOGMOTESVAR_CUTOFF")),
-    val toggleConsumeSykmelding: Boolean = getEnvVar("TOGGLE_CONSUME_SYKMELDING").toBoolean()
 ) {
     fun jdbcUrl(): String {
         return "jdbc:postgresql://$ispersonoppgaveDbHost:$ispersonoppgaveDbPort/$ispersonoppgaveDbName"
