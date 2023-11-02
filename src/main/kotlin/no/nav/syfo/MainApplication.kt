@@ -48,8 +48,8 @@ fun main() {
     )
     val veilederTilgangskontrollClient = VeilederTilgangskontrollClient(
         azureAdClient = azureAdClient,
-        syfotilgangskontrollClientId = environment.syfotilgangskontrollClientId,
-        endpointUrl = environment.syfotilgangskontrollUrl,
+        istilgangskontrollClientId = environment.istilgangskontrollClientId,
+        endpointUrl = environment.istilgangskontrollUrl,
     )
 
     val pdlClient = PdlClient(
