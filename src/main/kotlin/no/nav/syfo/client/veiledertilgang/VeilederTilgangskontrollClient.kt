@@ -16,8 +16,8 @@ import org.slf4j.LoggerFactory
 
 class VeilederTilgangskontrollClient(
     private val azureAdClient: AzureAdClient,
-    private val syfotilgangskontrollClientId: String,
-    private val endpointUrl: String,
+    private val istilgangskontrollClientId: String,
+    endpointUrl: String,
     private val httpClient: HttpClient = httpClientDefault(),
 ) {
 
@@ -33,7 +33,7 @@ class VeilederTilgangskontrollClient(
         callId: String,
     ): Boolean {
         val oboToken = azureAdClient.getOnBehalfOfToken(
-            scopeClientId = syfotilgangskontrollClientId,
+            scopeClientId = istilgangskontrollClientId,
             token = token,
         )?.accessToken ?: throw RuntimeException("Failed to request access to Person: Failed to get OBO token")
 
@@ -45,7 +45,7 @@ class VeilederTilgangskontrollClient(
                 accept(ContentType.Application.Json)
             }
             COUNT_CALL_TILGANGSKONTROLL_PERSON_SUCCESS.increment()
-            return response.body<Tilgang>().harTilgang
+            return response.body<Tilgang>().erGodkjent
         } catch (e: ClientRequestException) {
             return if (e.response.status == HttpStatusCode.Forbidden) {
                 COUNT_CALL_TILGANGSKONTROLL_PERSON_FORBIDDEN.increment()
@@ -60,7 +60,7 @@ class VeilederTilgangskontrollClient(
 
     private fun handleUnexpectedReponseException(response: HttpResponse): Boolean {
         log.error(
-            "Error while requesting access to person from syfo-tilgangskontroll with {}",
+            "Error while requesting access to person from istilgangskontroll with {}",
             StructuredArguments.keyValue("statusCode", response.status.value.toString())
         )
         COUNT_CALL_TILGANGSKONTROLL_PERSON_FAIL.increment()
@@ -69,6 +69,6 @@ class VeilederTilgangskontrollClient(
 
     companion object {
         private val log = LoggerFactory.getLogger(VeilederTilgangskontrollClient::class.java)
-        const val TILGANGSKONTROLL_PERSON_PATH = "/syfo-tilgangskontroll/api/tilgang/navident/person"
+        const val TILGANGSKONTROLL_PERSON_PATH = "/api/tilgang/navident/person"
     }
 }

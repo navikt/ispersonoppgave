@@ -45,13 +45,11 @@ spec:
     inbound:
       rules:
         - application: syfomodiaperson
-          namespace: teamsykefravr
-          cluster: dev-gcp
     outbound:
       external:
         - host: "pdl-api.dev-fss-pub.nais.io"
       rules:
-        - application: syfo-tilgangskontroll
+        - application: istilgangskontroll
   azure:
     application:
       allowAllUsers: true
@@ -73,10 +71,10 @@ spec:
   env:
     - name: KTOR_ENV
       value: production
-    - name: SYFOTILGANGSKONTROLL_CLIENT_ID
-      value: "dev-gcp.teamsykefravr.syfo-tilgangskontroll"
-    - name: SYFOTILGANGSKONTROLL_URL
-      value: "http://syfo-tilgangskontroll"
+    - name: ISTILGANGSKONTROLL_CLIENT_ID
+      value: "dev-gcp.teamsykefravr.istilgangskontroll"
+    - name: ISTILGANGSKONTROLL_URL
+      value: "http://istilgangskontroll"
     - name: OUTDATED_DIALOGMOTESVAR_CUTOFF
       value: "2022-04-01"
     - name: PDL_CLIENT_ID

@@ -23,8 +23,8 @@ data class Environment(
     val serviceuserUsername: String = getEnvVar("SERVICEUSER_USERNAME"),
     val serviceuserPassword: String = getEnvVar("SERVICEUSER_PASSWORD"),
 
-    val syfotilgangskontrollClientId: String = getEnvVar("SYFOTILGANGSKONTROLL_CLIENT_ID"),
-    val syfotilgangskontrollUrl: String = getEnvVar("SYFOTILGANGSKONTROLL_URL"),
+    val istilgangskontrollClientId: String = getEnvVar("ISTILGANGSKONTROLL_CLIENT_ID"),
+    val istilgangskontrollUrl: String = getEnvVar("ISTILGANGSKONTROLL_URL"),
     val kafka: EnvironmentKafka = EnvironmentKafka(
         aivenBootstrapServers = getEnvVar("KAFKA_BROKERS"),
         aivenSchemaRegistryUrl = getEnvVar("KAFKA_SCHEMA_REGISTRY"),

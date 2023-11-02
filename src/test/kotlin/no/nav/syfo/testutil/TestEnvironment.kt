@@ -21,8 +21,8 @@ fun testEnvironment(
     pdlUrl = "pdlUrl",
     serviceuserUsername = "",
     serviceuserPassword = "",
-    syfotilgangskontrollClientId = "syfotilgangskontrollClientId",
-    syfotilgangskontrollUrl = "syfotilgangskontrollUrl",
+    istilgangskontrollClientId = "istilgangskontrollClientId",
+    istilgangskontrollUrl = "istilgangskontrollUrl",
     kafka = EnvironmentKafka(
         aivenBootstrapServers = kafkaBootstrapServers,
         aivenSchemaRegistryUrl = "http://kafka-schema-registry.tpa.svc.nais.local:8081",

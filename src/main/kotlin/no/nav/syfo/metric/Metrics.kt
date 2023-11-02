@@ -37,13 +37,13 @@ const val CALL_TILGANGSKONTROLL_PERSON_SUCCESS = "${METRICS_NS}_call_tilgangskon
 const val CALL_TILGANGSKONTROLL_PERSON_FAIL = "${METRICS_NS}_call_tilgangskontroll_person_fail_count"
 const val CALL_TILGANGSKONTROLL_PERSON_FORBIDDEN = "${METRICS_NS}_call_tilgangskontroll_person_forbidden_count"
 val COUNT_CALL_TILGANGSKONTROLL_PERSON_SUCCESS: Counter = Counter.builder(CALL_TILGANGSKONTROLL_PERSON_SUCCESS)
-    .description("Counts the number of successful calls to syfo-tilgangskontroll - person")
+    .description("Counts the number of successful calls to istilgangskontroll - person")
     .register(METRICS_REGISTRY)
 val COUNT_CALL_TILGANGSKONTROLL_PERSON_FAIL: Counter = Counter.builder(CALL_TILGANGSKONTROLL_PERSON_FAIL)
-    .description("Counts the number of failed calls to syfo-tilgangskontroll - person")
+    .description("Counts the number of failed calls to istilgangskontroll - person")
     .register(METRICS_REGISTRY)
 val COUNT_CALL_TILGANGSKONTROLL_PERSON_FORBIDDEN: Counter = Counter.builder(CALL_TILGANGSKONTROLL_PERSON_FORBIDDEN)
-    .description("Counts the number of forbidden calls to syfo-tilgangskontroll - person")
+    .description("Counts the number of forbidden calls to istilgangskontroll - person")
     .register(METRICS_REGISTRY)
 
 const val DIALOGMOTESVAR_OPPGAVE_UPDATED = "${METRICS_NS}_dialogmotesvar_oppgave_updated_count"
