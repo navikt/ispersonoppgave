@@ -29,6 +29,7 @@ private val finalVurderinger = EnumSet.of(
 
 enum class AktivitetskravStatus {
     NY,
+    NY_VURDERING,
     AVVENT,
     UNNTAK,
     OPPFYLT,
