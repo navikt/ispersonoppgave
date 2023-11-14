@@ -24,7 +24,7 @@ class MeldingFraBehandlerService(
         database.connection.use { connection ->
             recordPairs.forEach { record ->
                 val melding = record.second
-                KafkaMeldingFraBehandler.log.info("Received meldingFraBehandler with key=$record.first, uuid=${melding.referanseUuid} and parentRef=${melding.parentRef}")
+                KafkaMeldingFraBehandler.log.info("Received meldingFraBehandler with key=${record.first}, uuid=${melding.referanseUuid} and parentRef=${melding.parentRef}")
 
                 processMeldingFraBehandler(
                     melding = melding,
