@@ -5,23 +5,23 @@ group = "no.nav.syfo"
 version = "1.0-SNAPSHOT"
 
 object Versions {
-    const val confluent = "7.4.0"
-    const val jacksonDataType = "2.15.2"
-    const val flyway = "9.20.0"
+    const val confluent = "7.5.1"
+    const val jacksonDataType = "2.16.0"
+    const val flyway = "9.22.3"
     const val hikari = "5.0.1"
     const val isdialogmoteSchema = "1.0.5"
-    const val kafka = "3.5.0"
+    const val kafka = "3.6.0"
     const val kafkaEmbedded = "3.2.3"
     const val kluent = "1.73"
-    const val ktor = "2.3.2"
-    const val logback = "1.4.7"
-    const val logstashEncoder = "7.3"
-    const val micrometerRegistry = "1.11.1"
-    const val mockk = "1.13.5"
-    const val nimbusjosejwt = "9.31"
+    const val ktor = "2.3.7"
+    const val logback = "1.4.14"
+    const val logstashEncoder = "7.4"
+    const val micrometerRegistry = "1.12.0"
+    const val mockk = "1.13.8"
+    const val nimbusjosejwt = "9.37.2"
     const val postgres = "42.6.0"
     val postgresEmbedded = if (Os.isFamily(Os.FAMILY_MAC)) "1.0.0" else "0.13.4"
-    const val scala = "2.13.11"
+    const val scala = "2.13.12"
     const val spek = "2.0.19"
 }
 
@@ -84,8 +84,22 @@ dependencies {
     // Kafka
     implementation("org.apache.kafka:kafka_2.13:${Versions.kafka}", excludeLog4j)
     implementation("io.confluent:kafka-avro-serializer:${Versions.confluent}")
+    constraints {
+        implementation("org.apache.avro:avro") {
+            because("io.confluent:kafka-avro-serializer:${Versions.confluent} -> https://www.cve.org/CVERecord?id=CVE-2023-39410")
+            version {
+                require("1.11.3")
+            }
+        }
+    }
     implementation("io.confluent:kafka-schema-registry:${Versions.confluent}", excludeLog4j)
     constraints {
+        implementation("org.apache.zookeeper:zookeeper") {
+            because("io.confluent:kafka-schema-registry:${Versions.confluent} -> https://www.cve.org/CVERecord?id=CVE-2023-44981")
+            version {
+                require("3.7.2")
+            }
+        }
         implementation("org.yaml:snakeyaml") {
             because("io.confluent:kafka-schema-registry:${Versions.confluent} -> https://advisory.checkmarx.net/advisory/vulnerability/CVE-2022-38752/")
             version {
@@ -101,7 +115,7 @@ dependencies {
         implementation("com.google.protobuf:protobuf-java") {
             because("io.confluent:kafka-schema-registry:${Versions.confluent} -> https://www.cve.org/CVERecord?id=CVE-2021-22569")
             version {
-                require("3.21.7")
+                require("3.25.1")
             }
         }
         implementation("com.google.code.gson:gson") {
