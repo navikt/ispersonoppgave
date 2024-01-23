@@ -29,3 +29,6 @@ spec:
     - team: team-esyfo
       application: syfomotebehov
       access: write
+    - team: teamsykefravr
+      application: iskafkamanager
+      access: read
