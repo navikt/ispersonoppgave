@@ -11,6 +11,7 @@ object Versions {
     const val hikari = "5.1.0"
     const val isdialogmoteSchema = "1.0.5"
     const val json = "20231013"
+    const val jetty = "9.4.53.v20231009"
     const val kafka = "3.6.1"
     const val kafkaEmbedded = "3.2.3"
     const val kluent = "1.73"
@@ -106,6 +107,44 @@ dependencies {
         }
     }
     implementation("io.confluent:kafka-schema-registry:${Versions.confluent}", excludeLog4j)
+    constraints {
+        implementation("org.apache.zookeeper:zookeeper") {
+            because("io.confluent:kafka-schema-registry:${Versions.confluent} -> https://www.cve.org/CVERecord?id=CVE-2023-44981")
+            version {
+                require("3.7.2")
+            }
+        }
+        implementation("com.google.protobuf:protobuf-java") {
+            because("io.confluent:kafka-schema-registry:${Versions.confluent} -> https://www.cve.org/CVERecord?id=CVE-2021-22569")
+            version {
+                require("3.25.1")
+            }
+        }
+        implementation("org.eclipse.jetty:jetty-server") {
+            because("io.confluent:kafka-schema-registry:${Versions.confluent} -> https://www.cve.org/CVERecord?id=CVE-2023-36478")
+            version {
+                require(Versions.jetty)
+            }
+        }
+        implementation("org.eclipse.jetty:jetty-xml") {
+            because("io.confluent:kafka-schema-registry:${Versions.confluent} -> https://www.cve.org/CVERecord?id=CVE-2023-36478")
+            version {
+                require(Versions.jetty)
+            }
+        }
+        implementation("org.eclipse.jetty:jetty-servlets") {
+            because("io.confluent:kafka-schema-registry:${Versions.confluent} -> https://www.cve.org/CVERecord?id=CVE-2023-36478")
+            version {
+                require(Versions.jetty)
+            }
+        }
+        implementation("org.eclipse.jetty.http2:http2-server") {
+            because("io.confluent:kafka-schema-registry:${Versions.confluent} -> https://www.cve.org/CVERecord?id=CVE-2023-36478")
+            version {
+                require(Versions.jetty)
+            }
+        }
+    }
     implementation("no.nav.syfo.dialogmote.avro:isdialogmote-schema:${Versions.isdialogmoteSchema}")
     testImplementation("no.nav:kafka-embedded-env:${Versions.kafkaEmbedded}", excludeLog4j)
 
