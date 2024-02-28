@@ -44,7 +44,7 @@ class PdlClient(
         val response: HttpResponse = httpClient.post(pdlUrl) {
             header(HttpHeaders.Authorization, bearerHeader(token.accessToken))
             header(HttpHeaders.ContentType, ContentType.Application.Json.toString())
-            header(TEMA_HEADER, ALLE_TEMA_HEADERVERDI)
+            header(BEHANDLINGSNUMMER_HEADER_KEY, BEHANDLINGSNUMMER_HEADER_VALUE)
             header(NAV_CALL_ID_HEADER, callId)
             header(IDENTER_HEADER, IDENTER_HEADER)
             setBody(request)
@@ -82,5 +82,10 @@ class PdlClient(
     companion object {
         const val IDENTER_HEADER = "identer"
         private val logger = LoggerFactory.getLogger(PdlClient::class.java)
+
+        // Se behandlingskatalog https://behandlingskatalog.intern.nav.no/
+        // Behandling: Sykefraværsoppfølging: Vurdere behov for oppfølging og rett til sykepenger etter §§ 8-4 og 8-8
+        private const val BEHANDLINGSNUMMER_HEADER_KEY = "behandlingsnummer"
+        private const val BEHANDLINGSNUMMER_HEADER_VALUE = "B426"
     }
 }
