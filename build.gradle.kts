@@ -21,7 +21,7 @@ object Versions {
     const val micrometerRegistry = "1.12.2"
     const val mockk = "1.13.9"
     const val nimbusjosejwt = "9.37.3"
-    const val postgres = "42.7.1"
+    const val postgres = "42.7.2"
     val postgresEmbedded = if (Os.isFamily(Os.FAMILY_MAC)) "1.0.0" else "0.13.4"
     const val spek = "2.0.19"
 }
@@ -96,7 +96,7 @@ dependencies {
         implementation("org.apache.commons:commons-compress") {
             because("org.apache.commons:commons-compress:1.22 -> https://www.cve.org/CVERecord?id=CVE-2012-2098")
             version {
-                require("1.24.0")
+                require("1.26.0")
             }
         }
         implementation("com.google.guava:guava") {
