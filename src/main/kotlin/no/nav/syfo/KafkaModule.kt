@@ -3,6 +3,7 @@ package no.nav.syfo
 import no.nav.syfo.aktivitetskrav.VurderStansService
 import no.nav.syfo.aktivitetskrav.kafka.launchKafkaTaskAktivitetskravExpiredVarsel
 import no.nav.syfo.aktivitetskrav.kafka.launchKafkaTaskAktivitetskravVurdering
+import no.nav.syfo.arbeidsuforhet.kafka.ExpiredForhandsvarselConsumer
 import no.nav.syfo.behandler.kafka.sykmelding.launchKafkaTaskSykmelding
 import no.nav.syfo.behandlerdialog.AvvistMeldingService
 import no.nav.syfo.behandlerdialog.MeldingFraBehandlerService
@@ -120,4 +121,10 @@ fun launchKafkaTasks(
         environment = environment,
         database = database,
     )
+
+    val expiredForhandsvarselConsumer = ExpiredForhandsvarselConsumer(
+        kafkaEnvironment = environment.kafka,
+        applicationState = applicationState,
+    )
+    expiredForhandsvarselConsumer.launch()
 }
