@@ -18,6 +18,7 @@ import no.nav.syfo.identhendelse.kafka.IdenthendelseConsumerService
 import no.nav.syfo.identhendelse.kafka.launchKafkaTaskIdenthendelse
 import no.nav.syfo.behandlerdialog.kafka.launchKafkaTaskMeldingFraBehandler
 import no.nav.syfo.behandlerdialog.kafka.launchKafkaTaskUbesvartMelding
+import no.nav.syfo.database.PersonOppgaveRepository
 import no.nav.syfo.oppfolgingsplanlps.OppfolgingsplanLPSService
 import no.nav.syfo.oppfolgingsplanlps.kafka.launchKafkaTaskOppfolgingsplanLPS
 import no.nav.syfo.personoppgave.PersonOppgaveService
@@ -35,9 +36,11 @@ fun launchKafkaTasks(
         personoppgavehendelseProducer,
     )
 
+    val personOppgaveRepository = PersonOppgaveRepository(database = database)
     val personOppgaveService = PersonOppgaveService(
         database = database,
         personoppgavehendelseProducer = personoppgavehendelseProducer,
+        personoppgaveRepository = personOppgaveRepository,
     )
 
     val meldingFraBehandlerService = MeldingFraBehandlerService(
@@ -105,6 +108,7 @@ fun launchKafkaTasks(
 
     val vurderStansService = VurderStansService(
         database = database,
+        personOppgaveRepository = personOppgaveRepository,
     )
     launchKafkaTaskAktivitetskravExpiredVarsel(
         applicationState = applicationState,
@@ -120,6 +124,7 @@ fun launchKafkaTasks(
         applicationState = applicationState,
         environment = environment,
         database = database,
+        personOppgaveRepository = personOppgaveRepository,
     )
 
     val expiredForhandsvarselConsumer = ExpiredForhandsvarselConsumer(

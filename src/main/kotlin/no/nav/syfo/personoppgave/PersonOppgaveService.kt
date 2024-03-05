@@ -2,6 +2,7 @@ package no.nav.syfo.personoppgave
 
 import net.logstash.logback.argument.StructuredArguments
 import no.nav.syfo.database.DatabaseInterface
+import no.nav.syfo.database.PersonOppgaveRepository
 import no.nav.syfo.domain.PersonIdent
 import no.nav.syfo.personoppgave.domain.*
 import no.nav.syfo.personoppgavehendelse.PersonoppgavehendelseProducer
@@ -14,6 +15,7 @@ import java.util.*
 class PersonOppgaveService(
     private val database: DatabaseInterface,
     private val personoppgavehendelseProducer: PersonoppgavehendelseProducer,
+    private val personoppgaveRepository: PersonOppgaveRepository,
 ) {
     fun getPersonOppgaveList(
         personIdent: PersonIdent
@@ -59,12 +61,10 @@ class PersonOppgaveService(
         personIdent: PersonIdent,
         personOppgaveType: PersonOppgaveType,
     ): List<PersonOppgave> {
-        return database.getUbehandledePersonOppgaver(
+        return personoppgaveRepository.getUbehandledePersonoppgaver(
             personIdent = personIdent,
-            personOppgaveType = personOppgaveType,
-        ).map {
-            it.toPersonOppgave()
-        }
+            type = personOppgaveType,
+        )
     }
 
     private fun behandleAndReadyForPublish(personOppgave: PersonOppgave, veilederIdent: String) {

@@ -8,10 +8,10 @@ import io.mockk.verify
 import no.nav.syfo.aktivitetskrav.VurderStansService
 import no.nav.syfo.aktivitetskrav.kafka.domain.ExpiredVarsel
 import no.nav.syfo.domain.PersonIdent
+import no.nav.syfo.database.PersonOppgaveRepository
 import no.nav.syfo.personoppgave.domain.PersonOppgaveType
 import no.nav.syfo.personoppgave.domain.toPersonOppgave
 import no.nav.syfo.personoppgave.getPersonOppgaverByReferanseUuid
-import no.nav.syfo.personoppgave.getUbehandledePersonOppgaver
 import no.nav.syfo.personoppgave.updatePersonoppgaveSetBehandlet
 import no.nav.syfo.testutil.ExternalMockEnvironment
 import no.nav.syfo.testutil.UserConstants.ARBEIDSTAKER_FNR
@@ -33,8 +33,10 @@ class AktivitetskravExpiredVarselConsumerSpek : Spek({
             val externalMockEnvironment = ExternalMockEnvironment()
             val database = externalMockEnvironment.database
             val kafkaConsumer = mockk<KafkaConsumer<String, ExpiredVarsel>>()
+            val personOppgaveRepository = PersonOppgaveRepository(database = database)
             val vurderStansService = VurderStansService(
                 database = database,
+                personOppgaveRepository = personOppgaveRepository,
             )
             val aktivitetskravExpiredVarselConsumer = AktivitetskravExpiredVarselConsumer(
                 vurderStansService = vurderStansService,
@@ -119,12 +121,10 @@ class AktivitetskravExpiredVarselConsumerSpek : Spek({
                     kafkaConsumer = kafkaConsumer,
                 )
 
-                val personOppgaver = database.connection.use { connection ->
-                    connection.getUbehandledePersonOppgaver(
-                        personIdent = PersonIdent(ARBEIDSTAKER_FNR.value),
-                        personOppgaveType = PersonOppgaveType.AKTIVITETSKRAV_VURDER_STANS,
-                    ).map { it.toPersonOppgave() }
-                }
+                val personOppgaver = personOppgaveRepository.getUbehandledePersonoppgaver(
+                    personIdent = PersonIdent(ARBEIDSTAKER_FNR.value),
+                    type = PersonOppgaveType.AKTIVITETSKRAV_VURDER_STANS,
+                )
                 personOppgaver.size shouldBeEqualTo 1
                 val personOppgave = personOppgaver.first()
                 personOppgave.publish shouldBeEqualTo true

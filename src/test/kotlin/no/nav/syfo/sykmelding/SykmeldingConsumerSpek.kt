@@ -8,6 +8,7 @@ import io.mockk.verify
 import no.nav.syfo.behandler.kafka.sykmelding.KafkaSykmeldingConsumer
 import no.nav.syfo.behandler.kafka.sykmelding.SYKMELDING_TOPIC
 import no.nav.syfo.domain.PersonIdent
+import no.nav.syfo.database.PersonOppgaveRepository
 import no.nav.syfo.personoppgave.domain.PersonOppgaveType
 import no.nav.syfo.personoppgave.domain.toPersonOppgave
 import no.nav.syfo.personoppgave.getPersonOppgaver
@@ -31,7 +32,7 @@ class SykmeldingConsumerSpek : Spek({
             val externalMockEnvironment = ExternalMockEnvironment()
             val database = externalMockEnvironment.database
             val kafkaConsumer = mockk<KafkaConsumer<String, ReceivedSykmeldingDTO>>()
-            val kafkaSykmeldingConsumer = KafkaSykmeldingConsumer(database = database)
+            val kafkaSykmeldingConsumer = KafkaSykmeldingConsumer(database = database, personOppgaveRepository = PersonOppgaveRepository(database = database))
 
             beforeEachTest {
                 every { kafkaConsumer.commitSync() } returns Unit

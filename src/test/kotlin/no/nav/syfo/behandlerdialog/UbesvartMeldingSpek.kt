@@ -4,6 +4,7 @@ import io.ktor.server.testing.*
 import io.mockk.*
 import no.nav.syfo.behandlerdialog.domain.KMeldingDTO
 import no.nav.syfo.behandlerdialog.kafka.KafkaUbesvartMelding
+import no.nav.syfo.database.PersonOppgaveRepository
 import no.nav.syfo.personoppgave.PersonOppgaveService
 import no.nav.syfo.personoppgave.domain.PersonOppgaveType
 import no.nav.syfo.personoppgave.domain.toPersonOppgave
@@ -32,6 +33,7 @@ class UbesvartMeldingSpek : Spek({
             val personOppgaveService = PersonOppgaveService(
                 database = database,
                 personoppgavehendelseProducer = personoppgavehendelseProducer,
+                personoppgaveRepository = PersonOppgaveRepository(database = database)
             )
             val ubesvartMeldingService = UbesvartMeldingService(personOppgaveService)
             val kafkaUbesvartMelding = KafkaUbesvartMelding(database, ubesvartMeldingService)

@@ -135,7 +135,7 @@ fun Connection.createPersonOppgave(
     personOppgaveType = personOppgaveType,
 )
 
-fun Connection.createPersonOppgave(
+private fun Connection.createPersonOppgave(
     referanseUuid: UUID,
     personIdent: PersonIdent,
     virksomhetsnummer: Virksomhetsnummer? = null,
