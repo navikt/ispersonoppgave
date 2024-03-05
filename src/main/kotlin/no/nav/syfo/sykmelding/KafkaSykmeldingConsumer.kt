@@ -7,7 +7,8 @@ import no.nav.syfo.domain.*
 import no.nav.syfo.kafka.KafkaConsumerService
 import no.nav.syfo.kafka.kafkaAivenConsumerConfig
 import no.nav.syfo.kafka.launchKafkaTask
-import no.nav.syfo.personoppgave.createPersonOppgave
+import no.nav.syfo.personoppgave.IPersonOppgaveRepository
+import no.nav.syfo.personoppgave.domain.PersonOppgave
 import no.nav.syfo.personoppgave.domain.PersonOppgaveType
 import no.nav.syfo.personoppgave.getPersonOppgaverByReferanseUuid
 import no.nav.syfo.sykmelding.ReceivedSykmeldingDTO
@@ -25,13 +26,17 @@ fun launchKafkaTaskSykmelding(
     applicationState: ApplicationState,
     environment: Environment,
     database: DatabaseInterface,
+    personOppgaveRepository: IPersonOppgaveRepository,
 ) {
     val consumerProperties = kafkaAivenConsumerConfig<ReceivedSykmeldingDTODeserializer>(environment.kafka).apply {
         this[ConsumerConfig.AUTO_OFFSET_RESET_CONFIG] = "latest"
     }
     launchKafkaTask(
         applicationState = applicationState,
-        kafkaConsumerService = KafkaSykmeldingConsumer(database),
+        kafkaConsumerService = KafkaSykmeldingConsumer(
+            database = database,
+            personOppgaveRepository = personOppgaveRepository
+        ),
         consumerProperties = consumerProperties,
         topics = listOf(SYKMELDING_TOPIC, MANUELL_SYKMELDING_TOPIC),
     )
@@ -39,6 +44,7 @@ fun launchKafkaTaskSykmelding(
 
 class KafkaSykmeldingConsumer(
     private val database: DatabaseInterface,
+    private val personOppgaveRepository: IPersonOppgaveRepository,
 ) : KafkaConsumerService<ReceivedSykmeldingDTO> {
 
     override val pollDurationInMillis: Long = 1000
@@ -85,11 +91,14 @@ class KafkaSykmeldingConsumer(
         val hasExistingUbehandlet = connection.getPersonOppgaverByReferanseUuid(referanseUuid)
             .any { it.behandletTidspunkt == null }
         if (!hasExistingUbehandlet) {
-            connection.createPersonOppgave(
-                referanseUuid = referanseUuid,
-                personIdent = arbeidstakerPersonident,
-                personOppgaveType = PersonOppgaveType.BEHANDLER_BER_OM_BISTAND,
-                publish = true,
+            personOppgaveRepository.createPersonoppgave(
+                personOppgave = PersonOppgave(
+                    referanseUuid = referanseUuid,
+                    personIdent = arbeidstakerPersonident,
+                    type = PersonOppgaveType.BEHANDLER_BER_OM_BISTAND,
+                    publish = true,
+                ),
+                connection = connection
             )
             COUNT_MOTTATT_SYKMELDING_SUCCESS.increment()
         }

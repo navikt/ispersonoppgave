@@ -4,7 +4,6 @@ import no.nav.syfo.database.DatabaseInterface
 import no.nav.syfo.database.toList
 import no.nav.syfo.domain.PersonIdent
 import no.nav.syfo.personoppgave.domain.PPersonOppgave
-import no.nav.syfo.personoppgave.domain.PersonOppgaveType
 import java.sql.Connection
 import java.util.*
 
@@ -77,26 +76,3 @@ fun Connection.getPersonOppgaverByPublish(publish: Boolean): List<PPersonOppgave
         }
     }
 }
-
-const val queryGetUbehandledePersonOppgaver =
-    """
-    SELECT *
-    FROM PERSON_OPPGAVE
-    WHERE fnr = ?
-      AND type = ?
-      AND behandlet_tidspunkt IS NULL
-      AND behandlet_veileder_ident IS NULL
-    """
-
-fun DatabaseInterface.getUbehandledePersonOppgaver(personIdent: PersonIdent, personOppgaveType: PersonOppgaveType): List<PPersonOppgave> {
-    return connection.use { connection ->
-        connection.getUbehandledePersonOppgaver(personIdent, personOppgaveType)
-    }
-}
-
-fun Connection.getUbehandledePersonOppgaver(personIdent: PersonIdent, personOppgaveType: PersonOppgaveType) =
-    prepareStatement(queryGetUbehandledePersonOppgaver).use {
-        it.setString(1, personIdent.value)
-        it.setString(2, personOppgaveType.name)
-        it.executeQuery().toList { toPPersonOppgave() }
-    }

@@ -4,6 +4,7 @@ import io.ktor.server.testing.*
 import io.mockk.*
 import no.nav.syfo.behandlerdialog.domain.KMeldingDTO
 import no.nav.syfo.behandlerdialog.kafka.AvvistMeldingConsumerService
+import no.nav.syfo.database.PersonOppgaveRepository
 import no.nav.syfo.personoppgave.*
 import no.nav.syfo.personoppgave.domain.*
 import no.nav.syfo.personoppgavehendelse.PersonoppgavehendelseProducer
@@ -39,6 +40,7 @@ class AvvistMeldingSpek : Spek({
             val personOppgaveService = PersonOppgaveService(
                 database = database,
                 personoppgavehendelseProducer = personoppgavehendelseProducer,
+                personoppgaveRepository = PersonOppgaveRepository(database = database)
             )
 
             val avvistMeldingService = AvvistMeldingService(database, personOppgaveService)

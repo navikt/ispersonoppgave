@@ -14,6 +14,7 @@ import java.util.*
 class PersonOppgaveService(
     private val database: DatabaseInterface,
     private val personoppgavehendelseProducer: PersonoppgavehendelseProducer,
+    private val personoppgaveRepository: IPersonOppgaveRepository,
 ) {
     fun getPersonOppgaveList(
         personIdent: PersonIdent
@@ -59,12 +60,10 @@ class PersonOppgaveService(
         personIdent: PersonIdent,
         personOppgaveType: PersonOppgaveType,
     ): List<PersonOppgave> {
-        return database.getUbehandledePersonOppgaver(
+        return personoppgaveRepository.getUbehandledePersonoppgaver(
             personIdent = personIdent,
-            personOppgaveType = personOppgaveType,
-        ).map {
-            it.toPersonOppgave()
-        }
+            type = personOppgaveType,
+        )
     }
 
     private fun behandleAndReadyForPublish(personOppgave: PersonOppgave, veilederIdent: String) {

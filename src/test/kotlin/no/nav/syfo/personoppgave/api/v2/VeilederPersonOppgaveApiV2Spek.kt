@@ -7,9 +7,11 @@ import io.ktor.server.testing.*
 import no.nav.syfo.behandlerdialog.domain.toMelding
 import no.nav.syfo.dialogmotesvar.domain.DialogmoteSvartype
 import no.nav.syfo.domain.PersonIdent
+import no.nav.syfo.database.PersonOppgaveRepository
 import no.nav.syfo.personoppgavehendelse.domain.*
 import no.nav.syfo.personoppgave.api.PersonOppgaveVeileder
 import no.nav.syfo.personoppgave.createPersonOppgave
+import no.nav.syfo.personoppgave.domain.PersonOppgave
 import no.nav.syfo.personoppgave.domain.PersonOppgaveType
 import no.nav.syfo.personoppgave.getPersonOppgaver
 import no.nav.syfo.personoppgave.updatePersonOppgaveBehandlet
@@ -46,6 +48,7 @@ class VeilederPersonOppgaveApiV2Spek : Spek({
             val personoppgavehendelseProducer = testPersonoppgavehendelseProducer(
                 environment = externalMockEnvironment.environment,
             )
+            val personOppgaveRepository = PersonOppgaveRepository(database = database)
 
             application.testApiModule(
                 externalMockEnvironment = externalMockEnvironment,
@@ -416,17 +419,16 @@ class VeilederPersonOppgaveApiV2Spek : Spek({
             describe("Behandle behandler_ber_om_bistand-oppgave") {
                 it("returns OK on behandle and sends Personoppgavehendelse if no other behandler_ber_om_bistand-oppgave") {
                     val sykmeldingId = UUID.randomUUID()
-                    var oppgaveUuid: UUID
-                    database.connection.use { connection ->
-                        oppgaveUuid = connection.createPersonOppgave(
-                            referanseUuid = sykmeldingId,
-                            personIdent = ARBEIDSTAKER_FNR,
-                            personOppgaveType = PersonOppgaveType.BEHANDLER_BER_OM_BISTAND,
-                        )
-                        connection.commit()
-                    }
+                    val personOppgave = PersonOppgave(
+                        referanseUuid = sykmeldingId,
+                        personIdent = ARBEIDSTAKER_FNR,
+                        type = PersonOppgaveType.BEHANDLER_BER_OM_BISTAND,
+                    )
+                    personOppgaveRepository.createPersonoppgave(
+                        personOppgave
+                    )
 
-                    val urlProcess = "$baseUrl/$oppgaveUuid/behandle"
+                    val urlProcess = "$baseUrl/${personOppgave.uuid}/behandle"
                     with(
                         handleRequest(HttpMethod.Post, urlProcess) {
                             addHeader(HttpHeaders.Authorization, bearerHeader(validToken))
@@ -443,22 +445,29 @@ class VeilederPersonOppgaveApiV2Spek : Spek({
                 it("returns OK on behandle and do NOT send Personoppgavehendelse when there are other ubehandlede behandler_ber_om_bistand-oppgaver") {
                     val sykmeldingId = UUID.randomUUID()
                     val otherSykmeldingId = UUID.randomUUID()
-                    var oppgaveUuid: UUID
+                    val oppgave = PersonOppgave(
+                        referanseUuid = sykmeldingId,
+                        personIdent = ARBEIDSTAKER_FNR,
+                        type = PersonOppgaveType.BEHANDLER_BER_OM_BISTAND,
+                    )
+                    val otherOppgave = PersonOppgave(
+                        referanseUuid = otherSykmeldingId,
+                        personIdent = ARBEIDSTAKER_FNR,
+                        type = PersonOppgaveType.BEHANDLER_BER_OM_BISTAND,
+                    )
                     database.connection.use { connection ->
-                        oppgaveUuid = connection.createPersonOppgave(
-                            referanseUuid = sykmeldingId,
-                            personIdent = ARBEIDSTAKER_FNR,
-                            personOppgaveType = PersonOppgaveType.BEHANDLER_BER_OM_BISTAND,
+                        personOppgaveRepository.createPersonoppgave(
+                            oppgave,
+                            connection,
                         )
-                        connection.createPersonOppgave(
-                            referanseUuid = otherSykmeldingId,
-                            personIdent = ARBEIDSTAKER_FNR,
-                            personOppgaveType = PersonOppgaveType.BEHANDLER_BER_OM_BISTAND,
+                        personOppgaveRepository.createPersonoppgave(
+                            otherOppgave,
+                            connection,
                         )
                         connection.commit()
                     }
 
-                    val urlProcess = "$baseUrl/$oppgaveUuid/behandle"
+                    val urlProcess = "$baseUrl/${oppgave.uuid}/behandle"
                     with(
                         handleRequest(HttpMethod.Post, urlProcess) {
                             addHeader(HttpHeaders.Authorization, bearerHeader(validToken))

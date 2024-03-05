@@ -8,6 +8,7 @@ import no.nav.syfo.Environment
 import no.nav.syfo.api.authentication.*
 import no.nav.syfo.client.veiledertilgang.VeilederTilgangskontrollClient
 import no.nav.syfo.database.DatabaseInterface
+import no.nav.syfo.database.PersonOppgaveRepository
 import no.nav.syfo.personoppgave.PersonOppgaveService
 import no.nav.syfo.personoppgave.api.v2.registerVeilederPersonOppgaveApiV2
 import no.nav.syfo.personoppgavehendelse.PersonoppgavehendelseProducer
@@ -37,6 +38,7 @@ fun Application.apiModule(
     val personOppgaveService = PersonOppgaveService(
         database = database,
         personoppgavehendelseProducer = personoppgavehendelseProducer,
+        personoppgaveRepository = PersonOppgaveRepository(database = database),
     )
 
     routing {

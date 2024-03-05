@@ -9,6 +9,7 @@ import no.nav.syfo.aktivitetskrav.VurderStansService
 import no.nav.syfo.aktivitetskrav.domain.AktivitetskravStatus
 import no.nav.syfo.aktivitetskrav.kafka.domain.KafkaAktivitetskravVurdering
 import no.nav.syfo.domain.PersonIdent
+import no.nav.syfo.database.PersonOppgaveRepository
 import no.nav.syfo.personoppgave.domain.PersonOppgave
 import no.nav.syfo.personoppgave.domain.PersonOppgaveType
 import no.nav.syfo.personoppgave.domain.behandle
@@ -45,6 +46,7 @@ class AktivitetskravVurderingConsumerSpek : Spek({
             val kafkaConsumer = mockk<KafkaConsumer<String, KafkaAktivitetskravVurdering>>()
             val vurderStansService = VurderStansService(
                 database = database,
+                PersonOppgaveRepository(database = database),
             )
             val aktivitetskravVurderingConsumer = AktivitetskravVurderingConsumer(
                 vurderStansService = vurderStansService,
