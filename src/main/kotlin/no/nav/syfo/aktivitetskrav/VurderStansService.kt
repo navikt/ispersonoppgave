@@ -4,9 +4,9 @@ import no.nav.syfo.aktivitetskrav.domain.AktivitetskravVurdering
 import no.nav.syfo.aktivitetskrav.kafka.domain.ExpiredVarsel
 import no.nav.syfo.aktivitetskrav.kafka.domain.VarselType
 import no.nav.syfo.database.DatabaseInterface
+import no.nav.syfo.database.PersonOppgaveRepository
 import no.nav.syfo.metric.COUNT_AKTIVITETSKRAV_EXPIRED_VARSEL_PERSON_OPPGAVE_CREATED
 import no.nav.syfo.metric.COUNT_PERSONOPPGAVE_UPDATED_FROM_AKTIVITETSKRAV_VURDERING
-import no.nav.syfo.personoppgave.IPersonOppgaveRepository
 import no.nav.syfo.personoppgave.domain.PersonOppgaveType
 import no.nav.syfo.personoppgave.domain.behandleAndReadyForPublish
 import no.nav.syfo.personoppgave.updatePersonoppgaveSetBehandlet
@@ -15,7 +15,7 @@ import org.slf4j.LoggerFactory
 
 class VurderStansService(
     private val database: DatabaseInterface,
-    private val personOppgaveRepository: IPersonOppgaveRepository
+    private val personOppgaveRepository: PersonOppgaveRepository
 ) {
     fun processAktivitetskravExpiredVarsel(expiredVarselList: List<ExpiredVarsel>) {
         database.connection.use { connection ->

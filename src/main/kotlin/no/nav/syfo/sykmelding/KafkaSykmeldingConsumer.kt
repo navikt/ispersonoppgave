@@ -3,11 +3,11 @@ package no.nav.syfo.behandler.kafka.sykmelding
 import no.nav.syfo.ApplicationState
 import no.nav.syfo.Environment
 import no.nav.syfo.database.DatabaseInterface
+import no.nav.syfo.database.PersonOppgaveRepository
 import no.nav.syfo.domain.*
 import no.nav.syfo.kafka.KafkaConsumerService
 import no.nav.syfo.kafka.kafkaAivenConsumerConfig
 import no.nav.syfo.kafka.launchKafkaTask
-import no.nav.syfo.personoppgave.IPersonOppgaveRepository
 import no.nav.syfo.personoppgave.domain.PersonOppgave
 import no.nav.syfo.personoppgave.domain.PersonOppgaveType
 import no.nav.syfo.personoppgave.getPersonOppgaverByReferanseUuid
@@ -26,7 +26,7 @@ fun launchKafkaTaskSykmelding(
     applicationState: ApplicationState,
     environment: Environment,
     database: DatabaseInterface,
-    personOppgaveRepository: IPersonOppgaveRepository,
+    personOppgaveRepository: PersonOppgaveRepository,
 ) {
     val consumerProperties = kafkaAivenConsumerConfig<ReceivedSykmeldingDTODeserializer>(environment.kafka).apply {
         this[ConsumerConfig.AUTO_OFFSET_RESET_CONFIG] = "latest"
@@ -44,7 +44,7 @@ fun launchKafkaTaskSykmelding(
 
 class KafkaSykmeldingConsumer(
     private val database: DatabaseInterface,
-    private val personOppgaveRepository: IPersonOppgaveRepository,
+    private val personOppgaveRepository: PersonOppgaveRepository,
 ) : KafkaConsumerService<ReceivedSykmeldingDTO> {
 
     override val pollDurationInMillis: Long = 1000

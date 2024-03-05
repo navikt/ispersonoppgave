@@ -9,18 +9,18 @@ import no.nav.syfo.util.toTimestamp
 import java.sql.Connection
 import java.sql.SQLException
 
-class PersonOppgaveRepository(private val database: DatabaseInterface) : IPersonOppgaveRepository {
+class PersonOppgaveRepository(private val database: DatabaseInterface) {
 
-    override fun getUbehandledePersonoppgaver(
+    fun getUbehandledePersonoppgaver(
         personIdent: PersonIdent,
         type: PersonOppgaveType,
-        connection: Connection?
+        connection: Connection? = null,
     ): List<PersonOppgave> = connection?.getUbehandledePersonOppgaver(personIdent = personIdent, type = type)
         ?: database.connection.use {
             it.getUbehandledePersonOppgaver(personIdent = personIdent, type = type)
         }
 
-    override fun createPersonoppgave(personOppgave: PersonOppgave, connection: Connection?) {
+    fun createPersonoppgave(personOppgave: PersonOppgave, connection: Connection? = null) {
         connection?.createPersonoppgave(personOppgave) ?: database.connection.use {
             it.createPersonoppgave(personOppgave)
             it.commit()
