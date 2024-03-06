@@ -1,13 +1,22 @@
 package no.nav.syfo.arbeidsuforhet.kafka
 
 import no.nav.syfo.domain.PersonIdent
+import no.nav.syfo.personoppgave.domain.PersonOppgave
+import no.nav.syfo.personoppgave.domain.PersonOppgaveType
 import java.time.LocalDate
 import java.time.OffsetDateTime
 import java.util.*
 
-class ExpiredForhandsvarsel(
+data class ExpiredForhandsvarsel(
     val uuid: UUID,
     val createdAt: OffsetDateTime,
     val personident: PersonIdent,
     val svarfrist: LocalDate,
-)
+) {
+    fun toPersonoppgave(): PersonOppgave = PersonOppgave(
+        personIdent = personident,
+        referanseUuid = uuid,
+        type = PersonOppgaveType.ARBEIDSUFORHET_VURDER_AVSLAG,
+        publish = true,
+    )
+}
