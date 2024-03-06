@@ -11,9 +11,11 @@ import no.nav.syfo.client.azuread.AzureAdClient
 import no.nav.syfo.client.pdl.PdlClient
 import no.nav.syfo.client.veiledertilgang.VeilederTilgangskontrollClient
 import no.nav.syfo.cronjob.cronjobModule
+import no.nav.syfo.database.PersonOppgaveRepository
 import no.nav.syfo.database.database
 import no.nav.syfo.database.databaseModule
 import no.nav.syfo.kafka.kafkaAivenProducerConfig
+import no.nav.syfo.personoppgave.PersonOppgaveService
 import no.nav.syfo.personoppgavehendelse.PersonoppgavehendelseProducer
 import no.nav.syfo.personoppgavehendelse.domain.KPersonoppgavehendelse
 import org.apache.kafka.clients.producer.KafkaProducer
@@ -57,6 +59,7 @@ fun main() {
         pdlClientId = environment.pdlClientId,
         pdlUrl = environment.pdlUrl,
     )
+    lateinit var personOppgaveService: PersonOppgaveService
 
     val applicationEngineEnvironment = applicationEngineEnvironment {
         log = LoggerFactory.getLogger("ktor.application")
@@ -69,12 +72,20 @@ fun main() {
             databaseModule(
                 environment = environment,
             )
+
+            val personoppgaveRepository = PersonOppgaveRepository(database = database)
+            personOppgaveService = PersonOppgaveService(
+                database = database,
+                personoppgavehendelseProducer = personoppgavehendelseProducer,
+                personoppgaveRepository = personoppgaveRepository,
+            )
+
             apiModule(
                 applicationState = applicationState,
                 veilederTilgangskontrollClient = veilederTilgangskontrollClient,
                 database = database,
                 environment = environment,
-                personoppgavehendelseProducer = personoppgavehendelseProducer,
+                personOppgaveService = personOppgaveService,
                 wellKnownInternADV2 = wellKnownInternADV2,
             )
             cronjobModule(
@@ -82,6 +93,7 @@ fun main() {
                 database = database,
                 environment = environment,
                 personoppgavehendelseProducer = personoppgavehendelseProducer,
+                personOppgaveRepository = personoppgaveRepository,
             )
         }
     }

@@ -71,10 +71,7 @@ class PersonOppgaveService(
         val behandletOppgave = personOppgave.behandleAndReadyForPublish(
             veilederIdent = veilederIdent,
         )
-        database.connection.use { connection ->
-            connection.updatePersonoppgaveSetBehandlet(behandletOppgave)
-            connection.commit()
-        }
+        personoppgaveRepository.updatePersonoppgaveBehandlet(personOppgave = behandletOppgave)
     }
 
     private fun behandleAndPublishOppgaveHendelse(personoppgave: PersonOppgave, veilederIdent: String) {
