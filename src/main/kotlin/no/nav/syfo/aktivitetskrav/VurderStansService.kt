@@ -9,7 +9,6 @@ import no.nav.syfo.metric.COUNT_AKTIVITETSKRAV_EXPIRED_VARSEL_PERSON_OPPGAVE_CRE
 import no.nav.syfo.metric.COUNT_PERSONOPPGAVE_UPDATED_FROM_AKTIVITETSKRAV_VURDERING
 import no.nav.syfo.personoppgave.domain.PersonOppgaveType
 import no.nav.syfo.personoppgave.domain.behandleAndReadyForPublish
-import no.nav.syfo.personoppgave.updatePersonoppgaveSetBehandlet
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
@@ -61,7 +60,7 @@ class VurderStansService(
                     vurdering happenedAfter vurderStansOppgave
                 ) {
                     val behandletOppgave = vurderStansOppgave.behandleAndReadyForPublish(veilederIdent = vurdering.vurdertAv)
-                    connection.updatePersonoppgaveSetBehandlet(behandletOppgave)
+                    personOppgaveRepository.updatePersonoppgaveBehandlet(personOppgave = behandletOppgave, connection = connection)
                     COUNT_PERSONOPPGAVE_UPDATED_FROM_AKTIVITETSKRAV_VURDERING.increment()
                 }
             }

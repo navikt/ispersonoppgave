@@ -8,6 +8,7 @@ import no.nav.syfo.personoppgave.domain.toPersonOppgaver
 import no.nav.syfo.util.toTimestamp
 import java.sql.Connection
 import java.sql.SQLException
+import java.sql.Timestamp
 
 class PersonOppgaveRepository(private val database: DatabaseInterface) {
 
@@ -24,6 +25,30 @@ class PersonOppgaveRepository(private val database: DatabaseInterface) {
         connection?.createPersonoppgave(personOppgave) ?: database.connection.use {
             it.createPersonoppgave(personOppgave)
             it.commit()
+        }
+    }
+
+    fun updatePersonoppgaveBehandlet(personOppgave: PersonOppgave, connection: Connection? = null) {
+        connection?.updatePersonoppgaveBehandlet(personOppgave) ?: database.connection.use {
+            it.updatePersonoppgaveBehandlet(personOppgave)
+            it.commit()
+        }
+    }
+
+    private fun Connection.updatePersonoppgaveBehandlet(personOppgave: PersonOppgave) {
+        val behandletOppgaver = prepareStatement(UPDATE_PERSONOPPGAVE_BEHANDLET).use {
+            it.setTimestamp(1, personOppgave.behandletTidspunkt?.toTimestamp())
+            it.setString(2, personOppgave.behandletVeilederIdent)
+            it.setTimestamp(3, Timestamp.valueOf(personOppgave.sistEndret))
+            it.setBoolean(4, personOppgave.publish)
+            it.setObject(5, personOppgave.publishedAt)
+            it.setString(6, personOppgave.uuid.toString())
+
+            it.executeUpdate()
+        }
+
+        if (behandletOppgaver != 1) {
+            throw SQLException("Updating oppgave failed, no rows affected.")
         }
     }
 
@@ -77,6 +102,13 @@ class PersonOppgaveRepository(private val database: DatabaseInterface) {
                 sist_endret, 
                 publish) 
                 VALUES (DEFAULT, ?, ?, ?, ?, ?, ?, ?, ?) RETURNING id
+            """
+
+        private const val UPDATE_PERSONOPPGAVE_BEHANDLET =
+            """
+                UPDATE PERSON_OPPGAVE
+                SET behandlet_tidspunkt = ?, behandlet_veileder_ident = ?, sist_endret = ?, publish = ?, published_at = ?
+                WHERE uuid = ?
             """
     }
 }

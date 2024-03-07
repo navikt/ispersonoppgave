@@ -3,6 +3,7 @@ package no.nav.syfo.personoppgavehendelse.cronjob
 import io.ktor.server.testing.*
 import io.mockk.*
 import kotlinx.coroutines.runBlocking
+import no.nav.syfo.database.PersonOppgaveRepository
 import no.nav.syfo.personoppgave.domain.PersonOppgave
 import no.nav.syfo.personoppgave.domain.PersonOppgaveType
 import no.nav.syfo.personoppgave.updatePersonoppgaveSetBehandlet
@@ -37,6 +38,7 @@ class PublishOppgavehendelseCronjobSpek : Spek({
             val publishOppgavehendelseService = PublishPersonoppgavehendelseService(
                 database = database,
                 personoppgavehendelseProducer = personoppgaveHendelseProducer,
+                personOppgaveRepository = PersonOppgaveRepository(database = database),
             )
 
             val publishOppgavehendelseCronjob = PublishOppgavehendelseCronjob(

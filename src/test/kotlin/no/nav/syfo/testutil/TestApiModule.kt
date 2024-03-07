@@ -4,6 +4,8 @@ import io.ktor.server.application.*
 import no.nav.syfo.api.apiModule
 import no.nav.syfo.client.azuread.AzureAdClient
 import no.nav.syfo.client.veiledertilgang.VeilederTilgangskontrollClient
+import no.nav.syfo.database.PersonOppgaveRepository
+import no.nav.syfo.personoppgave.PersonOppgaveService
 import no.nav.syfo.personoppgavehendelse.PersonoppgavehendelseProducer
 
 fun Application.testApiModule(
@@ -11,6 +13,7 @@ fun Application.testApiModule(
     personoppgavehendelseProducer: PersonoppgavehendelseProducer,
 ) {
     val mockHttpClient = externalMockEnvironment.mockHttpClient
+    val database = externalMockEnvironment.database
     val azureAdClient = AzureAdClient(
         azureAppClientId = externalMockEnvironment.environment.azureAppClientId,
         azureAppClientSecret = externalMockEnvironment.environment.azureAppClientSecret,
@@ -23,13 +26,18 @@ fun Application.testApiModule(
         endpointUrl = externalMockEnvironment.environment.istilgangskontrollUrl,
         httpClient = mockHttpClient
     )
+    val personOppgaveService = PersonOppgaveService(
+        database = database,
+        personoppgavehendelseProducer = personoppgavehendelseProducer,
+        personoppgaveRepository = PersonOppgaveRepository(database = database),
+    )
 
     apiModule(
         applicationState = externalMockEnvironment.applicationState,
         veilederTilgangskontrollClient = veilederTilgangskontrollClient,
-        database = externalMockEnvironment.database,
+        database = database,
         environment = externalMockEnvironment.environment,
-        personoppgavehendelseProducer = personoppgavehendelseProducer,
         wellKnownInternADV2 = externalMockEnvironment.wellKnownInternADV2Mock,
+        personOppgaveService = personOppgaveService,
     )
 }

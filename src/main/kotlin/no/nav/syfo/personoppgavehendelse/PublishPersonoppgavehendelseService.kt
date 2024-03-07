@@ -1,6 +1,7 @@
 package no.nav.syfo.personoppgavehendelse
 
 import no.nav.syfo.database.DatabaseInterface
+import no.nav.syfo.database.PersonOppgaveRepository
 import no.nav.syfo.personoppgave.*
 import no.nav.syfo.personoppgave.domain.*
 import org.slf4j.LoggerFactory
@@ -9,6 +10,7 @@ import java.time.OffsetDateTime
 class PublishPersonoppgavehendelseService(
     val database: DatabaseInterface,
     private val personoppgavehendelseProducer: PersonoppgavehendelseProducer,
+    private val personOppgaveRepository: PersonOppgaveRepository,
 ) {
     private val log = LoggerFactory.getLogger(PublishPersonoppgavehendelseService::class.java)
 
@@ -46,9 +48,6 @@ class PublishPersonoppgavehendelseService(
             publishedAt = if (publish) OffsetDateTime.now() else null,
         )
 
-        database.connection.use {
-            it.updatePersonoppgaveSetBehandlet(updatedPersonOppgave)
-            it.commit()
-        }
+        personOppgaveRepository.updatePersonoppgaveBehandlet(personOppgave = updatedPersonOppgave)
     }
 }

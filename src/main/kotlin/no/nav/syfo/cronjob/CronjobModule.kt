@@ -4,6 +4,7 @@ import no.nav.syfo.ApplicationState
 import no.nav.syfo.Environment
 import no.nav.syfo.cronjob.leaderelection.LeaderPodClient
 import no.nav.syfo.database.DatabaseInterface
+import no.nav.syfo.database.PersonOppgaveRepository
 import no.nav.syfo.launchBackgroundTask
 import no.nav.syfo.personoppgavehendelse.PersonoppgavehendelseProducer
 import no.nav.syfo.personoppgavehendelse.PublishPersonoppgavehendelseService
@@ -14,6 +15,7 @@ fun cronjobModule(
     database: DatabaseInterface,
     environment: Environment,
     personoppgavehendelseProducer: PersonoppgavehendelseProducer,
+    personOppgaveRepository: PersonOppgaveRepository,
 ) {
     val leaderPodClient = LeaderPodClient(
         environment = environment,
@@ -27,6 +29,7 @@ fun cronjobModule(
     val publishOppgavehendelseService = PublishPersonoppgavehendelseService(
         database = database,
         personoppgavehendelseProducer = personoppgavehendelseProducer,
+        personOppgaveRepository = personOppgaveRepository,
     )
 
     val publishOppgavehendelseCronjob = PublishOppgavehendelseCronjob(
