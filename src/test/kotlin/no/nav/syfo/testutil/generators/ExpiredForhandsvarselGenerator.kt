@@ -11,7 +11,7 @@ fun generateExpiredForhandsvarsel(
     personident: PersonIdent = PersonIdent(UserConstants.ARBEIDSTAKER_FNR.value),
 ) = ExpiredForhandsvarsel(
     uuid = UUID.randomUUID(),
-    personident = personident,
+    personIdent = personident,
     createdAt = OffsetDateTime.now(),
     svarfrist = LocalDate.now().plusWeeks(3),
 )
