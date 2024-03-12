@@ -45,18 +45,21 @@ class VurderAvslagService(private val database: DatabaseInterface, private val p
             vurderingList.forEach { vurdering ->
                 log.info("Received vurdering with uuid=${vurdering.uuid} and type=${vurdering.type}")
                 val oppgaveType = PersonOppgaveType.ARBEIDSUFORHET_VURDER_AVSLAG
-                val ubehandledeVurderAvslagOppgaver = personOppgaveRepository.getUbehandledePersonoppgaver(
+                val ubehandledeOppgaver = personOppgaveRepository.getUbehandledePersonoppgaver(
                     connection = connection,
                     personIdent = PersonIdent(vurdering.personident),
                     type = oppgaveType,
                 )
-                if (ubehandledeVurderAvslagOppgaver.size > 1) throw IllegalStateException("Cannot have more than one ubehandlet $oppgaveType oppgave per person")
+                if (ubehandledeOppgaver.size > 1) {
+                    log.error("Found more than one ubehandlet $oppgaveType oppgave for person")
+                }
 
-                val ubehandletVurderAvslagOppgave = ubehandledeVurderAvslagOppgaver.firstOrNull()
-                if (ubehandletVurderAvslagOppgave != null && vurdering behandler ubehandletVurderAvslagOppgave) {
-                    val behandletOppgave = ubehandletVurderAvslagOppgave.behandleAndReadyForPublish(veilederIdent = vurdering.veilederident)
-                    personOppgaveRepository.updatePersonoppgaveBehandlet(personOppgave = behandletOppgave, connection = connection)
-                    COUNT_PERSONOPPGAVE_UPDATED_FROM_ARBEIDSUFORHET_VURDERING.increment()
+                ubehandledeOppgaver.forEach { oppgave ->
+                    if (vurdering behandler oppgave) {
+                        val behandletOppgave = oppgave.behandleAndReadyForPublish(veilederIdent = vurdering.veilederident)
+                        personOppgaveRepository.updatePersonoppgaveBehandlet(personOppgave = behandletOppgave, connection = connection)
+                        COUNT_PERSONOPPGAVE_UPDATED_FROM_ARBEIDSUFORHET_VURDERING.increment()
+                    }
                 }
             }
             connection.commit()

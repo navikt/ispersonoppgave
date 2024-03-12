@@ -16,11 +16,9 @@ import no.nav.syfo.testutil.generators.generatePersonoppgave
 import no.nav.syfo.testutil.mock.mockPollConsumerRecords
 import no.nav.syfo.util.toOffsetDateTimeUTC
 import org.amshove.kluent.*
-import org.amshove.kluent.internal.assertFailsWith
 import org.apache.kafka.clients.consumer.KafkaConsumer
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
-import java.lang.IllegalStateException
 import java.time.LocalDateTime
 import java.time.temporal.ChronoUnit
 import java.util.*
@@ -250,7 +248,7 @@ class ArbeidsuforhetVurderingConsumerSpek : Spek({
             personOppgave.behandletVeilederIdent.shouldBeNull()
         }
 
-        it("Throws exception when more than one ubehandlet vurder avslag-oppgave for person") {
+        it("Behandler all ubehandlet vurder avslag-oppgaver for person") {
             personOppgaveRepository.createPersonoppgave(personOppgave = ubehandletVurderAvslagOppgave)
             personOppgaveRepository.createPersonoppgave(
                 personOppgave = ubehandletVurderAvslagOppgave.copy(
@@ -264,8 +262,16 @@ class ArbeidsuforhetVurderingConsumerSpek : Spek({
                 topic = ArbeidsuforhetVurderingConsumer.ARBEIDSUFORHET_VURDERING_TOPIC,
             )
 
-            assertFailsWith(IllegalStateException::class) {
-                arbeidsuforhetVurderingConsumer.pollAndProcessRecords(kafkaConsumer = kafkaConsumer)
+            arbeidsuforhetVurderingConsumer.pollAndProcessRecords(kafkaConsumer = kafkaConsumer)
+
+            database.getPersonOppgaver(
+                personIdent = UserConstants.ARBEIDSTAKER_FNR,
+            ).toPersonOppgaver().forEach {
+                it.type shouldBeEqualTo PersonOppgaveType.ARBEIDSUFORHET_VURDER_AVSLAG
+                it.personIdent.value shouldBeEqualTo vurderingOppfylt.personident
+                it.publish.shouldBeTrue()
+                it.behandletTidspunkt.shouldNotBeNull()
+                it.behandletVeilederIdent shouldBeEqualTo vurderingOppfylt.veilederident
             }
         }
     }
