@@ -10,11 +10,11 @@ import java.util.*
 data class ExpiredForhandsvarsel(
     val uuid: UUID,
     val createdAt: OffsetDateTime,
-    val personident: PersonIdent,
+    val personIdent: PersonIdent,
     val svarfrist: LocalDate,
 ) {
     fun toPersonoppgave(): PersonOppgave = PersonOppgave(
-        personIdent = personident,
+        personIdent = personIdent,
         referanseUuid = uuid,
         type = PersonOppgaveType.ARBEIDSUFORHET_VURDER_AVSLAG,
         publish = true,
