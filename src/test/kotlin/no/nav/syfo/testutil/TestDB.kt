@@ -1,6 +1,6 @@
 package no.nav.syfo.testutil
 
-import com.opentable.db.postgres.embedded.EmbeddedPostgres
+import io.zonky.test.db.postgres.embedded.EmbeddedPostgres
 import no.nav.syfo.database.DatabaseInterface
 import no.nav.syfo.database.toList
 import no.nav.syfo.dialogmotestatusendring.domain.PDialogmoteStatusendring
