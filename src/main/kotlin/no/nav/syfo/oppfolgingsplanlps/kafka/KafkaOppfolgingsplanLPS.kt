@@ -59,10 +59,14 @@ class KafkaOppfolgingsplanLPS(private val oppfolgingsplanLPSService: Oppfolgings
                     callIdArgument(callId)
                 )
 
-                oppfolgingsplanLPSService.receiveOppfolgingsplanLPS(
-                    kOppfolgingsplanLPS,
-                    callId
-                )
+                try {
+                    oppfolgingsplanLPSService.receiveOppfolgingsplanLPS(
+                        kOppfolgingsplanLPS,
+                        callId
+                    )
+                } catch (e: Exception) {
+                    LOG.error("Skip failing LPS-plan")
+                }
             }
             kafkaConsumer.commitSync()
         }
