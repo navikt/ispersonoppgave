@@ -15,7 +15,11 @@ data class Dialogmotesvar(
     val senderType: SenderType,
     val brevSentAt: OffsetDateTime,
     val svarReceivedAt: OffsetDateTime,
+    val svarTekst: String?,
 )
+
+fun Dialogmotesvar.isIrrelevant(cutoffDate: LocalDate): Boolean =
+    !(this happenedAfter cutoffDate) || (svarType == DialogmoteSvartype.KOMMER && svarTekst.isNullOrBlank())
 
 infix fun Dialogmotesvar.happenedAfter(
     date: LocalDate,

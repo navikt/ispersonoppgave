@@ -10,6 +10,7 @@ data class KDialogmotesvar(
     val senderType: SenderType,
     val brevSentAt: OffsetDateTime,
     val svarReceivedAt: OffsetDateTime,
+    val svarTekst: String?,
 )
 
 fun KDialogmotesvar.toDialogmotesvar(moteuuid: UUID): Dialogmotesvar = Dialogmotesvar(
@@ -20,6 +21,7 @@ fun KDialogmotesvar.toDialogmotesvar(moteuuid: UUID): Dialogmotesvar = Dialogmot
     senderType = this.senderType,
     brevSentAt = this.brevSentAt,
     svarReceivedAt = this.svarReceivedAt,
+    svarTekst = this.svarTekst,
 )
 
 enum class SenderType {

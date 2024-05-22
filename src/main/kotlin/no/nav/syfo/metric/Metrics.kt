@@ -46,12 +46,6 @@ val COUNT_CALL_TILGANGSKONTROLL_PERSON_FORBIDDEN: Counter = Counter.builder(CALL
     .description("Counts the number of forbidden calls to istilgangskontroll - person")
     .register(METRICS_REGISTRY)
 
-const val DIALOGMOTESVAR_OPPGAVE_UPDATED = "${METRICS_NS}_dialogmotesvar_oppgave_updated_count"
-val COUNT_DIALOGMOTESVAR_OPPGAVE_UPDATED: Counter =
-    Counter.builder(DIALOGMOTESVAR_OPPGAVE_UPDATED)
-        .description("Counts the number of PERSON_OPPGAVE updated from a KDialogmotesvar")
-        .register(METRICS_REGISTRY)
-
 const val PERSONOPPGAVEHENDELSE_DIALOGMELDING_SVAR_MOTTATT =
     "${METRICS_NS}_personoppgavehendelse_dialogmelding_svar_mottatt_count"
 val COUNT_PERSONOPPGAVEHENDELSE_DIALOGMELDING_SVAR_MOTTATT: Counter =

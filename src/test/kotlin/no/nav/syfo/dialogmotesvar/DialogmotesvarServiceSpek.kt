@@ -4,6 +4,7 @@ import io.mockk.*
 import no.nav.syfo.dialogmotestatusendring.domain.DialogmoteStatusendringType
 import no.nav.syfo.dialogmotestatusendring.getDialogmoteStatusendring
 import no.nav.syfo.dialogmotesvar.domain.DialogmoteSvartype
+import no.nav.syfo.dialogmotesvar.domain.SenderType
 import no.nav.syfo.personoppgave.*
 import no.nav.syfo.testutil.generators.generateDialogmotesvar
 import no.nav.syfo.testutil.generators.generatePDialogmotestatusendring
@@ -83,7 +84,44 @@ class DialogmotesvarServiceSpek : Spek({
                 verify(exactly = 0) { connection.updatePersonoppgaveSetBehandlet(any()) }
             }
 
-            it("does not create an oppgave if arbeidstaker confirms attendance to dialogmote") {
+            it("creates an oppgave if behandler confirms attendance to dialogmote and svarTekst is not empty") {
+                val dialogmotesvar = generateDialogmotesvar(
+                    svartype = DialogmoteSvartype.KOMMER,
+                    svarTekst = "Passer bra, men kan vi endre tidspunkt?",
+                    senderType = SenderType.BEHANDLER,
+                )
+
+                every { connection.createPersonOppgave(dialogmotesvar) } returns UUID.randomUUID()
+
+                processDialogmotesvar(
+                    connection = connection,
+                    dialogmotesvar = dialogmotesvar,
+                    cutoffDate = CUTOFF_DATE,
+                )
+
+                verify(exactly = 1) { connection.getPersonOppgaverByReferanseUuid(dialogmotesvar.moteuuid) }
+                verify(exactly = 1) { connection.createPersonOppgave(dialogmotesvar) }
+                verify(exactly = 0) { connection.updatePersonoppgaveSetBehandlet(any()) }
+            }
+
+            it("does not create an oppgave if behandler confirms attendance to dialogmote and svarTekst is empty") {
+                val dialogmotesvar = generateDialogmotesvar(
+                    svartype = DialogmoteSvartype.KOMMER,
+                    senderType = SenderType.BEHANDLER,
+                )
+
+                processDialogmotesvar(
+                    connection = connection,
+                    dialogmotesvar = dialogmotesvar,
+                    cutoffDate = CUTOFF_DATE,
+                )
+
+                verify(exactly = 0) { connection.getPersonOppgaverByReferanseUuid(any()) }
+                verify(exactly = 0) { connection.createBehandletPersonoppgave(any(), any()) }
+                verify(exactly = 0) { connection.updatePersonoppgaveSetBehandlet(any()) }
+            }
+
+            it("does not create an oppgave if arbeidstaker confirms attendance to dialogmote and svarTekst is empty") {
                 val dialogmotesvar = generateDialogmotesvar(
                     svartype = DialogmoteSvartype.KOMMER,
                 )
