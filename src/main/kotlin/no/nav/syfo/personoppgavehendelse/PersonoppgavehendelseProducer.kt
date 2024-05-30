@@ -33,7 +33,9 @@ class PersonoppgavehendelseProducer(
                 personoppgaveId.toString(),
                 kPersonoppgavehendelse,
             )
-            producer.send(record).get()
+            producer.send(record).also {
+                it.get()
+            }
         } catch (e: Exception) {
             log.error(
                 "Exception was thrown when attempting to send KPersonoppgavehendelse with id {}: ${e.message}",
