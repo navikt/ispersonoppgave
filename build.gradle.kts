@@ -3,23 +3,24 @@ import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 group = "no.nav.syfo"
 version = "1.0-SNAPSHOT"
 
-val confluentVersion = "7.5.1"
-val jacksonDataTypeVersion = "2.16.1"
+val confluentVersion = "7.6.0"
+val jacksonDataTypeVersion = "2.17.1"
 val flywayVersion = "9.22.3"
 val hikariVersion = "5.1.0"
 val isdialogmoteSchemaVersion = "1.0.5"
-val jsonVersion = "20231013"
-val jettyVersion = "9.4.53.v20231009"
-val kafkaVersion = "3.6.1"
-val kafkaEmbeddedVersion = "3.2.3"
+val jsonVersion = "20240303"
+val jettyVersion = "9.4.54.v20240208"
+val kafkaVersion = "3.7.0"
+val kafkaEmbeddedVersion = "3.2.5"
 val kluentVersion = "1.73"
-val ktorVersion = "2.3.8"
+val ktorVersion = "2.3.11"
 val logbackVersion = "1.4.14"
 val logstashEncoderVersion = "7.4"
-val micrometerRegistryVersion = "1.12.2"
+val micrometerRegistryVersion = "1.12.6"
 val mockkVersion = "1.13.9"
-val nimbusjosejwtVersion = "9.37.3"
-val postgresVersion = "42.7.2"
+val nimbusjosejwtVersion = "9.39.1"
+val joseVersion = "0.9.4"
+val postgresVersion = "42.7.3"
 val postgresEmbeddedVersion = "2.0.7"
 val spekVersion = "2.0.19"
 
@@ -146,6 +147,7 @@ dependencies {
     testImplementation("no.nav:kafka-embedded-env:$kafkaEmbeddedVersion", excludeLog4j)
 
     testImplementation("com.nimbusds:nimbus-jose-jwt:$nimbusjosejwtVersion")
+    testImplementation("org.bitbucket.b_c:jose4j:$joseVersion")
     testImplementation("io.ktor:ktor-server-test-host:$ktorVersion")
     testImplementation("io.ktor:ktor-client-mock:$ktorVersion")
     testImplementation("io.mockk:mockk:$mockkVersion")
