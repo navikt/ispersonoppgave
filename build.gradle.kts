@@ -83,6 +83,14 @@ dependencies {
     }
     // Kafka
     implementation("org.apache.kafka:kafka_2.13:$kafkaVersion", excludeLog4j)
+    constraints {
+        implementation("org.bitbucket.b_c:jose4j") {
+            because("org.bitbucket.b_c:jose4j:0.9.3 -> https://ossindex.sonatype.org/vulnerability/CVE-2023-51775")
+            version {
+                require("$joseVersion")
+            }
+        }
+    }
     implementation("io.confluent:kafka-avro-serializer:$confluentVersion")
     constraints {
         implementation("org.apache.avro:avro") {
@@ -109,7 +117,7 @@ dependencies {
         implementation("org.apache.zookeeper:zookeeper") {
             because("io.confluent:kafka-schema-registry:$confluentVersion -> https://www.cve.org/CVERecord?id=CVE-2023-44981")
             version {
-                require("3.7.2")
+                require("3.9.2")
             }
         }
         implementation("com.google.protobuf:protobuf-java") {
@@ -147,7 +155,6 @@ dependencies {
     testImplementation("no.nav:kafka-embedded-env:$kafkaEmbeddedVersion", excludeLog4j)
 
     testImplementation("com.nimbusds:nimbus-jose-jwt:$nimbusjosejwtVersion")
-    testImplementation("org.bitbucket.b_c:jose4j:$joseVersion")
     testImplementation("io.ktor:ktor-server-test-host:$ktorVersion")
     testImplementation("io.ktor:ktor-client-mock:$ktorVersion")
     testImplementation("io.mockk:mockk:$mockkVersion")
