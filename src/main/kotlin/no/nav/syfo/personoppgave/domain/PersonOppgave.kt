@@ -89,10 +89,6 @@ fun PersonOppgave.toHendelseType(): PersonoppgavehendelseType {
             if (isUBehandlet()) PersonoppgavehendelseType.AKTIVITETSKRAV_VURDER_STANS_MOTTATT
             else PersonoppgavehendelseType.AKTIVITETSKRAV_VURDER_STANS_BEHANDLET
         }
-        PersonOppgaveType.ARBEIDSUFORHET_VURDER_AVSLAG -> {
-            if (isUBehandlet()) PersonoppgavehendelseType.ARBEIDSUFORHET_VURDER_AVSLAG_MOTTATT
-            else PersonoppgavehendelseType.ARBEIDSUFORHET_VURDER_AVSLAG_BEHANDLET
-        }
         PersonOppgaveType.BEHANDLER_BER_OM_BISTAND -> {
             if (isUBehandlet()) PersonoppgavehendelseType.BEHANDLER_BER_OM_BISTAND_MOTTATT
             else PersonoppgavehendelseType.BEHANDLER_BER_OM_BISTAND_BEHANDLET
