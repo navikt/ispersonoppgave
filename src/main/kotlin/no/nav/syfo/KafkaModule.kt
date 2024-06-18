@@ -3,9 +3,6 @@ package no.nav.syfo
 import no.nav.syfo.aktivitetskrav.VurderStansService
 import no.nav.syfo.aktivitetskrav.kafka.launchKafkaTaskAktivitetskravExpiredVarsel
 import no.nav.syfo.aktivitetskrav.kafka.launchKafkaTaskAktivitetskravVurdering
-import no.nav.syfo.arbeidsuforhet.VurderAvslagService
-import no.nav.syfo.arbeidsuforhet.kafka.ArbeidsuforhetVurderingConsumer
-import no.nav.syfo.arbeidsuforhet.kafka.ExpiredForhandsvarselConsumer
 import no.nav.syfo.behandler.kafka.sykmelding.launchKafkaTaskSykmelding
 import no.nav.syfo.behandlerdialog.AvvistMeldingService
 import no.nav.syfo.behandlerdialog.MeldingFraBehandlerService
@@ -128,22 +125,4 @@ fun launchKafkaTasks(
         database = database,
         personOppgaveRepository = personOppgaveRepository,
     )
-
-    val vurderAvslagService = VurderAvslagService(
-        database = database,
-        personOppgaveRepository = personOppgaveRepository
-    )
-
-    val expiredForhandsvarselConsumer = ExpiredForhandsvarselConsumer(
-        kafkaEnvironment = environment.kafka,
-        applicationState = applicationState,
-        vurderAvslagService = vurderAvslagService
-    )
-    expiredForhandsvarselConsumer.launch()
-    val arbeidsuforhetVurderingConsumer = ArbeidsuforhetVurderingConsumer(
-        kafkaEnvironment = environment.kafka,
-        applicationState = applicationState,
-        vurderAvslagService = vurderAvslagService,
-    )
-    arbeidsuforhetVurderingConsumer.launch()
 }
