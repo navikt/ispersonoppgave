@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
 import io.ktor.http.*
 import io.ktor.server.testing.*
+import io.mockk.*
 import no.nav.syfo.behandlerdialog.domain.toMelding
 import no.nav.syfo.dialogmotesvar.domain.DialogmoteSvartype
 import no.nav.syfo.domain.PersonIdent
@@ -15,18 +16,21 @@ import no.nav.syfo.personoppgave.domain.PersonOppgave
 import no.nav.syfo.personoppgave.domain.PersonOppgaveType
 import no.nav.syfo.personoppgave.getPersonOppgaver
 import no.nav.syfo.personoppgave.updatePersonOppgaveBehandlet
+import no.nav.syfo.personoppgavehendelse.PersonoppgavehendelseProducer
 import no.nav.syfo.testutil.*
 import no.nav.syfo.testutil.UserConstants.ARBEIDSTAKER_FNR
 import no.nav.syfo.testutil.UserConstants.VEILEDER_IDENT
 import no.nav.syfo.testutil.generators.*
 import no.nav.syfo.util.*
 import org.amshove.kluent.*
-import org.apache.kafka.clients.consumer.KafkaConsumer
+import org.apache.kafka.clients.producer.KafkaProducer
+import org.apache.kafka.clients.producer.ProducerRecord
+import org.apache.kafka.clients.producer.RecordMetadata
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
-import java.time.Duration
 import java.time.LocalDateTime
 import java.util.*
+import java.util.concurrent.Future
 
 val objectMapper: ObjectMapper = configuredJacksonMapper()
 
@@ -42,12 +46,8 @@ class VeilederPersonOppgaveApiV2Spek : Spek({
 
             val baseUrl = registerVeilederPersonOppgaveApiV2BasePath
 
-            val consumerPersonoppgavehendelse = testPersonoppgavehendelseConsumer(
-                environment = externalMockEnvironment.environment,
-            )
-            val personoppgavehendelseProducer = testPersonoppgavehendelseProducer(
-                environment = externalMockEnvironment.environment,
-            )
+            val kafkaProducer = mockk<KafkaProducer<String, KPersonoppgavehendelse>>(relaxed = true)
+            val personoppgavehendelseProducer = PersonoppgavehendelseProducer(kafkaProducer)
             val personOppgaveRepository = PersonOppgaveRepository(database = database)
 
             application.testApiModule(
@@ -55,12 +55,13 @@ class VeilederPersonOppgaveApiV2Spek : Spek({
                 personoppgavehendelseProducer = personoppgavehendelseProducer,
             )
 
-            afterEachTest {
-                database.dropData()
+            beforeEachTest {
+                clearMocks(kafkaProducer)
+                coEvery { kafkaProducer.send(any()) } returns mockk<Future<RecordMetadata>>(relaxed = true)
             }
 
-            beforeGroup {
-                externalMockEnvironment.startExternalMocks()
+            afterEachTest {
+                database.dropData()
             }
 
             afterGroup {
@@ -226,8 +227,7 @@ class VeilederPersonOppgaveApiV2Spek : Spek({
                         personOppgaveUbehandlet.behandletVeilederIdent.shouldBeNull()
                         personOppgaveUbehandlet.opprettet.shouldNotBeNull()
 
-                        val messages = getRecordsFromTopic(consumerPersonoppgavehendelse)
-                        messages.size shouldBeEqualTo 0
+                        verify(exactly = 0) { kafkaProducer.send(any()) }
                     }
                 }
 
@@ -276,10 +276,12 @@ class VeilederPersonOppgaveApiV2Spek : Spek({
                         personOppgave.opprettet.shouldNotBeNull()
                     }
 
-                    val messages = getRecordsFromTopic(consumerPersonoppgavehendelse)
-                    messages.size shouldBeEqualTo 1
-                    messages.first().personident shouldBeEqualTo kOppfolgingsplanLPS.fodselsnummer
-                    messages.first().hendelsetype shouldBeEqualTo PersonoppgavehendelseType.OPPFOLGINGSPLANLPS_BISTAND_BEHANDLET.name
+                    val producerRecordSlot = slot<ProducerRecord<String, KPersonoppgavehendelse>>()
+                    verify(exactly = 1) { kafkaProducer.send(capture(producerRecordSlot)) }
+
+                    val producedPersonoppgaveHendelse = producerRecordSlot.captured.value()
+                    producedPersonoppgaveHendelse.personident shouldBeEqualTo kOppfolgingsplanLPS.fodselsnummer
+                    producedPersonoppgaveHendelse.hendelsetype shouldBeEqualTo PersonoppgavehendelseType.OPPFOLGINGSPLANLPS_BISTAND_BEHANDLET.name
                 }
 
                 it("returns OK on behandle dialogmotesvar") {
@@ -322,9 +324,11 @@ class VeilederPersonOppgaveApiV2Spek : Spek({
                     ) {
                         response.status() shouldBeEqualTo HttpStatusCode.OK
 
-                        val records = getRecordsFromTopic(consumerPersonoppgavehendelse)
-                        records.size shouldBeEqualTo 1
-                        records.first().hendelsetype shouldBeEqualTo PersonoppgavehendelseType.BEHANDLERDIALOG_MELDING_UBESVART_BEHANDLET.name
+                        val producerRecordSlot = slot<ProducerRecord<String, KPersonoppgavehendelse>>()
+                        verify(exactly = 1) { kafkaProducer.send(capture(producerRecordSlot)) }
+
+                        val producedPersonoppgaveHendelse = producerRecordSlot.captured.value()
+                        producedPersonoppgaveHendelse.hendelsetype shouldBeEqualTo PersonoppgavehendelseType.BEHANDLERDIALOG_MELDING_UBESVART_BEHANDLET.name
                     }
                 }
 
@@ -354,8 +358,7 @@ class VeilederPersonOppgaveApiV2Spek : Spek({
                     ) {
                         response.status() shouldBeEqualTo HttpStatusCode.OK
 
-                        val records = getRecordsFromTopic(consumerPersonoppgavehendelse)
-                        records.size shouldBeEqualTo 0
+                        verify(exactly = 0) { kafkaProducer.send(any()) }
                     }
                 }
 
@@ -379,9 +382,11 @@ class VeilederPersonOppgaveApiV2Spek : Spek({
                     ) {
                         response.status() shouldBeEqualTo HttpStatusCode.OK
 
-                        val records = getRecordsFromTopic(consumerPersonoppgavehendelse)
-                        records.size shouldBeEqualTo 1
-                        records.first().hendelsetype shouldBeEqualTo PersonoppgavehendelseType.BEHANDLERDIALOG_MELDING_AVVIST_BEHANDLET.name
+                        val producerRecordSlot = slot<ProducerRecord<String, KPersonoppgavehendelse>>()
+                        verify(exactly = 1) { kafkaProducer.send(capture(producerRecordSlot)) }
+
+                        val producedPersonoppgaveHendelse = producerRecordSlot.captured.value()
+                        producedPersonoppgaveHendelse.hendelsetype shouldBeEqualTo PersonoppgavehendelseType.BEHANDLERDIALOG_MELDING_AVVIST_BEHANDLET.name
                     }
                 }
 
@@ -410,8 +415,7 @@ class VeilederPersonOppgaveApiV2Spek : Spek({
                     ) {
                         response.status() shouldBeEqualTo HttpStatusCode.OK
 
-                        val records = getRecordsFromTopic(consumerPersonoppgavehendelse)
-                        records.size shouldBeEqualTo 0
+                        verify(exactly = 0) { kafkaProducer.send(any()) }
                     }
                 }
             }
@@ -436,9 +440,11 @@ class VeilederPersonOppgaveApiV2Spek : Spek({
                     ) {
                         response.status() shouldBeEqualTo HttpStatusCode.OK
 
-                        val records = getRecordsFromTopic(consumerPersonoppgavehendelse)
-                        records.size shouldBeEqualTo 1
-                        records.first().hendelsetype shouldBeEqualTo PersonoppgavehendelseType.BEHANDLER_BER_OM_BISTAND_BEHANDLET.name
+                        val producerRecordSlot = slot<ProducerRecord<String, KPersonoppgavehendelse>>()
+                        verify(exactly = 1) { kafkaProducer.send(capture(producerRecordSlot)) }
+
+                        val producedPersonoppgaveHendelse = producerRecordSlot.captured.value()
+                        producedPersonoppgaveHendelse.hendelsetype shouldBeEqualTo PersonoppgavehendelseType.BEHANDLER_BER_OM_BISTAND_BEHANDLET.name
                     }
                 }
 
@@ -475,8 +481,7 @@ class VeilederPersonOppgaveApiV2Spek : Spek({
                     ) {
                         response.status() shouldBeEqualTo HttpStatusCode.OK
 
-                        val records = getRecordsFromTopic(consumerPersonoppgavehendelse)
-                        records.size shouldBeEqualTo 0
+                        verify(exactly = 0) { kafkaProducer.send(any()) }
                     }
                 }
             }
@@ -521,9 +526,11 @@ class VeilederPersonOppgaveApiV2Spek : Spek({
                             } shouldBeEqualTo true
                             personoppgaver.all { !it.publish } shouldBeEqualTo true
 
-                            val records = getRecordsFromTopic(consumerPersonoppgavehendelse)
-                            records.size shouldBeEqualTo 1
-                            records.first().hendelsetype shouldBeEqualTo PersonoppgavehendelseType.BEHANDLERDIALOG_SVAR_BEHANDLET.name
+                            val producerRecordSlot = slot<ProducerRecord<String, KPersonoppgavehendelse>>()
+                            verify(exactly = 1) { kafkaProducer.send(capture(producerRecordSlot)) }
+
+                            val producedPersonoppgaveHendelse = producerRecordSlot.captured.value()
+                            producedPersonoppgaveHendelse.hendelsetype shouldBeEqualTo PersonoppgavehendelseType.BEHANDLERDIALOG_SVAR_BEHANDLET.name
                         }
                     }
 
@@ -624,12 +631,3 @@ class VeilederPersonOppgaveApiV2Spek : Spek({
         }
     }
 })
-
-fun getRecordsFromTopic(consumer: KafkaConsumer<String, String>): MutableList<KPersonoppgavehendelse> {
-    val records: MutableList<KPersonoppgavehendelse> = mutableListOf()
-    consumer.poll(Duration.ofMillis(5000)).forEach {
-        val consumedPersonoppgavehendelse: KPersonoppgavehendelse = objectMapper.readValue(it.value())
-        records.add(consumedPersonoppgavehendelse)
-    }
-    return records
-}
