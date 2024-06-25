@@ -3,9 +3,7 @@ package no.nav.syfo.testutil
 import no.nav.syfo.*
 import java.time.LocalDate
 
-fun testEnvironment(
-    kafkaBootstrapServers: String,
-) = Environment(
+fun testEnvironment() = Environment(
     applicationThreads = 1,
     applicationName = "ispersonoppgave",
     azureAppClientId = "app-client-id",
@@ -24,7 +22,7 @@ fun testEnvironment(
     istilgangskontrollClientId = "istilgangskontrollClientId",
     istilgangskontrollUrl = "istilgangskontrollUrl",
     kafka = EnvironmentKafka(
-        aivenBootstrapServers = kafkaBootstrapServers,
+        aivenBootstrapServers = "kafkaBootstrapServers",
         aivenSchemaRegistryUrl = "http://kafka-schema-registry.tpa.svc.nais.local:8081",
         aivenRegistryUser = "registryuser",
         aivenRegistryPassword = "registrypassword",
