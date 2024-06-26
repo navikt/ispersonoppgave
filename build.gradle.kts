@@ -11,7 +11,6 @@ val isdialogmoteSchemaVersion = "1.0.5"
 val jsonVersion = "20240303"
 val jettyVersion = "9.4.54.v20240208"
 val kafkaVersion = "3.7.0"
-val kafkaEmbeddedVersion = "3.2.5"
 val kluentVersion = "1.73"
 val ktorVersion = "2.3.11"
 val logbackVersion = "1.4.14"
@@ -152,7 +151,6 @@ dependencies {
         }
     }
     implementation("no.nav.syfo.dialogmote.avro:isdialogmote-schema:$isdialogmoteSchemaVersion")
-    testImplementation("no.nav:kafka-embedded-env:$kafkaEmbeddedVersion", excludeLog4j)
 
     testImplementation("com.nimbusds:nimbus-jose-jwt:$nimbusjosejwtVersion")
     testImplementation("io.ktor:ktor-server-test-host:$ktorVersion")
