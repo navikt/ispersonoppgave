@@ -55,7 +55,7 @@ class PublishOppgavehendelseCronjobSpek : Spek({
 
             val unpublishedUbehandletPersonoppgave = generatePersonoppgave(
                 personIdent = UserConstants.ARBEIDSTAKER_FNR,
-                type = PersonOppgaveType.AKTIVITETSKRAV_VURDER_STANS,
+                type = PersonOppgaveType.BEHANDLER_BER_OM_BISTAND,
                 publish = true,
             )
 
@@ -94,7 +94,7 @@ class PublishOppgavehendelseCronjobSpek : Spek({
 
                 val kafkaPersonoppgavehendelse1 = kafkaRecordSlot1.captured.value()
                 kafkaPersonoppgavehendelse1.personident shouldBeEqualTo unpublishedUbehandletPersonoppgave.personIdent.value
-                kafkaPersonoppgavehendelse1.hendelsetype shouldBeEqualTo PersonoppgavehendelseType.AKTIVITETSKRAV_VURDER_STANS_MOTTATT.name
+                kafkaPersonoppgavehendelse1.hendelsetype shouldBeEqualTo PersonoppgavehendelseType.BEHANDLER_BER_OM_BISTAND_MOTTATT.name
 
                 val kafkaPersonoppgavehendelse2 = kafkaRecordSlot2.captured.value()
                 kafkaPersonoppgavehendelse2.personident shouldBeEqualTo unpublishedUbehandletPersonoppgave.personIdent.value
@@ -130,7 +130,7 @@ class PublishOppgavehendelseCronjobSpek : Spek({
 
                 val kafkaPersonoppgavehendelse = kafkaRecordSlot.captured.value()
                 kafkaPersonoppgavehendelse.personident shouldBeEqualTo unpublishedUbehandletPersonoppgave.personIdent.value
-                kafkaPersonoppgavehendelse.hendelsetype shouldBeEqualTo PersonoppgavehendelseType.AKTIVITETSKRAV_VURDER_STANS_BEHANDLET.name
+                kafkaPersonoppgavehendelse.hendelsetype shouldBeEqualTo PersonoppgavehendelseType.BEHANDLER_BER_OM_BISTAND_BEHANDLET.name
             }
 
             it("Will not publish already published oppgave") {
