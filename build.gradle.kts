@@ -71,7 +71,7 @@ dependencies {
 
     // Database
     implementation("org.postgresql:postgresql:$postgresVersion")
-    implementation("org.flywaydb:flyway-database-postgresql:$flyway")
+    implementation("org.flywaydb:flyway-database-postgresql:$flywayVersion")
     implementation("com.zaxxer:HikariCP:$hikariVersion")
     testImplementation("io.zonky.test:embedded-postgres:$postgresEmbeddedVersion")
 
