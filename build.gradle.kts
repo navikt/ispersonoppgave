@@ -169,7 +169,7 @@ kotlin {
 
 tasks {
     jar {
-        manifest.attributes["Main-Class"] = "no.nav.syfo.AppKt"
+        manifest.attributes["Main-Class"] = "no.nav.syfo.MainApplicationKt"
     }
 
     create("printVersion") {
