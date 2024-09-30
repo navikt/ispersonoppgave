@@ -1,31 +1,29 @@
-import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
-
 group = "no.nav.syfo"
 version = "1.0-SNAPSHOT"
 
 val confluentVersion = "7.6.0"
 val jacksonDataTypeVersion = "2.17.1"
-val flywayVersion = "9.22.3"
+val flywayVersion = "10.17.2"
 val hikariVersion = "5.1.0"
 val isdialogmoteSchemaVersion = "1.0.5"
 val jsonVersion = "20240303"
 val jettyVersion = "9.4.54.v20240208"
 val kafkaVersion = "3.7.0"
 val kluentVersion = "1.73"
-val ktorVersion = "2.3.11"
-val logbackVersion = "1.4.14"
+val ktorVersion = "2.3.12"
+val logbackVersion = "1.5.7"
 val logstashEncoderVersion = "7.4"
 val micrometerRegistryVersion = "1.12.6"
 val mockkVersion = "1.13.9"
-val nimbusjosejwtVersion = "9.39.1"
+val nimbusjosejwtVersion = "9.40"
 val joseVersion = "0.9.4"
-val postgresVersion = "42.7.3"
+val postgresVersion = "42.7.4"
 val postgresEmbeddedVersion = "2.0.7"
 val spekVersion = "2.0.19"
 
 plugins {
-    kotlin("jvm") version "2.0.0"
-    id("com.github.johnrengelman.shadow") version "8.1.1"
+    kotlin("jvm") version "2.0.20"
+    id("com.gradleup.shadow") version "8.3.1"
     id("org.jlleitschuh.gradle.ktlint") version "11.4.2"
 }
 
@@ -73,7 +71,7 @@ dependencies {
 
     // Database
     implementation("org.postgresql:postgresql:$postgresVersion")
-    implementation("org.flywaydb:flyway-core:$flywayVersion")
+    implementation("org.flywaydb:flyway-database-postgresql:$flywayVersion")
     implementation("com.zaxxer:HikariCP:$hikariVersion")
     testImplementation("io.zonky.test:embedded-postgres:$postgresEmbeddedVersion")
 
@@ -86,7 +84,7 @@ dependencies {
         implementation("org.bitbucket.b_c:jose4j") {
             because("org.bitbucket.b_c:jose4j:0.9.3 -> https://ossindex.sonatype.org/vulnerability/CVE-2023-51775")
             version {
-                require("$joseVersion")
+                require(joseVersion)
             }
         }
     }
@@ -170,21 +168,24 @@ kotlin {
 }
 
 tasks {
-    withType<Jar> {
+    jar {
         manifest.attributes["Main-Class"] = "no.nav.syfo.MainApplicationKt"
     }
 
     create("printVersion") {
-        println(project.version)
+        doLast {
+            println(project.version)
+        }
     }
 
-    withType<ShadowJar> {
+    shadowJar {
+        mergeServiceFiles()
         archiveBaseName.set("app")
         archiveClassifier.set("")
         archiveVersion.set("")
     }
 
-    withType<Test> {
+    test {
         useJUnitPlatform {
             includeEngines("spek2")
         }
