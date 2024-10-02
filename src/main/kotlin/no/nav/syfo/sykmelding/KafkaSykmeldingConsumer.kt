@@ -75,6 +75,12 @@ class KafkaSykmeldingConsumer(
                             connection = connection,
                             receivedSykmeldingDTO = receivedSykmeldingDTO,
                         )
+                    } else if (!receivedSykmeldingDTO.sykmelding.tiltakNAV.isNullOrEmpty()) {
+                        COUNT_MOTTATT_SYKMELDING_TILTAK_NAV.increment()
+                    } else if (!receivedSykmeldingDTO.sykmelding.andreTiltak.isNullOrEmpty()) {
+                        COUNT_MOTTATT_SYKMELDING_TILTAK_ANDRE.increment()
+                    } else if (receivedSykmeldingDTO.sykmelding.utdypendeOpplysninger.isNotEmpty()) {
+                        COUNT_MOTTATT_SYKMELDING_UTDYPENDE.increment()
                     }
                 }
             }
