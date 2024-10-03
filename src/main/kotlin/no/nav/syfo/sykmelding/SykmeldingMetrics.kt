@@ -39,15 +39,15 @@ val COUNT_MOTTATT_SYKMELDING_UTDYPENDE: Counter = Counter
 
 val COUNT_MOTTATT_SYKMELDING_UTDYPENDE_63: Counter = Counter
     .builder(MOTTATT_SYKMELDING_UTDYPENDE_63)
-    .description("Counts the number of received sykmelding with utdypende opplysninger")
+    .description("Counts the number of received sykmelding with utdypende opplysninger felt 6.3")
     .register(METRICS_REGISTRY)
 
 val COUNT_MOTTATT_SYKMELDING_UTDYPENDE_64: Counter = Counter
     .builder(MOTTATT_SYKMELDING_UTDYPENDE_64)
-    .description("Counts the number of received sykmelding with utdypende opplysninger")
+    .description("Counts the number of received sykmelding with utdypende opplysninger felt 6.4")
     .register(METRICS_REGISTRY)
 
 val COUNT_MOTTATT_SYKMELDING_UTDYPENDE_65: Counter = Counter
     .builder(MOTTATT_SYKMELDING_UTDYPENDE_65)
-    .description("Counts the number of received sykmelding with utdypende opplysninger")
+    .description("Counts the number of received sykmelding with utdypende opplysninger felt 6.5")
     .register(METRICS_REGISTRY)
