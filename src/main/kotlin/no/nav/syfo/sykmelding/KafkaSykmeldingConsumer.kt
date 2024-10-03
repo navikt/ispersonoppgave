@@ -81,6 +81,19 @@ class KafkaSykmeldingConsumer(
                         COUNT_MOTTATT_SYKMELDING_TILTAK_ANDRE.increment()
                     } else if (receivedSykmeldingDTO.sykmelding.utdypendeOpplysninger.isNotEmpty()) {
                         COUNT_MOTTATT_SYKMELDING_UTDYPENDE.increment()
+                        val utdypende = receivedSykmeldingDTO.sykmelding.utdypendeOpplysninger
+                        if (utdypende.containsKey("6.3")) {
+                            // ved 7 uker
+                            COUNT_MOTTATT_SYKMELDING_UTDYPENDE_63.increment()
+                        }
+                        if (utdypende.containsKey("6.4")) {
+                            // ved 17 uker
+                            COUNT_MOTTATT_SYKMELDING_UTDYPENDE_64.increment()
+                        }
+                        if (utdypende.containsKey("6.5")) {
+                            // ved 39 uker
+                            COUNT_MOTTATT_SYKMELDING_UTDYPENDE_65.increment()
+                        }
                     }
                 }
             }

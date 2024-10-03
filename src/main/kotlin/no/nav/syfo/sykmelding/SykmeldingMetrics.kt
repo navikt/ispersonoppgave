@@ -8,6 +8,9 @@ const val MOTTATT_SYKMELDING_CREATED_PERSONOPPGAVE = "${METRICS_NS}_mottatt_sykm
 const val MOTTATT_SYKMELDING_TILTAK_NAV = "${METRICS_NS}_mottatt_sykmelding_tiltak_nav_count"
 const val MOTTATT_SYKMELDING_TILTAK_ANDRE = "${METRICS_NS}_mottatt_sykmelding_tiltak_andre_count"
 const val MOTTATT_SYKMELDING_UTDYPENDE = "${METRICS_NS}_mottatt_sykmelding_utdypende_count"
+const val MOTTATT_SYKMELDING_UTDYPENDE_63 = "${METRICS_NS}_mottatt_sykmelding_utdypende_63_count"
+const val MOTTATT_SYKMELDING_UTDYPENDE_64 = "${METRICS_NS}_mottatt_sykmelding_utdypende_64_count"
+const val MOTTATT_SYKMELDING_UTDYPENDE_65 = "${METRICS_NS}_mottatt_sykmelding_utdypende_65_count"
 
 val COUNT_MOTTATT_SYKMELDING: Counter = Counter
     .builder(MOTTATT_SYKMELDING)
@@ -31,5 +34,20 @@ val COUNT_MOTTATT_SYKMELDING_TILTAK_ANDRE: Counter = Counter
 
 val COUNT_MOTTATT_SYKMELDING_UTDYPENDE: Counter = Counter
     .builder(MOTTATT_SYKMELDING_UTDYPENDE)
+    .description("Counts the number of received sykmelding with utdypende opplysninger")
+    .register(METRICS_REGISTRY)
+
+val COUNT_MOTTATT_SYKMELDING_UTDYPENDE_63: Counter = Counter
+    .builder(MOTTATT_SYKMELDING_UTDYPENDE_63)
+    .description("Counts the number of received sykmelding with utdypende opplysninger")
+    .register(METRICS_REGISTRY)
+
+val COUNT_MOTTATT_SYKMELDING_UTDYPENDE_64: Counter = Counter
+    .builder(MOTTATT_SYKMELDING_UTDYPENDE_64)
+    .description("Counts the number of received sykmelding with utdypende opplysninger")
+    .register(METRICS_REGISTRY)
+
+val COUNT_MOTTATT_SYKMELDING_UTDYPENDE_65: Counter = Counter
+    .builder(MOTTATT_SYKMELDING_UTDYPENDE_65)
     .description("Counts the number of received sykmelding with utdypende opplysninger")
     .register(METRICS_REGISTRY)
