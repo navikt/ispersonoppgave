@@ -55,6 +55,7 @@ fun generateKafkaSykmelding(
         syketilfelleStartDato = LocalDate.now(),
         signaturDato = LocalDateTime.now(),
         navnFastlege = "",
+        utdypendeOpplysninger = emptyMap(),
         meldingTilNAV = meldingTilNAV,
         andreTiltak = "",
         meldingTilArbeidsgiver = "",
