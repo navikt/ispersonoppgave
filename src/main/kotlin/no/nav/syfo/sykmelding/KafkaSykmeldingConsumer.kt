@@ -85,14 +85,26 @@ class KafkaSykmeldingConsumer(
                         if (utdypende.containsKey("6.3")) {
                             // ved 7 uker
                             COUNT_MOTTATT_SYKMELDING_UTDYPENDE_63.increment()
+                            val value = utdypende.get("6.3")
+                            if (value != null && value.values.any { it.svar.length > 10 }) {
+                                COUNT_MOTTATT_SYKMELDING_UTDYPENDE_63_GT.increment()
+                            }
                         }
                         if (utdypende.containsKey("6.4")) {
                             // ved 17 uker
                             COUNT_MOTTATT_SYKMELDING_UTDYPENDE_64.increment()
+                            val value = utdypende.get("6.4")
+                            if (value != null && value.values.any { it.svar.length > 10 }) {
+                                COUNT_MOTTATT_SYKMELDING_UTDYPENDE_64_GT.increment()
+                            }
                         }
                         if (utdypende.containsKey("6.5")) {
                             // ved 39 uker
                             COUNT_MOTTATT_SYKMELDING_UTDYPENDE_65.increment()
+                            val value = utdypende.get("6.5")
+                            if (value != null && value.values.any { it.svar.length > 10 }) {
+                                COUNT_MOTTATT_SYKMELDING_UTDYPENDE_65_GT.increment()
+                            }
                         }
                     }
                 }
