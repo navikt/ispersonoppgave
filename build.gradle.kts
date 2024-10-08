@@ -120,7 +120,7 @@ dependencies {
         implementation("com.google.protobuf:protobuf-java") {
             because("io.confluent:kafka-schema-registry:$confluentVersion -> https://www.cve.org/CVERecord?id=CVE-2021-22569")
             version {
-                require("3.25.1")
+                require("3.25.5")
             }
         }
         implementation("org.eclipse.jetty:jetty-server") {
