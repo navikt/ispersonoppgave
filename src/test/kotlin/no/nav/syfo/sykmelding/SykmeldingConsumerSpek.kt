@@ -74,7 +74,63 @@ class SykmeldingConsumerSpek : Spek({
                     personOppgave.behandletTidspunkt shouldBe null
                     personOppgave.referanseUuid shouldBeEqualTo sykmeldingId
                 }
-                it("Does not create oppgave if meldingTilNAV is null") {
+                it("Creates oppgave if tiltakNAV has text") {
+                    val sykmeldingId = UUID.randomUUID()
+                    val sykmelding = generateKafkaSykmelding(
+                        sykmeldingId = sykmeldingId,
+                        meldingTilNAV = null,
+                        tiltakNAV = "Jeg synes NAV skal gjøre dette",
+                    )
+                    kafkaConsumer.mockPollConsumerRecords(
+                        recordValue = sykmelding,
+                        topic = topic,
+                    )
+
+                    kafkaSykmeldingConsumer.pollAndProcessRecords(
+                        kafkaConsumer = kafkaConsumer,
+                    )
+                    verify(exactly = 1) {
+                        kafkaConsumer.commitSync()
+                    }
+
+                    val personOppgave = database.getPersonOppgaver(
+                        personIdent = PersonIdent(sykmelding.personNrPasient),
+                    ).map { it.toPersonOppgave() }.first()
+                    personOppgave.personIdent.value shouldBeEqualTo sykmelding.personNrPasient
+                    personOppgave.publish shouldBeEqualTo true
+                    personOppgave.type shouldBeEqualTo PersonOppgaveType.BEHANDLER_BER_OM_BISTAND
+                    personOppgave.behandletTidspunkt shouldBe null
+                    personOppgave.referanseUuid shouldBeEqualTo sykmeldingId
+                }
+                it("Creates oppgave if andreTiltak has text") {
+                    val sykmeldingId = UUID.randomUUID()
+                    val sykmelding = generateKafkaSykmelding(
+                        sykmeldingId = sykmeldingId,
+                        meldingTilNAV = null,
+                        andreTiltak = "Jeg synes NAV skal gjøre dette",
+                    )
+                    kafkaConsumer.mockPollConsumerRecords(
+                        recordValue = sykmelding,
+                        topic = topic,
+                    )
+
+                    kafkaSykmeldingConsumer.pollAndProcessRecords(
+                        kafkaConsumer = kafkaConsumer,
+                    )
+                    verify(exactly = 1) {
+                        kafkaConsumer.commitSync()
+                    }
+
+                    val personOppgave = database.getPersonOppgaver(
+                        personIdent = PersonIdent(sykmelding.personNrPasient),
+                    ).map { it.toPersonOppgave() }.first()
+                    personOppgave.personIdent.value shouldBeEqualTo sykmelding.personNrPasient
+                    personOppgave.publish shouldBeEqualTo true
+                    personOppgave.type shouldBeEqualTo PersonOppgaveType.BEHANDLER_BER_OM_BISTAND
+                    personOppgave.behandletTidspunkt shouldBe null
+                    personOppgave.referanseUuid shouldBeEqualTo sykmeldingId
+                }
+                it("Does not create oppgave if meldingTilNAV, tiltakNAV, and andreTiltak is null") {
                     val sykmeldingId = UUID.randomUUID()
                     val sykmelding = generateKafkaSykmelding(
                         sykmeldingId = sykmeldingId,
