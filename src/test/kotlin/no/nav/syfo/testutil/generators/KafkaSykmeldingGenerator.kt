@@ -23,6 +23,8 @@ fun generateKafkaSykmelding(
     avsenderSystemNavn: String = "EPJ-systemet",
     kontorHerId: String = "404",
     meldingTilNAV: MeldingTilNAV?,
+    tiltakNAV: String? = null,
+    andreTiltak: String? = null,
 ) = ReceivedSykmeldingDTO(
     sykmelding = Sykmelding(
         id = sykmeldingId.toString(),
@@ -57,9 +59,9 @@ fun generateKafkaSykmelding(
         navnFastlege = "",
         utdypendeOpplysninger = emptyMap(),
         meldingTilNAV = meldingTilNAV,
-        andreTiltak = "",
+        andreTiltak = andreTiltak,
         meldingTilArbeidsgiver = "",
-        tiltakNAV = "",
+        tiltakNAV = tiltakNAV,
     ),
     personNrPasient = personNrPasient,
     personNrLege = personNrLege,

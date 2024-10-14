@@ -15,6 +15,8 @@ import no.nav.syfo.sykmelding.ReceivedSykmeldingDTO
 import no.nav.syfo.util.configuredJacksonMapper
 import org.apache.kafka.clients.consumer.*
 import org.apache.kafka.common.serialization.Deserializer
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import java.sql.Connection
 import java.time.*
 import java.util.*
@@ -70,42 +72,15 @@ class KafkaSykmeldingConsumer(
             consumerRecords.forEach {
                 it.value()?.let { receivedSykmeldingDTO ->
                     COUNT_MOTTATT_SYKMELDING.increment()
-                    if (!receivedSykmeldingDTO.sykmelding.meldingTilNAV?.beskrivBistand.isNullOrEmpty()) {
+                    val sykmelding = receivedSykmeldingDTO.sykmelding
+                    if (!sykmelding.meldingTilNAV?.beskrivBistand.isNullOrEmpty() ||
+                        !sykmelding.tiltakNAV.isNullOrEmpty() ||
+                        !sykmelding.andreTiltak.isNullOrEmpty()
+                    ) {
                         createPersonoppgave(
                             connection = connection,
                             receivedSykmeldingDTO = receivedSykmeldingDTO,
                         )
-                    } else if (!receivedSykmeldingDTO.sykmelding.tiltakNAV.isNullOrEmpty()) {
-                        COUNT_MOTTATT_SYKMELDING_TILTAK_NAV.increment()
-                    } else if (!receivedSykmeldingDTO.sykmelding.andreTiltak.isNullOrEmpty()) {
-                        COUNT_MOTTATT_SYKMELDING_TILTAK_ANDRE.increment()
-                    } else if (receivedSykmeldingDTO.sykmelding.utdypendeOpplysninger.isNotEmpty()) {
-                        COUNT_MOTTATT_SYKMELDING_UTDYPENDE.increment()
-                        val utdypende = receivedSykmeldingDTO.sykmelding.utdypendeOpplysninger
-                        if (utdypende.containsKey("6.3")) {
-                            // ved 7 uker
-                            COUNT_MOTTATT_SYKMELDING_UTDYPENDE_63.increment()
-                            val value = utdypende.get("6.3")
-                            if (value != null && value.values.any { it.svar.length > 10 }) {
-                                COUNT_MOTTATT_SYKMELDING_UTDYPENDE_63_GT.increment()
-                            }
-                        }
-                        if (utdypende.containsKey("6.4")) {
-                            // ved 17 uker
-                            COUNT_MOTTATT_SYKMELDING_UTDYPENDE_64.increment()
-                            val value = utdypende.get("6.4")
-                            if (value != null && value.values.any { it.svar.length > 10 }) {
-                                COUNT_MOTTATT_SYKMELDING_UTDYPENDE_64_GT.increment()
-                            }
-                        }
-                        if (utdypende.containsKey("6.5")) {
-                            // ved 39 uker
-                            COUNT_MOTTATT_SYKMELDING_UTDYPENDE_65.increment()
-                            val value = utdypende.get("6.5")
-                            if (value != null && value.values.any { it.svar.length > 10 }) {
-                                COUNT_MOTTATT_SYKMELDING_UTDYPENDE_65_GT.increment()
-                            }
-                        }
                     }
                 }
             }
@@ -122,17 +97,25 @@ class KafkaSykmeldingConsumer(
         val hasExistingUbehandlet = connection.getPersonOppgaverByReferanseUuid(referanseUuid)
             .any { it.behandletTidspunkt == null }
         if (!hasExistingUbehandlet) {
+            val personOppgave = PersonOppgave(
+                referanseUuid = referanseUuid,
+                personIdent = arbeidstakerPersonident,
+                type = PersonOppgaveType.BEHANDLER_BER_OM_BISTAND,
+                publish = true,
+            )
             personOppgaveRepository.createPersonoppgave(
-                personOppgave = PersonOppgave(
-                    referanseUuid = referanseUuid,
-                    personIdent = arbeidstakerPersonident,
-                    type = PersonOppgaveType.BEHANDLER_BER_OM_BISTAND,
-                    publish = true,
-                ),
+                personOppgave = personOppgave,
                 connection = connection
             )
+            val tiltakNav = !receivedSykmeldingDTO.sykmelding.tiltakNAV.isNullOrEmpty()
+            val tiltakAndre = !receivedSykmeldingDTO.sykmelding.andreTiltak.isNullOrEmpty()
+            log.info("Created personoppgave ${personOppgave.uuid} from sykmelding with tiltakNav=$tiltakNav and tiltakAndre=$tiltakAndre")
             COUNT_MOTTATT_SYKMELDING_SUCCESS.increment()
         }
+    }
+
+    companion object {
+        val log: Logger = LoggerFactory.getLogger(KafkaSykmeldingConsumer::class.java)
     }
 }
 
