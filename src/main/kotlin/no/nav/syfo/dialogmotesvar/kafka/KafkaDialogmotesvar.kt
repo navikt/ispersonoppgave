@@ -40,7 +40,6 @@ class KafkaDialogmotesvarConsumer(
     override fun pollAndProcessRecords(kafkaConsumer: KafkaConsumer<String, KDialogmotesvar>) {
         val records = kafkaConsumer.poll(Duration.ofMillis(pollDurationInMillis))
         if (records.count() > 0) {
-            log.info("Dialogmotesvar trace: Received ${records.count()} records")
             processRecords(records)
 
             kafkaConsumer.commitSync()

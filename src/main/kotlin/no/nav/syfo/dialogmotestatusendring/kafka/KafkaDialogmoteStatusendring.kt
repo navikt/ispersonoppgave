@@ -48,7 +48,6 @@ class KafkaDialogmoteStatusendring(private val database: DatabaseInterface) :
     override fun pollAndProcessRecords(kafkaConsumer: KafkaConsumer<String, KDialogmoteStatusEndring>) {
         val records = kafkaConsumer.poll(Duration.ofMillis(pollDurationInMillis))
         if (records.count() > 0) {
-            log.info("TRACE: Received ${records.count()} records")
             processRecords(
                 database,
                 records,

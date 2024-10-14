@@ -15,6 +15,8 @@ import no.nav.syfo.sykmelding.ReceivedSykmeldingDTO
 import no.nav.syfo.util.configuredJacksonMapper
 import org.apache.kafka.clients.consumer.*
 import org.apache.kafka.common.serialization.Deserializer
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import java.sql.Connection
 import java.time.*
 import java.util.*
@@ -95,17 +97,25 @@ class KafkaSykmeldingConsumer(
         val hasExistingUbehandlet = connection.getPersonOppgaverByReferanseUuid(referanseUuid)
             .any { it.behandletTidspunkt == null }
         if (!hasExistingUbehandlet) {
+            val personOppgave = PersonOppgave(
+                referanseUuid = referanseUuid,
+                personIdent = arbeidstakerPersonident,
+                type = PersonOppgaveType.BEHANDLER_BER_OM_BISTAND,
+                publish = true,
+            )
             personOppgaveRepository.createPersonoppgave(
-                personOppgave = PersonOppgave(
-                    referanseUuid = referanseUuid,
-                    personIdent = arbeidstakerPersonident,
-                    type = PersonOppgaveType.BEHANDLER_BER_OM_BISTAND,
-                    publish = true,
-                ),
+                personOppgave = personOppgave,
                 connection = connection
             )
+            val tiltakNav = !receivedSykmeldingDTO.sykmelding.tiltakNAV.isNullOrEmpty()
+            val tiltakAndre = !receivedSykmeldingDTO.sykmelding.andreTiltak.isNullOrEmpty()
+            log.info("Created personoppgave ${personOppgave.uuid} from sykmelding with tiltakNav=$tiltakNav and tiltakAndre=$tiltakAndre")
             COUNT_MOTTATT_SYKMELDING_SUCCESS.increment()
         }
+    }
+
+    companion object {
+        val log: Logger = LoggerFactory.getLogger(KafkaSykmeldingConsumer::class.java)
     }
 }
 

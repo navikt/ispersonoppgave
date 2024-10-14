@@ -44,7 +44,6 @@ class KafkaUbesvartMelding(
     override fun pollAndProcessRecords(kafkaConsumer: KafkaConsumer<String, KMeldingDTO>) {
         val records = kafkaConsumer.poll(Duration.ofMillis(pollDurationInMillis))
         if (records.count() > 0) {
-            log.info("UbesvartMelding trace: Received ${records.count()} records")
             processRecords(
                 database,
                 records,
