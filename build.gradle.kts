@@ -114,7 +114,7 @@ dependencies {
         implementation("org.apache.zookeeper:zookeeper") {
             because("io.confluent:kafka-schema-registry:$confluentVersion -> https://www.cve.org/CVERecord?id=CVE-2023-44981")
             version {
-                require("3.9.2")
+                require("3.9.3")
             }
         }
         implementation("com.google.protobuf:protobuf-java") {
