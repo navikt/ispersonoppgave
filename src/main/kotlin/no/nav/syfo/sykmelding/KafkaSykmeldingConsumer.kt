@@ -11,7 +11,7 @@ import no.nav.syfo.kafka.launchKafkaTask
 import no.nav.syfo.personoppgave.domain.PersonOppgave
 import no.nav.syfo.personoppgave.domain.PersonOppgaveType
 import no.nav.syfo.personoppgave.getPersonOppgaverByReferanseUuid
-import no.nav.syfo.sykmelding.ReceivedSykmeldingDTO
+import no.nav.syfo.sykmelding.*
 import no.nav.syfo.util.configuredJacksonMapper
 import org.apache.kafka.clients.consumer.*
 import org.apache.kafka.common.serialization.Deserializer
@@ -81,12 +81,31 @@ class KafkaSykmeldingConsumer(
                             connection = connection,
                             receivedSykmeldingDTO = receivedSykmeldingDTO,
                         )
+                        countIrrelevantSykmeldingFelter(sykmelding)
                     }
                 }
             }
             connection.commit()
         }
     }
+
+    private fun countIrrelevantSykmeldingFelter(sykmelding: Sykmelding) {
+        val beskrivBistandNav = sykmelding.meldingTilNAV?.beskrivBistand
+        val tiltakNav = sykmelding.tiltakNAV
+        val andreTiltak = sykmelding.andreTiltak
+        if (!beskrivBistandNav.isNullOrEmpty() && isIrrelevant(beskrivBistandNav)) {
+            COUNT_MOTTATT_SYKMELDING_BESKRIV_BISTAND_NAV_IRRELEVANT.increment()
+        }
+        if (!tiltakNav.isNullOrEmpty() && isIrrelevant(tiltakNav)) {
+            COUNT_MOTTATT_SYKMELDING_TILTAK_NAV_IRRELEVANT.increment()
+        }
+        if (!andreTiltak.isNullOrEmpty() && isIrrelevant(andreTiltak)) {
+            COUNT_MOTTATT_SYKMELDING_ANDRE_TILTAK_IRRELEVANT.increment()
+        }
+    }
+
+    private fun isIrrelevant(content: String): Boolean =
+        irrelevantSykmeldingFelterContent.contains(content.lowercase().trim())
 
     private fun createPersonoppgave(
         connection: Connection,
@@ -116,6 +135,7 @@ class KafkaSykmeldingConsumer(
 
     companion object {
         val log: Logger = LoggerFactory.getLogger(KafkaSykmeldingConsumer::class.java)
+        val irrelevantSykmeldingFelterContent = listOf(".", "-", "nei")
     }
 }
 
