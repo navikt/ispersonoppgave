@@ -1,13 +1,13 @@
 group = "no.nav.syfo"
 version = "1.0-SNAPSHOT"
 
-val confluentVersion = "7.6.0"
+val confluentVersion = "7.7.1"
 val jacksonDataTypeVersion = "2.17.1"
 val flywayVersion = "10.17.2"
 val hikariVersion = "5.1.0"
 val isdialogmoteSchemaVersion = "1.0.5"
 val jsonVersion = "20240303"
-val jettyVersion = "9.4.54.v20240208"
+val jettyVersion = "9.4.56.v20240826"
 val kafkaVersion = "3.7.0"
 val kluentVersion = "1.73"
 val ktorVersion = "2.3.12"
@@ -15,6 +15,7 @@ val logbackVersion = "1.5.7"
 val logstashEncoderVersion = "7.4"
 val micrometerRegistryVersion = "1.12.6"
 val mockkVersion = "1.13.9"
+val nettyVersion = "4.1.115.Final"
 val nimbusjosejwtVersion = "9.40"
 val joseVersion = "0.9.4"
 val postgresVersion = "42.7.4"
@@ -52,6 +53,14 @@ dependencies {
     implementation("io.ktor:ktor-server-call-id:$ktorVersion")
     implementation("io.ktor:ktor-server-status-pages:$ktorVersion")
     implementation("io.ktor:ktor-server-netty:$ktorVersion")
+    constraints {
+        implementation("io.netty:netty-codec-http2") {
+            because("io.ktor:ktor-server-netty:$ktorVersion -> https://ossindex.sonatype.org/vulnerability/CVE-2024-47535")
+            version {
+                require(nettyVersion)
+            }
+        }
+    }
     implementation("io.ktor:ktor-client-apache:$ktorVersion")
     implementation("io.ktor:ktor-client-cio:$ktorVersion")
     implementation("io.ktor:ktor-client-content-negotiation:$ktorVersion")
@@ -145,6 +154,12 @@ dependencies {
             because("io.confluent:kafka-schema-registry:$confluentVersion -> https://www.cve.org/CVERecord?id=CVE-2023-36478")
             version {
                 require(jettyVersion)
+            }
+        }
+        implementation("io.github.classgraph:classgraph") {
+            because("io.confluent:kafka-schema-registry:$confluentVersion -> https://www.cve.org/CVERecord?id=CVE-2021-47621")
+            version {
+                require("4.8.179")
             }
         }
     }
