@@ -130,6 +130,38 @@ class SykmeldingConsumerSpek : Spek({
                     personOppgave.behandletTidspunkt shouldBe null
                     personOppgave.referanseUuid shouldBeEqualTo sykmeldingId
                 }
+                it("Does not creates oppgave if andreTiltak has text but duplicate from previous sykmelding") {
+                    val sykmelding = generateKafkaSykmelding(
+                        sykmeldingId = UUID.randomUUID(),
+                        meldingTilNAV = null,
+                        andreTiltak = "Jeg synes NAV skal gjøre dette",
+                    )
+                    kafkaConsumer.mockPollConsumerRecords(
+                        recordValue = sykmelding,
+                        topic = topic,
+                    )
+                    kafkaSykmeldingConsumer.pollAndProcessRecords(
+                        kafkaConsumer = kafkaConsumer,
+                    )
+                    database.getPersonOppgaver(
+                        personIdent = PersonIdent(sykmelding.personNrPasient),
+                    ).size shouldBeEqualTo 1
+                    val sykmeldingNext = generateKafkaSykmelding(
+                        sykmeldingId = UUID.randomUUID(),
+                        meldingTilNAV = null,
+                        andreTiltak = "Jeg synes NAV skal gjøre dette",
+                    )
+                    kafkaConsumer.mockPollConsumerRecords(
+                        recordValue = sykmeldingNext,
+                        topic = topic,
+                    )
+                    kafkaSykmeldingConsumer.pollAndProcessRecords(
+                        kafkaConsumer = kafkaConsumer,
+                    )
+                    database.getPersonOppgaver(
+                        personIdent = PersonIdent(sykmelding.personNrPasient),
+                    ).size shouldBeEqualTo 1
+                }
                 it("Does not create oppgave if meldingTilNAV, tiltakNAV, and andreTiltak is null") {
                     val sykmeldingId = UUID.randomUUID()
                     val sykmelding = generateKafkaSykmelding(
