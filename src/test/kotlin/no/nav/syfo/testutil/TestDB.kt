@@ -59,6 +59,9 @@ fun DatabaseInterface.dropData() {
         """
         DELETE FROM DIALOGMOTE_STATUSENDRING
         """.trimIndent(),
+        """
+        DELETE FROM SYKMELDING 
+        """.trimIndent(),
     )
     this.connection.use { connection ->
         queryList.forEach { query ->
