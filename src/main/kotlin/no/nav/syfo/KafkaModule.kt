@@ -1,6 +1,6 @@
 package no.nav.syfo
 
-import no.nav.syfo.behandler.kafka.sykmelding.launchKafkaTaskSykmelding
+import no.nav.syfo.sykmelding.launchKafkaTaskSykmelding
 import no.nav.syfo.behandlerdialog.AvvistMeldingService
 import no.nav.syfo.behandlerdialog.MeldingFraBehandlerService
 import no.nav.syfo.behandlerdialog.UbesvartMeldingService
