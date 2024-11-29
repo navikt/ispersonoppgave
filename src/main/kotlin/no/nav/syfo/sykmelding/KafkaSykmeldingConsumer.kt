@@ -1,4 +1,4 @@
-package no.nav.syfo.behandler.kafka.sykmelding
+package no.nav.syfo.sykmelding
 
 import no.nav.syfo.ApplicationState
 import no.nav.syfo.Environment
@@ -11,7 +11,6 @@ import no.nav.syfo.kafka.launchKafkaTask
 import no.nav.syfo.personoppgave.domain.PersonOppgave
 import no.nav.syfo.personoppgave.domain.PersonOppgaveType
 import no.nav.syfo.personoppgave.getPersonOppgaverByReferanseUuid
-import no.nav.syfo.sykmelding.*
 import no.nav.syfo.util.configuredJacksonMapper
 import org.apache.kafka.clients.consumer.*
 import org.apache.kafka.common.serialization.Deserializer
@@ -56,7 +55,7 @@ class KafkaSykmeldingConsumer(
     ) {
         val records = kafkaConsumer.poll(Duration.ofMillis(1000))
         if (records.count() > 0) {
-            processSykmelding(
+            processSykmeldingRecords(
                 database = database,
                 consumerRecords = records,
             )
@@ -64,47 +63,48 @@ class KafkaSykmeldingConsumer(
         }
     }
 
-    private fun processSykmelding(
+    private fun processSykmeldingRecords(
         database: DatabaseInterface,
         consumerRecords: ConsumerRecords<String, ReceivedSykmeldingDTO>,
     ) {
         database.connection.use { connection ->
-            consumerRecords.forEach {
-                it.value()?.let { receivedSykmeldingDTO ->
-                    COUNT_MOTTATT_SYKMELDING.increment()
-                    val sykmelding = receivedSykmeldingDTO.sykmelding
-                    if (!sykmelding.meldingTilNAV?.beskrivBistand.isNullOrEmpty() ||
-                        !sykmelding.tiltakNAV.isNullOrEmpty() ||
-                        !sykmelding.andreTiltak.isNullOrEmpty()
-                    ) {
-                        createPersonoppgave(
-                            connection = connection,
-                            receivedSykmeldingDTO = receivedSykmeldingDTO,
-                        )
-                        countIrrelevantSykmeldingFelter(sykmelding)
-                    }
+            consumerRecords.forEach { sykmeldingRecord ->
+                sykmeldingRecord.value()?.let { receivedSykmeldingDTO ->
+                    processSykmelding(receivedSykmeldingDTO, connection)
                 }
             }
             connection.commit()
         }
     }
 
-    private fun countIrrelevantSykmeldingFelter(sykmelding: Sykmelding) {
-        val beskrivBistandNav = sykmelding.meldingTilNAV?.beskrivBistand
-        val tiltakNav = sykmelding.tiltakNAV
-        val andreTiltak = sykmelding.andreTiltak
-        if (!beskrivBistandNav.isNullOrEmpty() && isIrrelevant(beskrivBistandNav)) {
-            COUNT_MOTTATT_SYKMELDING_BESKRIV_BISTAND_NAV_IRRELEVANT.increment()
-        }
-        if (!tiltakNav.isNullOrEmpty() && isIrrelevant(tiltakNav)) {
-            COUNT_MOTTATT_SYKMELDING_TILTAK_NAV_IRRELEVANT.increment()
-        }
-        if (!andreTiltak.isNullOrEmpty() && isIrrelevant(andreTiltak)) {
-            COUNT_MOTTATT_SYKMELDING_ANDRE_TILTAK_IRRELEVANT.increment()
+    private fun processSykmelding(
+        receivedSykmeldingDTO: ReceivedSykmeldingDTO,
+        connection: Connection
+    ) {
+        COUNT_MOTTATT_SYKMELDING.increment()
+        val sykmelding = receivedSykmeldingDTO.sykmelding
+        val relevantFields = listOfNotNull(
+            sykmelding.meldingTilNAV?.beskrivBistand,
+            sykmelding.tiltakNAV,
+            sykmelding.andreTiltak,
+        ).filter { it.isNotEmpty() }
+
+        if (relevantFields.isNotEmpty()) {
+            if (relevantFields.all { hasIrrelevantContent(it) }) {
+                COUNT_MOTTATT_SYKMELDING_SKIPPED_IRRELEVANT_TEXT.increment()
+            } else {
+                if (relevantFields.all { it.length < 10 }) {
+                    COUNT_MOTTATT_SYKMELDING_SHORT_TEXT.increment()
+                }
+                createPersonoppgave(
+                    connection = connection,
+                    receivedSykmeldingDTO = receivedSykmeldingDTO,
+                )
+            }
         }
     }
 
-    private fun isIrrelevant(content: String): Boolean =
+    private fun hasIrrelevantContent(content: String): Boolean =
         irrelevantSykmeldingFelterContent.contains(content.lowercase().trim())
 
     private fun createPersonoppgave(

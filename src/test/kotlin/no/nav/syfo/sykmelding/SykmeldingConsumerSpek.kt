@@ -5,8 +5,6 @@ import io.mockk.clearMocks
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
-import no.nav.syfo.behandler.kafka.sykmelding.KafkaSykmeldingConsumer
-import no.nav.syfo.behandler.kafka.sykmelding.SYKMELDING_TOPIC
 import no.nav.syfo.domain.PersonIdent
 import no.nav.syfo.database.PersonOppgaveRepository
 import no.nav.syfo.personoppgave.domain.PersonOppgaveType
@@ -129,6 +127,185 @@ class SykmeldingConsumerSpek : Spek({
                     personOppgave.type shouldBeEqualTo PersonOppgaveType.BEHANDLER_BER_OM_BISTAND
                     personOppgave.behandletTidspunkt shouldBe null
                     personOppgave.referanseUuid shouldBeEqualTo sykmeldingId
+                }
+                it("creates one oppgave if more than one relevant field has text") {
+                    val sykmeldingId = UUID.randomUUID()
+                    val sykmelding = generateKafkaSykmelding(
+                        sykmeldingId = sykmeldingId,
+                        meldingTilNAV = null,
+                        andreTiltak = "Jeg synes NAV skal gjøre dette",
+                        tiltakNAV = "Jeg synes NAV skal gjøre dette også",
+                    )
+                    kafkaConsumer.mockPollConsumerRecords(
+                        recordValue = sykmelding,
+                        topic = topic,
+                    )
+
+                    kafkaSykmeldingConsumer.pollAndProcessRecords(
+                        kafkaConsumer = kafkaConsumer,
+                    )
+                    verify(exactly = 1) {
+                        kafkaConsumer.commitSync()
+                    }
+
+                    val personOppgaver = database.getPersonOppgaver(
+                        personIdent = PersonIdent(sykmelding.personNrPasient),
+                    ).map { it.toPersonOppgave() }
+                    personOppgaver.size shouldBeEqualTo 1
+                    personOppgaver.first().type shouldBeEqualTo PersonOppgaveType.BEHANDLER_BER_OM_BISTAND
+                }
+                it("Creates oppgave if andreTiltak has relevant text and tiltakNAV has irrelevant text") {
+                    val sykmeldingId = UUID.randomUUID()
+                    val sykmelding = generateKafkaSykmelding(
+                        sykmeldingId = sykmeldingId,
+                        meldingTilNAV = null,
+                        andreTiltak = "Jeg synes NAV skal gjøre dette",
+                        tiltakNAV = "-",
+                    )
+                    kafkaConsumer.mockPollConsumerRecords(
+                        recordValue = sykmelding,
+                        topic = topic,
+                    )
+
+                    kafkaSykmeldingConsumer.pollAndProcessRecords(
+                        kafkaConsumer = kafkaConsumer,
+                    )
+                    verify(exactly = 1) {
+                        kafkaConsumer.commitSync()
+                    }
+
+                    val personOppgaver = database.getPersonOppgaver(
+                        personIdent = PersonIdent(sykmelding.personNrPasient),
+                    ).map { it.toPersonOppgave() }
+                    personOppgaver.size shouldBeEqualTo 1
+                    personOppgaver.first().type shouldBeEqualTo PersonOppgaveType.BEHANDLER_BER_OM_BISTAND
+                }
+                it("Creates oppgave if meldingTilNAV has relevant text and andreTiltak has irrelevant text") {
+                    val sykmeldingId = UUID.randomUUID()
+                    val sykmelding = generateKafkaSykmelding(
+                        sykmeldingId = sykmeldingId,
+                        meldingTilNAV = MeldingTilNAV(
+                            bistandUmiddelbart = false,
+                            beskrivBistand = "Sjekk ut saken",
+                        ),
+                        andreTiltak = ".",
+                    )
+                    kafkaConsumer.mockPollConsumerRecords(
+                        recordValue = sykmelding,
+                        topic = topic,
+                    )
+
+                    kafkaSykmeldingConsumer.pollAndProcessRecords(
+                        kafkaConsumer = kafkaConsumer,
+                    )
+                    verify(exactly = 1) {
+                        kafkaConsumer.commitSync()
+                    }
+
+                    val personOppgaver = database.getPersonOppgaver(
+                        personIdent = PersonIdent(sykmelding.personNrPasient),
+                    ).map { it.toPersonOppgave() }
+                    personOppgaver.size shouldBeEqualTo 1
+                    personOppgaver.first().type shouldBeEqualTo PersonOppgaveType.BEHANDLER_BER_OM_BISTAND
+                }
+                it("Creates oppgave if tiltakNAV has relevant text and meldingTilNAV has irrelevant text") {
+                    val sykmeldingId = UUID.randomUUID()
+                    val sykmelding = generateKafkaSykmelding(
+                        sykmeldingId = sykmeldingId,
+                        meldingTilNAV = MeldingTilNAV(
+                            bistandUmiddelbart = false,
+                            beskrivBistand = "nei",
+                        ),
+                        tiltakNAV = "Jeg synes NAV skal gjøre dette",
+                    )
+                    kafkaConsumer.mockPollConsumerRecords(
+                        recordValue = sykmelding,
+                        topic = topic,
+                    )
+
+                    kafkaSykmeldingConsumer.pollAndProcessRecords(
+                        kafkaConsumer = kafkaConsumer,
+                    )
+                    verify(exactly = 1) {
+                        kafkaConsumer.commitSync()
+                    }
+
+                    val personOppgaver = database.getPersonOppgaver(
+                        personIdent = PersonIdent(sykmelding.personNrPasient),
+                    ).map { it.toPersonOppgave() }
+                    personOppgaver.size shouldBeEqualTo 1
+                    personOppgaver.first().type shouldBeEqualTo PersonOppgaveType.BEHANDLER_BER_OM_BISTAND
+                }
+                it("Does not create oppgave if meldingTilNAV has irrelevant text") {
+                    val sykmeldingId = UUID.randomUUID()
+                    val sykmelding = generateKafkaSykmelding(
+                        sykmeldingId = sykmeldingId,
+                        meldingTilNAV = MeldingTilNAV(
+                            bistandUmiddelbart = false,
+                            beskrivBistand = ".",
+                        ),
+                    )
+                    kafkaConsumer.mockPollConsumerRecords(
+                        recordValue = sykmelding,
+                        topic = topic,
+                    )
+
+                    kafkaSykmeldingConsumer.pollAndProcessRecords(
+                        kafkaConsumer = kafkaConsumer,
+                    )
+                    verify(exactly = 1) {
+                        kafkaConsumer.commitSync()
+                    }
+
+                    database.getPersonOppgaver(
+                        personIdent = PersonIdent(sykmelding.personNrPasient),
+                    ).shouldBeEmpty()
+                }
+                it("Does not create oppgave if tiltakNAV has irrelevant text") {
+                    val sykmeldingId = UUID.randomUUID()
+                    val sykmelding = generateKafkaSykmelding(
+                        sykmeldingId = sykmeldingId,
+                        meldingTilNAV = null,
+                        tiltakNAV = "-",
+                    )
+                    kafkaConsumer.mockPollConsumerRecords(
+                        recordValue = sykmelding,
+                        topic = topic,
+                    )
+
+                    kafkaSykmeldingConsumer.pollAndProcessRecords(
+                        kafkaConsumer = kafkaConsumer,
+                    )
+                    verify(exactly = 1) {
+                        kafkaConsumer.commitSync()
+                    }
+
+                    database.getPersonOppgaver(
+                        personIdent = PersonIdent(sykmelding.personNrPasient),
+                    ).shouldBeEmpty()
+                }
+                it("Does not create oppgave if andreTiltak has irrelevant text") {
+                    val sykmeldingId = UUID.randomUUID()
+                    val sykmelding = generateKafkaSykmelding(
+                        sykmeldingId = sykmeldingId,
+                        meldingTilNAV = null,
+                        tiltakNAV = "nei",
+                    )
+                    kafkaConsumer.mockPollConsumerRecords(
+                        recordValue = sykmelding,
+                        topic = topic,
+                    )
+
+                    kafkaSykmeldingConsumer.pollAndProcessRecords(
+                        kafkaConsumer = kafkaConsumer,
+                    )
+                    verify(exactly = 1) {
+                        kafkaConsumer.commitSync()
+                    }
+
+                    database.getPersonOppgaver(
+                        personIdent = PersonIdent(sykmelding.personNrPasient),
+                    ).shouldBeEmpty()
                 }
                 it("Does not create oppgave if meldingTilNAV, tiltakNAV, and andreTiltak is null") {
                     val sykmeldingId = UUID.randomUUID()
