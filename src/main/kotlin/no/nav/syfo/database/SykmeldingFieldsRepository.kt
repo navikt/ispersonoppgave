@@ -1,6 +1,7 @@
 package no.nav.syfo.database
 
 import no.nav.syfo.domain.PersonIdent
+import java.security.MessageDigest
 import java.sql.Connection
 import java.sql.SQLException
 import java.time.OffsetDateTime
@@ -20,9 +21,9 @@ class SykmeldingFieldsRepository() {
             it.setString(1, referanseUUID.toString())
             it.setObject(2, OffsetDateTime.now())
             it.setString(3, personident.value)
-            it.setString(4, tiltakNav ?: "")
-            it.setString(5, tiltakAndre ?: "")
-            it.setString(6, bistand ?: "")
+            it.setString(4, tiltakNav?.md5() ?: "")
+            it.setString(5, tiltakAndre?.md5() ?: "")
+            it.setString(6, bistand?.md5() ?: "")
             it.executeQuery().toList { getInt("id") }
         }
 
@@ -39,10 +40,17 @@ class SykmeldingFieldsRepository() {
         connection: Connection,
     ) = connection.prepareStatement(FIND_EXISTING_FROM_SYKMELDING_FIELDS).use {
         it.setString(1, personident.value)
-        it.setString(2, tiltakNav ?: "")
-        it.setString(3, tiltakAndre ?: "")
-        it.setString(4, bistand ?: "")
+        it.setString(2, tiltakNav?.md5() ?: "")
+        it.setString(3, tiltakAndre?.md5() ?: "")
+        it.setString(4, bistand?.md5() ?: "")
         it.executeQuery().toList { getInt("id") }.isNotEmpty()
+    }
+
+    @OptIn(ExperimentalStdlibApi::class)
+    private fun String.md5(): String {
+        val md = MessageDigest.getInstance("MD5")
+        val digest = md.digest(this.toByteArray())
+        return digest.toHexString()
     }
 
     companion object {
