@@ -5,6 +5,7 @@ import no.nav.syfo.metric.*
 
 const val MOTTATT_SYKMELDING = "${METRICS_NS}_mottatt_sykmelding_count"
 const val MOTTATT_SYKMELDING_CREATED_PERSONOPPGAVE = "${METRICS_NS}_mottatt_sykmelding_personoppgave_count"
+const val MOTTATT_SYKMELDING_DUPLICATE = "${METRICS_NS}_mottatt_sykmelding_duplikat_count"
 const val MOTTATT_SYKMELDING_SKIPPED_IRRELEVANT_TEXT = "${METRICS_NS}_mottatt_sykmelding_skipped_personoppgave_irrelevant_count"
 const val MOTTATT_SYKMELDING_SHORT_TEXT = "${METRICS_NS}_mottatt_sykmelding_personoppgave_short_text_count"
 
@@ -16,6 +17,11 @@ val COUNT_MOTTATT_SYKMELDING: Counter = Counter
 val COUNT_MOTTATT_SYKMELDING_SUCCESS: Counter = Counter
     .builder(MOTTATT_SYKMELDING_CREATED_PERSONOPPGAVE)
     .description("Counts the number of received sykmelding that created personoppgave")
+    .register(METRICS_REGISTRY)
+
+val COUNT_MOTTATT_SYKMELDING_DUPLICATE: Counter = Counter
+    .builder(MOTTATT_SYKMELDING_DUPLICATE)
+    .description("Counts the number of received sykmelding that had duplicate fields")
     .register(METRICS_REGISTRY)
 
 val COUNT_MOTTATT_SYKMELDING_SKIPPED_IRRELEVANT_TEXT: Counter = Counter
