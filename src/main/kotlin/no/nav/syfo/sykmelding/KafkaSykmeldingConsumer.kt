@@ -117,14 +117,14 @@ class KafkaSykmeldingConsumer(
         val arbeidstakerPersonident = PersonIdent(receivedSykmeldingDTO.personNrPasient)
         val hasExistingUbehandlet = connection.getPersonOppgaverByReferanseUuid(referanseUuid)
             .any { it.behandletTidspunkt == null }
-        val hasExistingDuplicate = sykmeldingFieldsRepository.findExistingPersonoppgaveFromSykmeldingFields(
+        val existingDuplicateUuid = sykmeldingFieldsRepository.findExistingPersonoppgaveFromSykmeldingFields(
             personident = arbeidstakerPersonident,
             tiltakNav = receivedSykmeldingDTO.sykmelding.tiltakNAV,
             tiltakAndre = receivedSykmeldingDTO.sykmelding.andreTiltak,
             bistand = receivedSykmeldingDTO.sykmelding.meldingTilNAV?.beskrivBistand,
             connection = connection,
-        )
-        if (!hasExistingUbehandlet && !hasExistingDuplicate) {
+        ).firstOrNull()
+        if (!hasExistingUbehandlet && existingDuplicateUuid == null) {
             val personOppgave = PersonOppgave(
                 referanseUuid = referanseUuid,
                 personIdent = arbeidstakerPersonident,
@@ -144,7 +144,8 @@ class KafkaSykmeldingConsumer(
                 connection = connection,
             )
             COUNT_MOTTATT_SYKMELDING_SUCCESS.increment()
-        } else if (hasExistingDuplicate) {
+        } else if (existingDuplicateUuid != null) {
+            log.info("Received sykmelding with duplicate fields: $existingDuplicateUuid")
             COUNT_MOTTATT_SYKMELDING_DUPLICATE.increment()
         }
     }

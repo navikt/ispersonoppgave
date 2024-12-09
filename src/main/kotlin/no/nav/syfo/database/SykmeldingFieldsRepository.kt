@@ -43,7 +43,7 @@ class SykmeldingFieldsRepository() {
         it.setString(2, tiltakNav?.md5() ?: "")
         it.setString(3, tiltakAndre?.md5() ?: "")
         it.setString(4, bistand?.md5() ?: "")
-        it.executeQuery().toList { getInt("id") }.isNotEmpty()
+        it.executeQuery().toList { getString("referanse_uuid") }
     }
 
     @OptIn(ExperimentalStdlibApi::class)
@@ -69,7 +69,7 @@ class SykmeldingFieldsRepository() {
 
         private const val FIND_EXISTING_FROM_SYKMELDING_FIELDS =
             """
-                SELECT id FROM SYKMELDING WHERE 
+                SELECT referanse_uuid FROM SYKMELDING WHERE 
                 personident = ? AND
                 tiltak_nav = ? AND
                 tiltak_andre = ? AND
