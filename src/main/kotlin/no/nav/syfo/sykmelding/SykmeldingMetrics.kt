@@ -6,9 +6,6 @@ import no.nav.syfo.metric.*
 const val MOTTATT_SYKMELDING = "${METRICS_NS}_mottatt_sykmelding_count"
 const val MOTTATT_SYKMELDING_CREATED_PERSONOPPGAVE = "${METRICS_NS}_mottatt_sykmelding_personoppgave_count"
 const val MOTTATT_SYKMELDING_DUPLICATE = "${METRICS_NS}_mottatt_sykmelding_duplikat_count"
-const val MOTTATT_SYKMELDING_BESKRIV_BISTAND_NAV_IRRELEVANT = "${METRICS_NS}_mottatt_sykmelding_beskriv_bistand_nav_irrelevant_count"
-const val MOTTATT_SYKMELDING_TILTAK_NAV_IRRELEVANT = "${METRICS_NS}_mottatt_sykmelding_tiltak_nav_irrelevant_count"
-const val MOTTATT_SYKMELDING_ANDRE_TILTAK_IRRELEVANT = "${METRICS_NS}_mottatt_sykmelding_andre_tiltak_irrelevant_count"
 const val MOTTATT_SYKMELDING_SKIPPED_IRRELEVANT_TEXT = "${METRICS_NS}_mottatt_sykmelding_skipped_personoppgave_irrelevant_count"
 const val MOTTATT_SYKMELDING_SHORT_TEXT = "${METRICS_NS}_mottatt_sykmelding_personoppgave_short_text_count"
 
