@@ -66,17 +66,3 @@ val COUNT_PERSONOPPGAVEHENDELSE_AVVIST_MELDING_MOTTATT: Counter =
     Counter.builder(PERSONOPPGAVEHENDELSE_AVVIST_MELDING_MOTTATT)
         .description("Counts the number of personoppgavehendelse with PersonoppgavehendelseType BEHANDLERDIALOG_MELDING_AVVIST_MOTTATT created from a KMeldingDTO")
         .register(METRICS_REGISTRY)
-
-const val AKTIVITETSKRAV_EXPIRED_VARSEL_PERSON_OPPGAVE_CREATED =
-    "${METRICS_NS}_aktivitetskrav_expired_varsel_person_oppgave_created_count"
-val COUNT_AKTIVITETSKRAV_EXPIRED_VARSEL_PERSON_OPPGAVE_CREATED: Counter =
-    Counter.builder(AKTIVITETSKRAV_EXPIRED_VARSEL_PERSON_OPPGAVE_CREATED)
-        .description("Counts the number of personoppgaver created from aktivitetkrav expired varsel")
-        .register(METRICS_REGISTRY)
-
-const val PERSONOPPGAVE_UPDATED_FROM_AKTIVITETSKRAV_VURDERING =
-    "${METRICS_NS}_aktivitetskrav_vurdering_mottatt_count"
-val COUNT_PERSONOPPGAVE_UPDATED_FROM_AKTIVITETSKRAV_VURDERING: Counter =
-    Counter.builder(PERSONOPPGAVE_UPDATED_FROM_AKTIVITETSKRAV_VURDERING)
-        .description("Counts the number of personoppgaver updated from incoming aktivitetskrav vurderinger")
-        .register(METRICS_REGISTRY)

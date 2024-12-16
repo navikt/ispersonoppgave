@@ -61,14 +61,22 @@ fun main() {
     )
     lateinit var personOppgaveService: PersonOppgaveService
 
-    val applicationEngineEnvironment = applicationEngineEnvironment {
+    val applicationEngineEnvironment = applicationEnvironment {
         log = LoggerFactory.getLogger("ktor.application")
         config = HoconApplicationConfig(ConfigFactory.load())
-        connector {
-            port = applicationPort
-        }
-
-        module {
+    }
+    val server = embeddedServer(
+        factory = Netty,
+        environment = applicationEngineEnvironment,
+        configure = {
+            connector {
+                port = applicationPort
+            }
+            connectionGroupSize = 8
+            workerGroupSize = 8
+            callGroupSize = 16
+        },
+        module = {
             databaseModule(
                 environment = environment,
             )
@@ -95,37 +103,23 @@ fun main() {
                 personoppgavehendelseProducer = personoppgavehendelseProducer,
                 personOppgaveRepository = personoppgaveRepository,
             )
+            monitor.subscribe(ApplicationStarted) {
+                applicationState.ready = true
+                log.info("Application is ready, running Java VM ${Runtime.version()}")
+                launchKafkaTasks(
+                    applicationState = applicationState,
+                    database = database,
+                    environment = environment,
+                    personoppgavehendelseProducer = personoppgavehendelseProducer,
+                    pdlClient = pdlClient,
+                )
+            }
         }
-    }
-
-    applicationEngineEnvironment.monitor.subscribe(ApplicationStarted) { application ->
-        applicationState.ready = true
-        application.environment.log.info("Application is ready, running Java VM ${Runtime.version()}")
-        launchKafkaTasks(
-            applicationState = applicationState,
-            database = database,
-            environment = environment,
-            personoppgavehendelseProducer = personoppgavehendelseProducer,
-            pdlClient = pdlClient,
-        )
-    }
-
-    val server = embeddedServer(
-        factory = Netty,
-        environment = applicationEngineEnvironment,
-    ) {
-        connectionGroupSize = 8
-        workerGroupSize = 8
-        callGroupSize = 16
-    }
+    )
 
     Runtime.getRuntime().addShutdownHook(
         Thread {
-            server.stop(
-                gracePeriod = 10,
-                timeout = 10,
-                timeUnit = TimeUnit.SECONDS,
-            )
+            server.stop(10, 10, timeUnit = TimeUnit.SECONDS)
         }
     )
 
