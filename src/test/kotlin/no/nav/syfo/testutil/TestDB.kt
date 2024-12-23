@@ -16,6 +16,7 @@ import no.nav.syfo.util.toOffsetDateTimeUTC
 import org.flywaydb.core.Flyway
 import java.sql.*
 import java.time.Instant
+import java.time.OffsetDateTime
 import java.util.*
 
 class TestDB : DatabaseInterface {
@@ -58,6 +59,9 @@ fun DatabaseInterface.dropData() {
         """.trimIndent(),
         """
         DELETE FROM DIALOGMOTE_STATUSENDRING
+        """.trimIndent(),
+        """
+        DELETE FROM SYKMELDING 
         """.trimIndent(),
     )
     this.connection.use { connection ->
@@ -162,3 +166,21 @@ const val queryCreatePersonOppgave =
         sist_endret, 
         publish) VALUES (DEFAULT, ?, ?, ?, ?, ?, ?, ?, ?) RETURNING id
     """
+
+fun DatabaseInterface.getDuplicateCount(sykmeldingId: UUID) =
+    connection.use {
+        it.prepareStatement("SELECT duplicate_count FROM sykmelding WHERE referanse_uuid=?").use {
+            it.setString(1, sykmeldingId.toString())
+            it.executeQuery().toList { getInt(1) }.firstOrNull()
+        }
+    }
+
+fun DatabaseInterface.updateCreatedAt(sykmeldingId: UUID, newCreatedAt: OffsetDateTime) =
+    connection.use {
+        it.prepareStatement("UPDATE sykmelding SET created_at=? WHERE referanse_uuid=?").use {
+            it.setObject(1, newCreatedAt)
+            it.setString(2, sykmeldingId.toString())
+            it.executeUpdate()
+        }
+        it.commit()
+    }

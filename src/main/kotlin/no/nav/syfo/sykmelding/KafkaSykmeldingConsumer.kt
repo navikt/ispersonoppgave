@@ -4,6 +4,7 @@ import no.nav.syfo.ApplicationState
 import no.nav.syfo.Environment
 import no.nav.syfo.database.DatabaseInterface
 import no.nav.syfo.database.PersonOppgaveRepository
+import no.nav.syfo.database.SykmeldingFieldsRepository
 import no.nav.syfo.domain.*
 import no.nav.syfo.kafka.KafkaConsumerService
 import no.nav.syfo.kafka.kafkaAivenConsumerConfig
@@ -36,7 +37,7 @@ fun launchKafkaTaskSykmelding(
         applicationState = applicationState,
         kafkaConsumerService = KafkaSykmeldingConsumer(
             database = database,
-            personOppgaveRepository = personOppgaveRepository
+            personOppgaveRepository = personOppgaveRepository,
         ),
         consumerProperties = consumerProperties,
         topics = listOf(SYKMELDING_TOPIC, MANUELL_SYKMELDING_TOPIC),
@@ -49,6 +50,7 @@ class KafkaSykmeldingConsumer(
 ) : KafkaConsumerService<ReceivedSykmeldingDTO> {
 
     override val pollDurationInMillis: Long = 1000
+    private val sykmeldingFieldsRepository = SykmeldingFieldsRepository()
 
     override fun pollAndProcessRecords(
         kafkaConsumer: KafkaConsumer<String, ReceivedSykmeldingDTO>,
@@ -115,7 +117,14 @@ class KafkaSykmeldingConsumer(
         val arbeidstakerPersonident = PersonIdent(receivedSykmeldingDTO.personNrPasient)
         val hasExistingUbehandlet = connection.getPersonOppgaverByReferanseUuid(referanseUuid)
             .any { it.behandletTidspunkt == null }
-        if (!hasExistingUbehandlet) {
+        val existingDuplicateUuid = sykmeldingFieldsRepository.findExistingPersonoppgaveFromSykmeldingFields(
+            personident = arbeidstakerPersonident,
+            tiltakNav = receivedSykmeldingDTO.sykmelding.tiltakNAV,
+            tiltakAndre = receivedSykmeldingDTO.sykmelding.andreTiltak,
+            bistand = receivedSykmeldingDTO.sykmelding.meldingTilNAV?.beskrivBistand,
+            connection = connection,
+        ).firstOrNull()
+        if (!hasExistingUbehandlet && existingDuplicateUuid == null) {
             val personOppgave = PersonOppgave(
                 referanseUuid = referanseUuid,
                 personIdent = arbeidstakerPersonident,
@@ -126,10 +135,22 @@ class KafkaSykmeldingConsumer(
                 personOppgave = personOppgave,
                 connection = connection
             )
-            val tiltakNav = !receivedSykmeldingDTO.sykmelding.tiltakNAV.isNullOrEmpty()
-            val tiltakAndre = !receivedSykmeldingDTO.sykmelding.andreTiltak.isNullOrEmpty()
-            log.info("Created personoppgave ${personOppgave.uuid} from sykmelding with tiltakNav=$tiltakNav and tiltakAndre=$tiltakAndre")
+            sykmeldingFieldsRepository.createPersonoppgaveSykmeldingFields(
+                referanseUUID = referanseUuid,
+                personident = arbeidstakerPersonident,
+                tiltakNav = receivedSykmeldingDTO.sykmelding.tiltakNAV,
+                tiltakAndre = receivedSykmeldingDTO.sykmelding.andreTiltak,
+                bistand = receivedSykmeldingDTO.sykmelding.meldingTilNAV?.beskrivBistand,
+                connection = connection,
+            )
             COUNT_MOTTATT_SYKMELDING_SUCCESS.increment()
+        } else if (existingDuplicateUuid != null) {
+            log.info("Received sykmelding with duplicate fields: $existingDuplicateUuid")
+            sykmeldingFieldsRepository.incrementDuplicateCount(
+                referanseUUID = UUID.fromString(existingDuplicateUuid),
+                connection = connection,
+            )
+            COUNT_MOTTATT_SYKMELDING_DUPLICATE.increment()
         }
     }
 
