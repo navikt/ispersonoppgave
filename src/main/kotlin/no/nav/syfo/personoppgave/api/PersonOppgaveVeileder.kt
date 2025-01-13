@@ -12,5 +12,5 @@ data class PersonOppgaveVeileder(
     val behandletTidspunkt: LocalDateTime?,
     val behandletVeilederIdent: String?,
     val opprettet: LocalDateTime,
-    val duplicateUUID: UUID?,
+    val duplikatReferanseUuid: UUID?,
 )

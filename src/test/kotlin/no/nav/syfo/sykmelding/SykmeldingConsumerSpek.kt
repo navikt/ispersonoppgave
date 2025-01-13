@@ -170,7 +170,44 @@ class SykmeldingConsumerSpek : Spek({
                 latestPersonoppgave!!.duplikatReferanseUuid shouldBeEqualTo referanseUUID
                 database.getDuplicateCount(referanseUUID) shouldBeEqualTo 1
             }
-            it("Creates oppgave if andreTiltak has text and duplicate from previous old sykmelding") {
+            it("Does not mark as duplicate if one text is different") {
+                val referanseUUID = UUID.randomUUID()
+                val sykmelding = generateKafkaSykmelding(
+                    sykmeldingId = referanseUUID,
+                    meldingTilNAV = null,
+                    andreTiltak = "Jeg synes NAV skal gjøre dette",
+                )
+                kafkaConsumer.mockPollConsumerRecords(
+                    recordValue = sykmelding,
+                    topic = topic,
+                )
+                kafkaSykmeldingConsumer.pollAndProcessRecords(
+                    kafkaConsumer = kafkaConsumer,
+                )
+
+                val sykmeldingNext = generateKafkaSykmelding(
+                    sykmeldingId = UUID.randomUUID(),
+                    meldingTilNAV = MeldingTilNAV(true, "Bistand!"),
+                    andreTiltak = "Jeg synes NAV skal gjøre dette",
+                )
+                kafkaConsumer.mockPollConsumerRecords(
+                    recordValue = sykmeldingNext,
+                    topic = topic,
+                )
+                kafkaSykmeldingConsumer.pollAndProcessRecords(
+                    kafkaConsumer = kafkaConsumer,
+                )
+                val personoppgaver = database.getPersonOppgaver(
+                    personIdent = PersonIdent(sykmelding.personNrPasient),
+                )
+                personoppgaver.size shouldBeEqualTo 2
+                val latestPersonoppgave = personoppgaver.find {
+                    it.referanseUuid.toString() == sykmeldingNext.sykmelding.id
+                }
+                latestPersonoppgave!!.duplikatReferanseUuid shouldBeEqualTo null
+                database.getDuplicateCount(referanseUUID) shouldBeEqualTo 0
+            }
+            it("Creates oppgave if andreTiltak has text and duplicate from previous sykmelding more than 6 months old") {
                 val referanseUUID = UUID.randomUUID()
                 val sykmelding = generateKafkaSykmelding(
                     sykmeldingId = referanseUUID,
@@ -198,9 +235,11 @@ class SykmeldingConsumerSpek : Spek({
                 kafkaSykmeldingConsumer.pollAndProcessRecords(
                     kafkaConsumer = kafkaConsumer,
                 )
-                database.getPersonOppgaver(
+                val personoppgaver = database.getPersonOppgaver(
                     personIdent = PersonIdent(sykmelding.personNrPasient),
-                ).size shouldBeEqualTo 2
+                )
+                personoppgaver.size shouldBeEqualTo 2
+                personoppgaver.any { it.duplikatReferanseUuid != null } shouldBe false
             }
             it("creates one oppgave if more than one relevant field has text") {
                 val sykmeldingId = UUID.randomUUID()

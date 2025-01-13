@@ -57,7 +57,7 @@ fun PersonOppgave.toPersonOppgaveVeileder(): PersonOppgaveVeileder {
         behandletTidspunkt = this.behandletTidspunkt,
         behandletVeilederIdent = this.behandletVeilederIdent,
         opprettet = this.opprettet,
-        duplicateUUID = this.duplikatReferanseUuid,
+        duplikatReferanseUuid = this.duplikatReferanseUuid,
     )
 }
 
