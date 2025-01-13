@@ -117,40 +117,42 @@ class KafkaSykmeldingConsumer(
         val arbeidstakerPersonident = PersonIdent(receivedSykmeldingDTO.personNrPasient)
         val hasExistingUbehandlet = connection.getPersonOppgaverByReferanseUuid(referanseUuid)
             .any { it.behandletTidspunkt == null }
-        val existingDuplicateUuid = sykmeldingFieldsRepository.findExistingPersonoppgaveFromSykmeldingFields(
+        val existingDuplicate = sykmeldingFieldsRepository.findExistingPersonoppgaveFromSykmeldingFields(
             personident = arbeidstakerPersonident,
             tiltakNav = receivedSykmeldingDTO.sykmelding.tiltakNAV,
             tiltakAndre = receivedSykmeldingDTO.sykmelding.andreTiltak,
             bistand = receivedSykmeldingDTO.sykmelding.meldingTilNAV?.beskrivBistand,
             connection = connection,
         ).firstOrNull()
-        if (!hasExistingUbehandlet && existingDuplicateUuid == null) {
+        if (!hasExistingUbehandlet) {
             val personOppgave = PersonOppgave(
                 referanseUuid = referanseUuid,
                 personIdent = arbeidstakerPersonident,
                 type = PersonOppgaveType.BEHANDLER_BER_OM_BISTAND,
                 publish = true,
+                duplikatReferanseUuid = existingDuplicate?.let { UUID.fromString(existingDuplicate.second) },
             )
-            personOppgaveRepository.createPersonoppgave(
+            val id = personOppgaveRepository.createPersonoppgave(
                 personOppgave = personOppgave,
                 connection = connection
             )
-            sykmeldingFieldsRepository.createPersonoppgaveSykmeldingFields(
-                referanseUUID = referanseUuid,
-                personident = arbeidstakerPersonident,
-                tiltakNav = receivedSykmeldingDTO.sykmelding.tiltakNAV,
-                tiltakAndre = receivedSykmeldingDTO.sykmelding.andreTiltak,
-                bistand = receivedSykmeldingDTO.sykmelding.meldingTilNAV?.beskrivBistand,
-                connection = connection,
-            )
             COUNT_MOTTATT_SYKMELDING_SUCCESS.increment()
-        } else if (existingDuplicateUuid != null) {
-            log.info("Received sykmelding with duplicate fields: $existingDuplicateUuid")
-            sykmeldingFieldsRepository.incrementDuplicateCount(
-                referanseUUID = UUID.fromString(existingDuplicateUuid),
-                connection = connection,
-            )
-            COUNT_MOTTATT_SYKMELDING_DUPLICATE.increment()
+            if (existingDuplicate != null) {
+                log.info("Received sykmelding with duplicate fields: ${existingDuplicate.second}")
+                sykmeldingFieldsRepository.incrementDuplicateCount(
+                    personoppgaveId = existingDuplicate.first,
+                    connection = connection,
+                )
+                COUNT_MOTTATT_SYKMELDING_DUPLICATE.increment()
+            } else {
+                sykmeldingFieldsRepository.createPersonoppgaveSykmeldingFields(
+                    personoppgaveId = id,
+                    tiltakNav = receivedSykmeldingDTO.sykmelding.tiltakNAV,
+                    tiltakAndre = receivedSykmeldingDTO.sykmelding.andreTiltak,
+                    bistand = receivedSykmeldingDTO.sykmelding.meldingTilNAV?.beskrivBistand,
+                    connection = connection,
+                )
+            }
         }
     }
 

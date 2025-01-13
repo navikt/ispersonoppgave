@@ -21,12 +21,12 @@ class PersonOppgaveRepository(private val database: DatabaseInterface) {
             it.getUbehandledePersonOppgaver(personIdent = personIdent, type = type)
         }
 
-    fun createPersonoppgave(personOppgave: PersonOppgave, connection: Connection? = null) {
-        connection?.createPersonoppgave(personOppgave) ?: database.connection.use {
-            it.createPersonoppgave(personOppgave)
-            it.commit()
+    fun createPersonoppgave(personOppgave: PersonOppgave, connection: Connection? = null): Int =
+        connection?.createPersonoppgave(personOppgave) ?: database.connection.use { connection ->
+            connection.createPersonoppgave(personOppgave).also {
+                connection.commit()
+            }
         }
-    }
 
     fun updatePersonoppgaveBehandlet(personOppgave: PersonOppgave, connection: Connection? = null) {
         connection?.updatePersonoppgaveBehandlet(personOppgave) ?: database.connection.use {
@@ -52,7 +52,7 @@ class PersonOppgaveRepository(private val database: DatabaseInterface) {
         }
     }
 
-    private fun Connection.createPersonoppgave(personOppgave: PersonOppgave) {
+    private fun Connection.createPersonoppgave(personOppgave: PersonOppgave): Int {
         val personIdList = prepareStatement(CREATE_PERSONOPPGAVE).use {
             it.setString(1, personOppgave.uuid.toString())
             it.setString(2, personOppgave.referanseUuid.toString())
@@ -62,12 +62,14 @@ class PersonOppgaveRepository(private val database: DatabaseInterface) {
             it.setTimestamp(6, personOppgave.opprettet.toTimestamp())
             it.setTimestamp(7, personOppgave.sistEndret.toTimestamp())
             it.setBoolean(8, personOppgave.publish)
+            it.setString(9, personOppgave.duplikatReferanseUuid?.toString())
             it.executeQuery().toList { getInt("id") }
         }
 
         if (personIdList.size != 1) {
             throw SQLException("Creating personopppgave failed, no rows affected.")
         }
+        return personIdList.first()
     }
 
     private fun Connection.getUbehandledePersonOppgaver(personIdent: PersonIdent, type: PersonOppgaveType): List<PersonOppgave> = prepareStatement(
@@ -100,8 +102,9 @@ class PersonOppgaveRepository(private val database: DatabaseInterface) {
                 type,
                 opprettet,
                 sist_endret, 
-                publish) 
-                VALUES (DEFAULT, ?, ?, ?, ?, ?, ?, ?, ?) RETURNING id
+                publish,
+                duplikat_referanse_uuid) 
+                VALUES (DEFAULT, ?, ?, ?, ?, ?, ?, ?, ?, ?) RETURNING id
             """
 
         private const val UPDATE_PERSONOPPGAVE_BEHANDLET =

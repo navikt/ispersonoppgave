@@ -169,7 +169,7 @@ const val queryCreatePersonOppgave =
 
 fun DatabaseInterface.getDuplicateCount(sykmeldingId: UUID) =
     connection.use {
-        it.prepareStatement("SELECT duplicate_count FROM sykmelding WHERE referanse_uuid=?").use {
+        it.prepareStatement("SELECT s.duplicate_count FROM sykmelding s INNER JOIN person_oppgave p ON (s.personoppgave_id=p.id) WHERE p.referanse_uuid=?").use {
             it.setString(1, sykmeldingId.toString())
             it.executeQuery().toList { getInt(1) }.firstOrNull()
         }
@@ -177,9 +177,13 @@ fun DatabaseInterface.getDuplicateCount(sykmeldingId: UUID) =
 
 fun DatabaseInterface.updateCreatedAt(sykmeldingId: UUID, newCreatedAt: OffsetDateTime) =
     connection.use {
-        it.prepareStatement("UPDATE sykmelding SET created_at=? WHERE referanse_uuid=?").use {
+        val personoppgaveId = it.prepareStatement("SELECT id FROM PERSON_OPPGAVE WHERE referanse_uuid=?").use {
+            it.setString(1, sykmeldingId.toString())
+            it.executeQuery().toList { getInt("id") }
+        }.first()
+        it.prepareStatement("UPDATE sykmelding SET created_at=? WHERE personoppgave_id=?").use {
             it.setObject(1, newCreatedAt)
-            it.setString(2, sykmeldingId.toString())
+            it.setInt(2, personoppgaveId)
             it.executeUpdate()
         }
         it.commit()

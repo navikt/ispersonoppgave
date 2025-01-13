@@ -19,6 +19,7 @@ data class PPersonOppgave(
     val sistEndret: LocalDateTime,
     val publish: Boolean,
     val publishedAt: OffsetDateTime?,
+    val duplikatReferanseUuid: UUID?,
 )
 
 fun PPersonOppgave.toPersonOppgave(): PersonOppgave {
@@ -35,6 +36,7 @@ fun PPersonOppgave.toPersonOppgave(): PersonOppgave {
         sistEndret = this.sistEndret,
         publish = this.publish,
         publishedAt = this.publishedAt,
+        duplikatReferanseUuid = this.duplikatReferanseUuid,
     )
 }
 
