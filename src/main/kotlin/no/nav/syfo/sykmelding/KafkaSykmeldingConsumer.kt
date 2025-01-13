@@ -114,17 +114,17 @@ class KafkaSykmeldingConsumer(
         receivedSykmeldingDTO: ReceivedSykmeldingDTO,
     ) {
         val referanseUuid = UUID.fromString(receivedSykmeldingDTO.sykmelding.id)
-        val arbeidstakerPersonident = PersonIdent(receivedSykmeldingDTO.personNrPasient)
         val hasExistingUbehandlet = connection.getPersonOppgaverByReferanseUuid(referanseUuid)
             .any { it.behandletTidspunkt == null }
-        val existingDuplicate = sykmeldingFieldsRepository.findExistingPersonoppgaveFromSykmeldingFields(
-            personident = arbeidstakerPersonident,
-            tiltakNav = receivedSykmeldingDTO.sykmelding.tiltakNAV,
-            tiltakAndre = receivedSykmeldingDTO.sykmelding.andreTiltak,
-            bistand = receivedSykmeldingDTO.sykmelding.meldingTilNAV?.beskrivBistand,
-            connection = connection,
-        ).firstOrNull()
         if (!hasExistingUbehandlet) {
+            val arbeidstakerPersonident = PersonIdent(receivedSykmeldingDTO.personNrPasient)
+            val existingDuplicate = sykmeldingFieldsRepository.findExistingPersonoppgaveFromSykmeldingFields(
+                personident = arbeidstakerPersonident,
+                tiltakNav = receivedSykmeldingDTO.sykmelding.tiltakNAV,
+                tiltakAndre = receivedSykmeldingDTO.sykmelding.andreTiltak,
+                bistand = receivedSykmeldingDTO.sykmelding.meldingTilNAV?.beskrivBistand,
+                connection = connection,
+            ).firstOrNull()
             val personOppgave = PersonOppgave(
                 referanseUuid = referanseUuid,
                 personIdent = arbeidstakerPersonident,
