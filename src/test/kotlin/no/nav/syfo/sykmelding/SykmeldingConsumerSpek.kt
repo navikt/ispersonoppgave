@@ -21,7 +21,6 @@ import org.amshove.kluent.shouldBeEqualTo
 import org.apache.kafka.clients.consumer.KafkaConsumer
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
-import java.time.OffsetDateTime
 import java.util.*
 
 class SykmeldingConsumerSpek : Spek({
