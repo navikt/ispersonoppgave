@@ -1,4 +1,4 @@
-CREATE TABLE sykmelding (
+CREATE TABLE sykmelding_personoppgave (
     id                    SERIAL         PRIMARY KEY,
     created_at            TIMESTAMPTZ    NOT NULL,
     personoppgave_id      INTEGER NOT NULL REFERENCES PERSON_OPPGAVE (id) ON DELETE CASCADE,
@@ -8,4 +8,4 @@ CREATE TABLE sykmelding (
     duplicate_count       INT            NOT NULL
 );
 
-CREATE INDEX ix_sykmelding_personoppgave_id ON sykmelding(personoppgave_id);
+CREATE INDEX ix_sykmelding_personoppgave_id ON sykmelding_personoppgave(personoppgave_id);

@@ -67,7 +67,7 @@ class SykmeldingFieldsRepository() {
     companion object {
         private const val CREATE_SYKMELDING_FIELDS =
             """
-                INSERT INTO SYKMELDING (
+                INSERT INTO SYKMELDING_PERSONOPPGAVE (
                 id,
                 personoppgave_id,
                 created_at,
@@ -80,7 +80,7 @@ class SykmeldingFieldsRepository() {
 
         private const val FIND_EXISTING_FROM_SYKMELDING_FIELDS =
             """
-                SELECT p.id,p.referanse_uuid FROM SYKMELDING s INNER JOIN PERSON_OPPGAVE p ON (s.personoppgave_id=p.id) WHERE 
+                SELECT p.id,p.referanse_uuid FROM SYKMELDING_PERSONOPPGAVE s INNER JOIN PERSON_OPPGAVE p ON (s.personoppgave_id=p.id) WHERE 
                 s.created_at > ? AND
                 p.fnr = ? AND
                 s.tiltak_nav = ? AND
@@ -90,7 +90,7 @@ class SykmeldingFieldsRepository() {
 
         private const val INCREMENT_DUPLICATE_COUNT =
             """
-                UPDATE SYKMELDING SET duplicate_count = duplicate_count+1 WHERE personoppgave_id = ?
+                UPDATE SYKMELDING_PERSONOPPGAVE SET duplicate_count = duplicate_count+1 WHERE personoppgave_id = ?
             """
     }
 }

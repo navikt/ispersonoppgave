@@ -61,7 +61,7 @@ fun DatabaseInterface.dropData() {
         DELETE FROM DIALOGMOTE_STATUSENDRING
         """.trimIndent(),
         """
-        DELETE FROM SYKMELDING 
+        DELETE FROM SYKMELDING_PERSONOPPGAVE 
         """.trimIndent(),
     )
     this.connection.use { connection ->
@@ -169,7 +169,7 @@ const val queryCreatePersonOppgave =
 
 fun DatabaseInterface.getDuplicateCount(sykmeldingId: UUID) =
     connection.use {
-        it.prepareStatement("SELECT s.duplicate_count FROM sykmelding s INNER JOIN person_oppgave p ON (s.personoppgave_id=p.id) WHERE p.referanse_uuid=?").use {
+        it.prepareStatement("SELECT s.duplicate_count FROM sykmelding_personoppgave s INNER JOIN person_oppgave p ON (s.personoppgave_id=p.id) WHERE p.referanse_uuid=?").use {
             it.setString(1, sykmeldingId.toString())
             it.executeQuery().toList { getInt(1) }.firstOrNull()
         }
@@ -181,7 +181,7 @@ fun DatabaseInterface.updateCreatedAt(sykmeldingId: UUID, newCreatedAt: OffsetDa
             it.setString(1, sykmeldingId.toString())
             it.executeQuery().toList { getInt("id") }
         }.first()
-        it.prepareStatement("UPDATE sykmelding SET created_at=? WHERE personoppgave_id=?").use {
+        it.prepareStatement("UPDATE sykmelding_personoppgave SET created_at=? WHERE personoppgave_id=?").use {
             it.setObject(1, newCreatedAt)
             it.setInt(2, personoppgaveId)
             it.executeUpdate()
