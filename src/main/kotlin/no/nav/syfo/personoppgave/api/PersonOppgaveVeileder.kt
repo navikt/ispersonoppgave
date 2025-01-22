@@ -1,6 +1,7 @@
 package no.nav.syfo.personoppgave.api
 
 import java.time.LocalDateTime
+import java.util.UUID
 
 data class PersonOppgaveVeileder(
     val uuid: String,
@@ -11,4 +12,5 @@ data class PersonOppgaveVeileder(
     val behandletTidspunkt: LocalDateTime?,
     val behandletVeilederIdent: String?,
     val opprettet: LocalDateTime,
+    val duplikatReferanseUuid: UUID?,
 )

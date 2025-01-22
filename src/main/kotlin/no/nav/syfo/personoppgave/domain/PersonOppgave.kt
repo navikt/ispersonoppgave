@@ -22,12 +22,14 @@ data class PersonOppgave(
     val sistEndret: LocalDateTime, // Referansetidspunkt til når hendelsen som sist endret oppgaven skjedde
     val publish: Boolean,
     val publishedAt: OffsetDateTime?,
+    val duplikatReferanseUuid: UUID?,
 ) {
     constructor(
         referanseUuid: UUID,
         personIdent: PersonIdent,
         type: PersonOppgaveType,
         publish: Boolean = false,
+        duplikatReferanseUuid: UUID? = null,
     ) : this(
         uuid = UUID.randomUUID(),
         referanseUuid = referanseUuid,
@@ -41,6 +43,7 @@ data class PersonOppgave(
         sistEndret = LocalDateTime.now(),
         publish = publish,
         publishedAt = null,
+        duplikatReferanseUuid = duplikatReferanseUuid,
     )
 }
 
@@ -54,6 +57,7 @@ fun PersonOppgave.toPersonOppgaveVeileder(): PersonOppgaveVeileder {
         behandletTidspunkt = this.behandletTidspunkt,
         behandletVeilederIdent = this.behandletVeilederIdent,
         opprettet = this.opprettet,
+        duplikatReferanseUuid = this.duplikatReferanseUuid,
     )
 }
 
