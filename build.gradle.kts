@@ -3,29 +3,29 @@ version = "1.0-SNAPSHOT"
 
 val confluentVersion = "7.8.0"
 val jacksonDataTypeVersion = "2.18.2"
-val flywayVersion = "10.17.2"
-val hikariVersion = "5.1.0"
+val flywayVersion = "11.3.0"
+val hikariVersion = "6.2.1"
 val isdialogmoteSchemaVersion = "1.0.5"
-val jsonVersion = "20240303"
-val jettyVersion = "9.4.56.v20240826"
-val kafkaVersion = "3.7.0"
+val jsonVersion = "20250107"
+val jettyVersion = "9.4.57.v20241219"
+val kafkaVersion = "3.9.0"
 val kluentVersion = "1.73"
-val ktorVersion = "3.0.2"
-val logbackVersion = "1.5.12"
-val logstashEncoderVersion = "7.4"
-val micrometerRegistryVersion = "1.12.6"
-val mockkVersion = "1.13.13"
+val ktorVersion = "3.0.3"
+val logbackVersion = "1.5.16"
+val logstashEncoderVersion = "8.0"
+val micrometerRegistryVersion = "1.12.13"
+val mockkVersion = "1.13.16"
 val nettyVersion = "4.1.115.Final"
-val nimbusjosejwtVersion = "9.47"
+val nimbusjosejwtVersion = "10.0.1"
 val joseVersion = "0.9.4"
-val postgresVersion = "42.7.4"
+val postgresVersion = "42.7.5"
 val postgresEmbeddedVersion = "2.1.0"
 val spekVersion = "2.0.19"
 
 plugins {
-    kotlin("jvm") version "2.1.0"
+    kotlin("jvm") version "2.1.10"
     id("com.gradleup.shadow") version "8.3.5"
-    id("org.jlleitschuh.gradle.ktlint") version "11.4.2"
+    id("org.jlleitschuh.gradle.ktlint") version "11.6.1"
 }
 
 val githubUser: String by project
@@ -108,13 +108,13 @@ dependencies {
         implementation("org.apache.commons:commons-compress") {
             because("org.apache.commons:commons-compress:1.22 -> https://www.cve.org/CVERecord?id=CVE-2012-2098")
             version {
-                require("1.26.0")
+                require("1.27.1")
             }
         }
         implementation("com.google.guava:guava") {
             because("com.google.guava:guava:30.1.1-jre -> https://www.cve.org/CVERecord?id=CVE-2020-8908")
             version {
-                require("32.1.3-jre")
+                require("33.4.0-jre")
             }
         }
     }
@@ -129,7 +129,7 @@ dependencies {
         implementation("com.google.protobuf:protobuf-java") {
             because("io.confluent:kafka-schema-registry:$confluentVersion -> https://www.cve.org/CVERecord?id=CVE-2021-22569")
             version {
-                require("3.25.5")
+                require("3.25.6")
             }
         }
         implementation("org.eclipse.jetty:jetty-server") {
@@ -160,6 +160,12 @@ dependencies {
             because("io.confluent:kafka-schema-registry:$confluentVersion -> https://www.cve.org/CVERecord?id=CVE-2021-47621")
             version {
                 require("4.8.179")
+            }
+        }
+        implementation("org.apache.mina:mina-core") {
+            because("io.confluent:kafka-schema-registry:$confluentVersion -> https://www.cve.org/CVERecord?id=CVE-2024-52046")
+            version {
+                require("2.2.4")
             }
         }
     }
