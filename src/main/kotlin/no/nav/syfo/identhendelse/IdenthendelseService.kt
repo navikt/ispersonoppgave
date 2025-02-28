@@ -27,8 +27,6 @@ class IdenthendelseService(
                     log.info("Identhendelse: Updated $numberOfUpdatedRows rows based on Identhendelse from PDL")
                     COUNT_KAFKA_CONSUMER_PDL_AKTOR_UPDATES.increment(numberOfUpdatedRows.toDouble())
                 }
-            } else {
-                log.warn("Mangler gyldig ident fra PDL")
             }
         }
     }

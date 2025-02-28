@@ -12,8 +12,7 @@ fun kafkaIdenthendelseConsumerConfig(
 ): Properties {
     return Properties().apply {
         putAll(kafkaAivenConsumerConfig<KafkaAvroDeserializer>(environmentKafka))
-        this[ConsumerConfig.MAX_POLL_RECORDS_CONFIG] = "1"
-
+        this[ConsumerConfig.GROUP_ID_CONFIG] = "ispersonoppgave-v2"
         this[KafkaAvroDeserializerConfig.SCHEMA_REGISTRY_URL_CONFIG] = environmentKafka.aivenSchemaRegistryUrl
         this[KafkaAvroDeserializerConfig.SPECIFIC_AVRO_READER_CONFIG] = false
         this[KafkaAvroDeserializerConfig.USER_INFO_CONFIG] = "${environmentKafka.aivenRegistryUser}:${environmentKafka.aivenRegistryPassword}"
