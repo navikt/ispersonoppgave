@@ -1,31 +1,29 @@
 group = "no.nav.syfo"
 version = "1.0-SNAPSHOT"
 
-val confluentVersion = "7.8.0"
-val jacksonDataTypeVersion = "2.18.2"
-val flywayVersion = "10.17.2"
+val confluentVersion = "7.9.0"
+val jacksonDataTypeVersion = "2.18.3"
+val flywayVersion = "11.5.0"
 val hikariVersion = "5.1.0"
 val isdialogmoteSchemaVersion = "1.0.5"
-val jsonVersion = "20240303"
-val jettyVersion = "9.4.56.v20240826"
-val kafkaVersion = "3.7.0"
+val jsonVersion = "20250107"
+val kafkaVersion = "3.9.0"
 val kluentVersion = "1.73"
-val ktorVersion = "3.0.3"
-val logbackVersion = "1.5.15"
+val ktorVersion = "3.1.2"
+val logbackVersion = "1.5.18"
 val logstashEncoderVersion = "7.4"
-val micrometerRegistryVersion = "1.14.2"
-val mockkVersion = "1.13.14"
-val nettyVersion = "4.1.115.Final"
-val nimbusjosejwtVersion = "9.48"
+val micrometerRegistryVersion = "1.12.13"
+val mockkVersion = "1.13.17"
+val nimbusjosejwtVersion = "10.0.2"
 val joseVersion = "0.9.4"
-val postgresVersion = "42.7.4"
+val postgresVersion = "42.7.5"
 val postgresEmbeddedVersion = "2.1.0"
 val spekVersion = "2.0.19"
 
 plugins {
     kotlin("jvm") version "2.1.0"
-    id("com.gradleup.shadow") version "8.3.5"
-    id("org.jlleitschuh.gradle.ktlint") version "11.4.2"
+    id("com.gradleup.shadow") version "8.3.6"
+    id("org.jlleitschuh.gradle.ktlint") version "11.6.1"
 }
 
 val githubUser: String by project
@@ -53,14 +51,6 @@ dependencies {
     implementation("io.ktor:ktor-server-call-id:$ktorVersion")
     implementation("io.ktor:ktor-server-status-pages:$ktorVersion")
     implementation("io.ktor:ktor-server-netty:$ktorVersion")
-    constraints {
-        implementation("io.netty:netty-codec-http2") {
-            because("io.ktor:ktor-server-netty:$ktorVersion -> https://ossindex.sonatype.org/vulnerability/CVE-2024-47535")
-            version {
-                require(nettyVersion)
-            }
-        }
-    }
     implementation("io.ktor:ktor-client-apache:$ktorVersion")
     implementation("io.ktor:ktor-client-cio:$ktorVersion")
     implementation("io.ktor:ktor-client-content-negotiation:$ktorVersion")
@@ -90,79 +80,15 @@ dependencies {
     // Kafka
     implementation("org.apache.kafka:kafka_2.13:$kafkaVersion", excludeLog4j)
     constraints {
-        implementation("org.bitbucket.b_c:jose4j") {
-            because("org.bitbucket.b_c:jose4j:0.9.3 -> https://ossindex.sonatype.org/vulnerability/CVE-2023-51775")
-            version {
-                require(joseVersion)
-            }
-        }
-    }
-    implementation("io.confluent:kafka-avro-serializer:$confluentVersion")
-    constraints {
-        implementation("org.apache.avro:avro") {
-            because("io.confluent:kafka-avro-serializer:$confluentVersion -> https://www.cve.org/CVERecord?id=CVE-2023-39410")
-            version {
-                require("1.11.4")
-            }
-        }
-        implementation("org.apache.commons:commons-compress") {
-            because("org.apache.commons:commons-compress:1.22 -> https://www.cve.org/CVERecord?id=CVE-2012-2098")
-            version {
-                require("1.26.0")
-            }
-        }
-        implementation("com.google.guava:guava") {
-            because("com.google.guava:guava:30.1.1-jre -> https://www.cve.org/CVERecord?id=CVE-2020-8908")
-            version {
-                require("32.1.3-jre")
-            }
-        }
-    }
-    implementation("io.confluent:kafka-schema-registry:$confluentVersion", excludeLog4j)
-    constraints {
         implementation("org.apache.zookeeper:zookeeper") {
-            because("io.confluent:kafka-schema-registry:$confluentVersion -> https://www.cve.org/CVERecord?id=CVE-2023-44981")
+            because("org.apache.kafka:kafka_2.13:$kafkaVersion -> https://www.cve.org/CVERecord?id=CVE-2023-44981")
             version {
                 require("3.9.3")
             }
         }
-        implementation("com.google.protobuf:protobuf-java") {
-            because("io.confluent:kafka-schema-registry:$confluentVersion -> https://www.cve.org/CVERecord?id=CVE-2021-22569")
-            version {
-                require("3.25.5")
-            }
-        }
-        implementation("org.eclipse.jetty:jetty-server") {
-            because("io.confluent:kafka-schema-registry:$confluentVersion -> https://www.cve.org/CVERecord?id=CVE-2023-36478")
-            version {
-                require(jettyVersion)
-            }
-        }
-        implementation("org.eclipse.jetty:jetty-xml") {
-            because("io.confluent:kafka-schema-registry:$confluentVersion -> https://www.cve.org/CVERecord?id=CVE-2023-36478")
-            version {
-                require(jettyVersion)
-            }
-        }
-        implementation("org.eclipse.jetty:jetty-servlets") {
-            because("io.confluent:kafka-schema-registry:$confluentVersion -> https://www.cve.org/CVERecord?id=CVE-2023-36478")
-            version {
-                require(jettyVersion)
-            }
-        }
-        implementation("org.eclipse.jetty.http2:http2-server") {
-            because("io.confluent:kafka-schema-registry:$confluentVersion -> https://www.cve.org/CVERecord?id=CVE-2023-36478")
-            version {
-                require(jettyVersion)
-            }
-        }
-        implementation("io.github.classgraph:classgraph") {
-            because("io.confluent:kafka-schema-registry:$confluentVersion -> https://www.cve.org/CVERecord?id=CVE-2021-47621")
-            version {
-                require("4.8.179")
-            }
-        }
     }
+    implementation("io.confluent:kafka-avro-serializer:$confluentVersion")
+    implementation("io.confluent:kafka-schema-registry:$confluentVersion", excludeLog4j)
     implementation("no.nav.syfo.dialogmote.avro:isdialogmote-schema:$isdialogmoteSchemaVersion")
 
     testImplementation("com.nimbusds:nimbus-jose-jwt:$nimbusjosejwtVersion")
