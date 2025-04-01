@@ -249,4 +249,5 @@ fun ResultSet.toPPersonOppgave(): PPersonOppgave =
         sistEndret = convert(getTimestamp("sist_endret")),
         publish = getBoolean("publish"),
         publishedAt = getObject("published_at", OffsetDateTime::class.java),
+        duplikatReferanseUuid = getString("duplikat_referanse_uuid")?.let { UUID.fromString(it) },
     )

@@ -12,13 +12,16 @@ import no.nav.syfo.personoppgave.getPersonOppgaver
 import no.nav.syfo.testutil.ExternalMockEnvironment
 import no.nav.syfo.testutil.dropData
 import no.nav.syfo.testutil.generators.generateKafkaSykmelding
+import no.nav.syfo.testutil.getDuplicateCount
 import no.nav.syfo.testutil.mock.mockPollConsumerRecords
+import no.nav.syfo.testutil.updateCreatedAt
 import org.amshove.kluent.shouldBe
 import org.amshove.kluent.shouldBeEmpty
 import org.amshove.kluent.shouldBeEqualTo
 import org.apache.kafka.clients.consumer.KafkaConsumer
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
+import java.time.OffsetDateTime
 import java.util.*
 
 class SykmeldingConsumerSpek : Spek({
@@ -124,6 +127,119 @@ class SykmeldingConsumerSpek : Spek({
                 personOppgave.type shouldBeEqualTo PersonOppgaveType.BEHANDLER_BER_OM_BISTAND
                 personOppgave.behandletTidspunkt shouldBe null
                 personOppgave.referanseUuid shouldBeEqualTo sykmeldingId
+            }
+            it("Does create oppgave if andreTiltak has text but duplicate from previous sykmelding") {
+                val referanseUUID = UUID.randomUUID()
+                val sykmelding = generateKafkaSykmelding(
+                    sykmeldingId = referanseUUID,
+                    meldingTilNAV = null,
+                    andreTiltak = "Jeg synes NAV skal gjøre dette",
+                )
+                kafkaConsumer.mockPollConsumerRecords(
+                    recordValue = sykmelding,
+                    topic = topic,
+                )
+                kafkaSykmeldingConsumer.pollAndProcessRecords(
+                    kafkaConsumer = kafkaConsumer,
+                )
+                database.getPersonOppgaver(
+                    personIdent = PersonIdent(sykmelding.personNrPasient),
+                ).size shouldBeEqualTo 1
+
+                database.getDuplicateCount(referanseUUID) shouldBeEqualTo 0
+
+                val sykmeldingNext = generateKafkaSykmelding(
+                    sykmeldingId = UUID.randomUUID(),
+                    meldingTilNAV = null,
+                    andreTiltak = "Jeg synes NAV skal gjøre dette",
+                )
+                kafkaConsumer.mockPollConsumerRecords(
+                    recordValue = sykmeldingNext,
+                    topic = topic,
+                )
+                kafkaSykmeldingConsumer.pollAndProcessRecords(
+                    kafkaConsumer = kafkaConsumer,
+                )
+                val personoppgaver = database.getPersonOppgaver(
+                    personIdent = PersonIdent(sykmelding.personNrPasient),
+                )
+                personoppgaver.size shouldBeEqualTo 2
+                val latestPersonoppgave = personoppgaver.find {
+                    it.referanseUuid.toString() == sykmeldingNext.sykmelding.id
+                }
+                latestPersonoppgave!!.duplikatReferanseUuid shouldBeEqualTo referanseUUID
+                database.getDuplicateCount(referanseUUID) shouldBeEqualTo 1
+            }
+            it("Does not mark as duplicate if one text is different") {
+                val referanseUUID = UUID.randomUUID()
+                val sykmelding = generateKafkaSykmelding(
+                    sykmeldingId = referanseUUID,
+                    meldingTilNAV = null,
+                    andreTiltak = "Jeg synes NAV skal gjøre dette",
+                )
+                kafkaConsumer.mockPollConsumerRecords(
+                    recordValue = sykmelding,
+                    topic = topic,
+                )
+                kafkaSykmeldingConsumer.pollAndProcessRecords(
+                    kafkaConsumer = kafkaConsumer,
+                )
+
+                val sykmeldingNext = generateKafkaSykmelding(
+                    sykmeldingId = UUID.randomUUID(),
+                    meldingTilNAV = MeldingTilNAV(true, "Bistand!"),
+                    andreTiltak = "Jeg synes NAV skal gjøre dette",
+                )
+                kafkaConsumer.mockPollConsumerRecords(
+                    recordValue = sykmeldingNext,
+                    topic = topic,
+                )
+                kafkaSykmeldingConsumer.pollAndProcessRecords(
+                    kafkaConsumer = kafkaConsumer,
+                )
+                val personoppgaver = database.getPersonOppgaver(
+                    personIdent = PersonIdent(sykmelding.personNrPasient),
+                )
+                personoppgaver.size shouldBeEqualTo 2
+                val latestPersonoppgave = personoppgaver.find {
+                    it.referanseUuid.toString() == sykmeldingNext.sykmelding.id
+                }
+                latestPersonoppgave!!.duplikatReferanseUuid shouldBeEqualTo null
+                database.getDuplicateCount(referanseUUID) shouldBeEqualTo 0
+            }
+            it("Creates oppgave if andreTiltak has text and duplicate from previous sykmelding more than 6 months old") {
+                val referanseUUID = UUID.randomUUID()
+                val sykmelding = generateKafkaSykmelding(
+                    sykmeldingId = referanseUUID,
+                    meldingTilNAV = null,
+                    andreTiltak = "Jeg synes NAV skal gjøre dette",
+                )
+                kafkaConsumer.mockPollConsumerRecords(
+                    recordValue = sykmelding,
+                    topic = topic,
+                )
+                kafkaSykmeldingConsumer.pollAndProcessRecords(
+                    kafkaConsumer = kafkaConsumer,
+                )
+                database.updateCreatedAt(referanseUUID, OffsetDateTime.now().minusMonths(7))
+
+                val sykmeldingNext = generateKafkaSykmelding(
+                    sykmeldingId = UUID.randomUUID(),
+                    meldingTilNAV = null,
+                    andreTiltak = "Jeg synes NAV skal gjøre dette",
+                )
+                kafkaConsumer.mockPollConsumerRecords(
+                    recordValue = sykmeldingNext,
+                    topic = topic,
+                )
+                kafkaSykmeldingConsumer.pollAndProcessRecords(
+                    kafkaConsumer = kafkaConsumer,
+                )
+                val personoppgaver = database.getPersonOppgaver(
+                    personIdent = PersonIdent(sykmelding.personNrPasient),
+                )
+                personoppgaver.size shouldBeEqualTo 2
+                personoppgaver.any { it.duplikatReferanseUuid != null } shouldBe false
             }
             it("creates one oppgave if more than one relevant field has text") {
                 val sykmeldingId = UUID.randomUUID()

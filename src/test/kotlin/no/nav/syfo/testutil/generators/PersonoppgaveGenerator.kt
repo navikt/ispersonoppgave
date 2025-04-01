@@ -33,6 +33,7 @@ fun generatePersonoppgave(
     sistEndret = sistEndret,
     publish = publish,
     publishedAt = null,
+    duplikatReferanseUuid = null,
 )
 
 fun generatePPersonoppgave(
@@ -53,6 +54,7 @@ fun generatePPersonoppgave(
         sistEndret = sistEndret,
         publish = false,
         publishedAt = null,
+        duplikatReferanseUuid = null,
     )
 
 fun generatePPersonoppgaver() = listOf(generatePPersonoppgave())
