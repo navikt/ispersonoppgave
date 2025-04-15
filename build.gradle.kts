@@ -86,9 +86,44 @@ dependencies {
                 require("3.9.3")
             }
         }
+        implementation("org.bitbucket.b_c:jose4j") {
+            because("org.apache.kafka:kafka_2.13:$kafkaVersion -> https://github.com/advisories/GHSA-6qvw-249j-h44c")
+            version {
+                require("0.9.6")
+            }
+        }
     }
     implementation("io.confluent:kafka-avro-serializer:$confluentVersion")
+    constraints {
+        implementation("org.apache.commons:commons-compress") {
+            because("org.apache.commons:commons-compress:1.22 -> https://www.cve.org/CVERecord?id=CVE-2012-2098")
+            version {
+                require("1.27.1")
+            }
+        }
+    }
     implementation("io.confluent:kafka-schema-registry:$confluentVersion", excludeLog4j)
+    constraints {
+        implementation("io.github.classgraph:classgraph") {
+            because("io.confluent:kafka-schema-registry:$confluentVersion -> https://www.cve.org/CVERecord?id=CVE-2021-47621")
+            version {
+                require("4.8.179")
+            }
+        }
+        implementation("org.json:json") {
+            because("io.confluent:kafka-schema-registry:$confluentVersion -> https://www.cve.org/CVERecord?id=CVE-2023-5072")
+            version {
+                require("20250107")
+            }
+        }
+        implementation("org.apache.mina:mina-core") {
+            because("io.confluent:kafka-schema-registry:$confluentVersion -> https://www.cve.org/CVERecord?id=CVE-2024-52046")
+            version {
+                require("2.2.4")
+            }
+        }
+    }
+	
     implementation("no.nav.syfo.dialogmote.avro:isdialogmote-schema:$isdialogmoteSchemaVersion")
 
     testImplementation("com.nimbusds:nimbus-jose-jwt:$nimbusjosejwtVersion")
