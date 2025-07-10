@@ -18,6 +18,7 @@ val nimbusjosejwtVersion = "10.3"
 val joseVersion = "0.9.4"
 val postgresVersion = "42.7.5"
 val postgresEmbeddedVersion = "2.1.0"
+val postgresRuntimeVersion = "17.5.0"
 val spekVersion = "2.0.19"
 
 plugins {
@@ -73,6 +74,7 @@ dependencies {
     implementation("org.flywaydb:flyway-database-postgresql:$flywayVersion")
     implementation("com.zaxxer:HikariCP:$hikariVersion")
     testImplementation("io.zonky.test:embedded-postgres:$postgresEmbeddedVersion")
+    testImplementation(platform("io.zonky.test.postgres:embedded-postgres-binaries-bom:$postgresRuntimeVersion"))
 
     val excludeLog4j = fun ExternalModuleDependency.() {
         exclude(group = "log4j")
