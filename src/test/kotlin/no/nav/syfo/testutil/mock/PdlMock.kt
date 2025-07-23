@@ -4,7 +4,7 @@ import io.ktor.client.engine.mock.*
 import io.ktor.client.request.*
 import io.ktor.http.*
 import no.nav.syfo.client.pdl.domain.*
-import no.nav.syfo.domain.PersonIdent
+import no.nav.syfo.personoppgave.domain.PersonIdent
 import no.nav.syfo.testutil.UserConstants
 
 fun PersonIdent.toHistoricalPersonIdent(): PersonIdent {

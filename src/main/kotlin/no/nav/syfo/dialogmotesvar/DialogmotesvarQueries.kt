@@ -1,6 +1,6 @@
 package no.nav.syfo.dialogmotesvar
 
-import no.nav.syfo.database.toList
+import no.nav.syfo.personoppgave.infrastructure.database.toList
 import no.nav.syfo.dialogmotesvar.domain.Dialogmotesvar
 import no.nav.syfo.dialogmotesvar.domain.PDialogmotesvar
 import java.sql.*

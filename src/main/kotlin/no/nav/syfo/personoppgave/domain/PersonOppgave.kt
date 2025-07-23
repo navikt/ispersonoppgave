@@ -1,7 +1,5 @@
 package no.nav.syfo.personoppgave.domain
 
-import no.nav.syfo.domain.PersonIdent
-import no.nav.syfo.domain.Virksomhetsnummer
 import no.nav.syfo.personoppgave.api.PersonOppgaveVeileder
 import no.nav.syfo.personoppgavehendelse.domain.PersonoppgavehendelseType
 import no.nav.syfo.util.toLocalDateTimeOslo

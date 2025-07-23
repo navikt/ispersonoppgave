@@ -1,4 +1,4 @@
-package no.nav.syfo.api
+package no.nav.syfo.personoppgave.api.authentication
 
 import io.ktor.client.plugins.*
 import io.ktor.http.*

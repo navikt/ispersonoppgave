@@ -2,7 +2,7 @@ package no.nav.syfo.behandlerdialog
 
 import no.nav.syfo.behandlerdialog.domain.Melding
 import no.nav.syfo.behandlerdialog.kafka.KafkaMeldingFraBehandler
-import no.nav.syfo.database.DatabaseInterface
+import no.nav.syfo.personoppgave.infrastructure.database.DatabaseInterface
 import no.nav.syfo.metric.COUNT_PERSONOPPGAVEHENDELSE_DIALOGMELDING_SVAR_MOTTATT
 import no.nav.syfo.personoppgave.PersonOppgaveService
 import no.nav.syfo.personoppgave.createPersonOppgave

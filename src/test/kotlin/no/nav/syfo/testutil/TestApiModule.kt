@@ -1,10 +1,10 @@
 package no.nav.syfo.testutil
 
 import io.ktor.server.application.*
-import no.nav.syfo.api.apiModule
+import no.nav.syfo.personoppgave.api.apiModule
 import no.nav.syfo.client.azuread.AzureAdClient
 import no.nav.syfo.client.veiledertilgang.VeilederTilgangskontrollClient
-import no.nav.syfo.database.PersonOppgaveRepository
+import no.nav.syfo.personoppgave.infrastructure.database.PersonOppgaveRepository
 import no.nav.syfo.personoppgave.PersonOppgaveService
 import no.nav.syfo.personoppgavehendelse.PersonoppgavehendelseProducer
 

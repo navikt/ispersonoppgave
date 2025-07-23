@@ -9,9 +9,9 @@ import io.ktor.serialization.jackson.*
 import io.ktor.server.testing.*
 import io.mockk.*
 import no.nav.syfo.behandlerdialog.domain.toMelding
-import no.nav.syfo.database.PersonOppgaveRepository
+import no.nav.syfo.personoppgave.infrastructure.database.PersonOppgaveRepository
 import no.nav.syfo.dialogmotesvar.domain.DialogmoteSvartype
-import no.nav.syfo.domain.PersonIdent
+import no.nav.syfo.personoppgave.domain.PersonIdent
 import no.nav.syfo.personoppgave.api.PersonOppgaveVeileder
 import no.nav.syfo.personoppgave.createPersonOppgave
 import no.nav.syfo.personoppgave.domain.PersonOppgave

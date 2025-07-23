@@ -2,8 +2,8 @@ package no.nav.syfo.identhendelse
 
 import kotlinx.coroutines.runBlocking
 import no.nav.syfo.client.pdl.PdlClient
-import no.nav.syfo.database.DatabaseInterface
-import no.nav.syfo.domain.PersonIdent
+import no.nav.syfo.personoppgave.infrastructure.database.DatabaseInterface
+import no.nav.syfo.personoppgave.domain.PersonIdent
 import no.nav.syfo.identhendelse.database.*
 import no.nav.syfo.identhendelse.kafka.COUNT_KAFKA_CONSUMER_PDL_AKTOR_UPDATES
 import no.nav.syfo.identhendelse.kafka.KafkaIdenthendelseDTO

@@ -1,7 +1,7 @@
 package no.nav.syfo.testutil.generators
 
-import no.nav.syfo.domain.PersonIdent
-import no.nav.syfo.domain.Virksomhetsnummer
+import no.nav.syfo.personoppgave.domain.PersonIdent
+import no.nav.syfo.personoppgave.domain.Virksomhetsnummer
 import no.nav.syfo.personoppgave.domain.PPersonOppgave
 import no.nav.syfo.personoppgave.domain.PersonOppgave
 import no.nav.syfo.personoppgave.domain.PersonOppgaveType

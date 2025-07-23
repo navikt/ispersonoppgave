@@ -1,12 +1,12 @@
 package no.nav.syfo.personoppgave
 
-import no.nav.syfo.database.DatabaseInterface
-import no.nav.syfo.database.toList
+import no.nav.syfo.personoppgave.infrastructure.database.DatabaseInterface
+import no.nav.syfo.personoppgave.infrastructure.database.toList
 import no.nav.syfo.dialogmotestatusendring.domain.DialogmoteStatusendring
 import no.nav.syfo.dialogmotesvar.domain.Dialogmotesvar
-import no.nav.syfo.domain.PersonIdent
+import no.nav.syfo.personoppgave.domain.PersonIdent
 import no.nav.syfo.behandlerdialog.domain.Melding
-import no.nav.syfo.domain.Virksomhetsnummer
+import no.nav.syfo.personoppgave.domain.Virksomhetsnummer
 import no.nav.syfo.personoppgave.domain.*
 import no.nav.syfo.oppfolgingsplanlps.kafka.KOppfolgingsplanLPS
 import no.nav.syfo.util.convert

@@ -2,13 +2,13 @@ package no.nav.syfo.sykmelding
 
 import no.nav.syfo.ApplicationState
 import no.nav.syfo.Environment
-import no.nav.syfo.database.DatabaseInterface
-import no.nav.syfo.database.PersonOppgaveRepository
-import no.nav.syfo.database.SykmeldingFieldsRepository
-import no.nav.syfo.domain.*
-import no.nav.syfo.kafka.KafkaConsumerService
-import no.nav.syfo.kafka.kafkaAivenConsumerConfig
-import no.nav.syfo.kafka.launchKafkaTask
+import no.nav.syfo.personoppgave.infrastructure.database.DatabaseInterface
+import no.nav.syfo.personoppgave.infrastructure.database.PersonOppgaveRepository
+import no.nav.syfo.personoppgave.infrastructure.database.SykmeldingFieldsRepository
+import no.nav.syfo.personoppgave.infrastructure.kafka.KafkaConsumerService
+import no.nav.syfo.personoppgave.infrastructure.kafka.kafkaAivenConsumerConfig
+import no.nav.syfo.personoppgave.infrastructure.kafka.launchKafkaTask
+import no.nav.syfo.personoppgave.domain.PersonIdent
 import no.nav.syfo.personoppgave.domain.PersonOppgave
 import no.nav.syfo.personoppgave.domain.PersonOppgaveType
 import no.nav.syfo.personoppgave.getPersonOppgaverByReferanseUuid

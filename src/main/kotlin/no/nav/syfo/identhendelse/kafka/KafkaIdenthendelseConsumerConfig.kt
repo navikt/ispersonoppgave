@@ -3,7 +3,7 @@ package no.nav.syfo.identhendelse.kafka
 import io.confluent.kafka.serializers.KafkaAvroDeserializer
 import io.confluent.kafka.serializers.KafkaAvroDeserializerConfig
 import no.nav.syfo.EnvironmentKafka
-import no.nav.syfo.kafka.kafkaAivenConsumerConfig
+import no.nav.syfo.personoppgave.infrastructure.kafka.kafkaAivenConsumerConfig
 import org.apache.kafka.clients.consumer.ConsumerConfig
 import java.util.*
 

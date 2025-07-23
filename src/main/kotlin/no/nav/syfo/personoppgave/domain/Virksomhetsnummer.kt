@@ -1,4 +1,4 @@
-package no.nav.syfo.domain
+package no.nav.syfo.personoppgave.domain
 
 data class Virksomhetsnummer(val value: String) {
     private val elevenDigits = Regex("\\d{9}")

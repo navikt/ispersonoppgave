@@ -6,7 +6,10 @@ import io.ktor.http.*
 import io.ktor.server.routing.*
 import io.ktor.server.testing.*
 import no.nav.syfo.ApplicationState
-import no.nav.syfo.database.DatabaseInterface
+import no.nav.syfo.personoppgave.infrastructure.database.DatabaseInterface
+import no.nav.syfo.personoppgave.api.v2.podLivenessPath
+import no.nav.syfo.personoppgave.api.v2.podReadinessPath
+import no.nav.syfo.personoppgave.api.v2.registerPodApi
 import no.nav.syfo.testutil.TestDB
 import no.nav.syfo.testutil.TestDatabaseNotResponding
 import org.amshove.kluent.shouldBeEqualTo

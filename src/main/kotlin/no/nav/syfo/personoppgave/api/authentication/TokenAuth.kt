@@ -1,10 +1,6 @@
-package no.nav.syfo.auth
+package no.nav.syfo.personoppgave.api.authentication
 
 import com.auth0.jwt.JWT
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
-
-val log: Logger = LoggerFactory.getLogger("no.nav.syfo.auth")
 
 const val JWT_CLAIM_NAVIDENT = "NAVident"
 

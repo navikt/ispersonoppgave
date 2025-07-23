@@ -3,12 +3,14 @@ package no.nav.syfo.dialogmotestatusendring.kafka
 import io.confluent.kafka.serializers.KafkaAvroDeserializer
 import io.confluent.kafka.serializers.KafkaAvroDeserializerConfig
 import no.nav.syfo.*
-import no.nav.syfo.database.DatabaseInterface
+import no.nav.syfo.personoppgave.infrastructure.database.DatabaseInterface
 import no.nav.syfo.dialogmote.avro.KDialogmoteStatusEndring
 import no.nav.syfo.dialogmotestatusendring.domain.DialogmoteStatusendring
 import no.nav.syfo.dialogmotestatusendring.processDialogmoteStatusendring
 import no.nav.syfo.dialogmotestatusendring.storeDialogmoteStatusendring
-import no.nav.syfo.kafka.*
+import no.nav.syfo.personoppgave.infrastructure.kafka.KafkaConsumerService
+import no.nav.syfo.personoppgave.infrastructure.kafka.kafkaAivenConsumerConfig
+import no.nav.syfo.personoppgave.infrastructure.kafka.launchKafkaTask
 import org.apache.kafka.clients.consumer.*
 import org.slf4j.LoggerFactory
 import java.time.Duration

@@ -6,7 +6,7 @@ import no.nav.syfo.behandlerdialog.MeldingFraBehandlerService
 import no.nav.syfo.behandlerdialog.UbesvartMeldingService
 import no.nav.syfo.behandlerdialog.kafka.launchKafkaTaskAvvistMelding
 import no.nav.syfo.client.pdl.PdlClient
-import no.nav.syfo.database.DatabaseInterface
+import no.nav.syfo.personoppgave.infrastructure.database.DatabaseInterface
 import no.nav.syfo.dialogmotestatusendring.kafka.launchKafkaTaskDialogmotestatusendring
 import no.nav.syfo.dialogmotesvar.kafka.launchKafkaTaskDialogmotesvar
 import no.nav.syfo.identhendelse.IdenthendelseService
@@ -14,7 +14,7 @@ import no.nav.syfo.identhendelse.kafka.IdenthendelseConsumerService
 import no.nav.syfo.identhendelse.kafka.launchKafkaTaskIdenthendelse
 import no.nav.syfo.behandlerdialog.kafka.launchKafkaTaskMeldingFraBehandler
 import no.nav.syfo.behandlerdialog.kafka.launchKafkaTaskUbesvartMelding
-import no.nav.syfo.database.PersonOppgaveRepository
+import no.nav.syfo.personoppgave.infrastructure.database.PersonOppgaveRepository
 import no.nav.syfo.oppfolgingsplanlps.OppfolgingsplanLPSService
 import no.nav.syfo.oppfolgingsplanlps.kafka.launchKafkaTaskOppfolgingsplanLPS
 import no.nav.syfo.personoppgave.PersonOppgaveService

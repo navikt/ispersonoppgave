@@ -1,4 +1,4 @@
-package no.nav.syfo.domain
+package no.nav.syfo.personoppgave.domain
 
 private val elevenDigits = Regex("\\d{11}")
 

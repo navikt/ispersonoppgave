@@ -4,8 +4,8 @@ import io.mockk.clearMocks
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
-import no.nav.syfo.database.PersonOppgaveRepository
-import no.nav.syfo.domain.PersonIdent
+import no.nav.syfo.personoppgave.infrastructure.database.PersonOppgaveRepository
+import no.nav.syfo.personoppgave.domain.PersonIdent
 import no.nav.syfo.personoppgave.domain.PersonOppgaveType
 import no.nav.syfo.personoppgave.domain.toPersonOppgave
 import no.nav.syfo.personoppgave.getPersonOppgaver

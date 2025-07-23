@@ -1,7 +1,7 @@
 package no.nav.syfo.oppfolgingsplanlps
 
-import no.nav.syfo.database.DatabaseInterface
-import no.nav.syfo.domain.PersonIdent
+import no.nav.syfo.personoppgave.infrastructure.database.DatabaseInterface
+import no.nav.syfo.personoppgave.domain.PersonIdent
 import no.nav.syfo.metric.*
 import no.nav.syfo.personoppgave.*
 import no.nav.syfo.personoppgave.domain.PPersonOppgave
