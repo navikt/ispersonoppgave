@@ -2,7 +2,7 @@ package no.nav.syfo.personoppgavehendelse.cronjob
 
 import io.mockk.*
 import kotlinx.coroutines.runBlocking
-import no.nav.syfo.database.PersonOppgaveRepository
+import no.nav.syfo.personoppgave.infrastructure.database.PersonOppgaveRepository
 import no.nav.syfo.personoppgave.domain.PersonOppgave
 import no.nav.syfo.personoppgave.domain.PersonOppgaveType
 import no.nav.syfo.personoppgave.updatePersonoppgaveSetBehandlet

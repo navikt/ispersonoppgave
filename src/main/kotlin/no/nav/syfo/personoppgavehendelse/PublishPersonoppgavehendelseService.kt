@@ -1,7 +1,7 @@
 package no.nav.syfo.personoppgavehendelse
 
-import no.nav.syfo.database.DatabaseInterface
-import no.nav.syfo.database.PersonOppgaveRepository
+import no.nav.syfo.personoppgave.infrastructure.database.DatabaseInterface
+import no.nav.syfo.personoppgave.infrastructure.database.PersonOppgaveRepository
 import no.nav.syfo.personoppgave.*
 import no.nav.syfo.personoppgave.domain.*
 import org.slf4j.LoggerFactory

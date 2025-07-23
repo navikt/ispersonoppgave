@@ -1,6 +1,6 @@
 package no.nav.syfo.behandlerdialog.domain
 
-import no.nav.syfo.domain.PersonIdent
+import no.nav.syfo.personoppgave.domain.PersonIdent
 import java.time.OffsetDateTime
 import java.util.*
 

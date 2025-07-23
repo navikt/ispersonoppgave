@@ -1,13 +1,13 @@
 package no.nav.syfo.testutil
 
 import io.zonky.test.db.postgres.embedded.EmbeddedPostgres
-import no.nav.syfo.database.DatabaseInterface
-import no.nav.syfo.database.toList
+import no.nav.syfo.personoppgave.infrastructure.database.DatabaseInterface
+import no.nav.syfo.personoppgave.infrastructure.database.toList
 import no.nav.syfo.dialogmotestatusendring.domain.PDialogmoteStatusendring
 import no.nav.syfo.dialogmotestatusendring.toPDialogmoteStatusendring
 import no.nav.syfo.dialogmotesvar.domain.PDialogmotesvar
 import no.nav.syfo.dialogmotesvar.toPDialogmotesvar
-import no.nav.syfo.domain.PersonIdent
+import no.nav.syfo.personoppgave.domain.PersonIdent
 import no.nav.syfo.personoppgave.domain.*
 import no.nav.syfo.oppfolgingsplanlps.kafka.KOppfolgingsplanLPS
 import no.nav.syfo.personoppgave.queryGetPersonOppgaverByFnr

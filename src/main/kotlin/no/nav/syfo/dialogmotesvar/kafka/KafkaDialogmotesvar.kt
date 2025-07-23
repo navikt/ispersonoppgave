@@ -1,11 +1,13 @@
 package no.nav.syfo.dialogmotesvar.kafka
 
 import no.nav.syfo.*
-import no.nav.syfo.database.DatabaseInterface
+import no.nav.syfo.personoppgave.infrastructure.database.DatabaseInterface
 import no.nav.syfo.dialogmotesvar.domain.*
 import no.nav.syfo.dialogmotesvar.processDialogmotesvar
 import no.nav.syfo.dialogmotesvar.storeDialogmotesvar
-import no.nav.syfo.kafka.*
+import no.nav.syfo.personoppgave.infrastructure.kafka.KafkaConsumerService
+import no.nav.syfo.personoppgave.infrastructure.kafka.kafkaAivenConsumerConfig
+import no.nav.syfo.personoppgave.infrastructure.kafka.launchKafkaTask
 import no.nav.syfo.util.configuredJacksonMapper
 import org.apache.kafka.clients.consumer.*
 import org.apache.kafka.common.serialization.Deserializer

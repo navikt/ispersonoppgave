@@ -5,9 +5,11 @@ import no.nav.syfo.behandlerdialog.UbesvartMeldingService
 import no.nav.syfo.behandlerdialog.domain.KMeldingDTO
 import no.nav.syfo.behandlerdialog.domain.toMelding
 import no.nav.syfo.behandlerdialog.kafka.KafkaUbesvartMelding.Companion.UBESVART_MELDING_TOPIC
-import no.nav.syfo.database.DatabaseInterface
-import no.nav.syfo.kafka.*
+import no.nav.syfo.personoppgave.infrastructure.database.DatabaseInterface
 import no.nav.syfo.metric.COUNT_PERSONOPPGAVEHENDELSE_UBESVART_MELDING_MOTTATT
+import no.nav.syfo.personoppgave.infrastructure.kafka.KafkaConsumerService
+import no.nav.syfo.personoppgave.infrastructure.kafka.kafkaAivenConsumerConfig
+import no.nav.syfo.personoppgave.infrastructure.kafka.launchKafkaTask
 import org.apache.kafka.clients.consumer.*
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory

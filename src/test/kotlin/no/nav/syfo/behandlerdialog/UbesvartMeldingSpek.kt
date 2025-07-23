@@ -3,7 +3,7 @@ package no.nav.syfo.behandlerdialog
 import io.mockk.*
 import no.nav.syfo.behandlerdialog.domain.KMeldingDTO
 import no.nav.syfo.behandlerdialog.kafka.KafkaUbesvartMelding
-import no.nav.syfo.database.PersonOppgaveRepository
+import no.nav.syfo.personoppgave.infrastructure.database.PersonOppgaveRepository
 import no.nav.syfo.personoppgave.PersonOppgaveService
 import no.nav.syfo.personoppgave.domain.PersonOppgaveType
 import no.nav.syfo.personoppgave.domain.toPersonOppgave

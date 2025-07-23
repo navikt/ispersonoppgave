@@ -2,7 +2,7 @@ package no.nav.syfo.identhendelse.kafka
 
 import no.nav.syfo.ApplicationState
 import no.nav.syfo.Environment
-import no.nav.syfo.kafka.launchKafkaTask
+import no.nav.syfo.personoppgave.infrastructure.kafka.launchKafkaTask
 
 const val PDL_AKTOR_TOPIC = "pdl.aktor-v2"
 

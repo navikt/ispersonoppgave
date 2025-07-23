@@ -2,10 +2,12 @@ package no.nav.syfo.behandlerdialog.kafka
 
 import no.nav.syfo.*
 import no.nav.syfo.behandlerdialog.MeldingFraBehandlerService
-import no.nav.syfo.kafka.*
 import no.nav.syfo.behandlerdialog.domain.KMeldingDTO
 import no.nav.syfo.behandlerdialog.domain.toMelding
 import no.nav.syfo.behandlerdialog.kafka.KafkaMeldingFraBehandler.Companion.MELDING_FRA_BEHANDLER_TOPIC
+import no.nav.syfo.personoppgave.infrastructure.kafka.KafkaConsumerService
+import no.nav.syfo.personoppgave.infrastructure.kafka.kafkaAivenConsumerConfig
+import no.nav.syfo.personoppgave.infrastructure.kafka.launchKafkaTask
 import org.apache.kafka.clients.consumer.*
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory

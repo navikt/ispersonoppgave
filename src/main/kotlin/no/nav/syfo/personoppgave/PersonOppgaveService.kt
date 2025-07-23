@@ -1,9 +1,9 @@
 package no.nav.syfo.personoppgave
 
 import net.logstash.logback.argument.StructuredArguments
-import no.nav.syfo.database.DatabaseInterface
-import no.nav.syfo.database.PersonOppgaveRepository
-import no.nav.syfo.domain.PersonIdent
+import no.nav.syfo.personoppgave.infrastructure.database.DatabaseInterface
+import no.nav.syfo.personoppgave.infrastructure.database.PersonOppgaveRepository
+import no.nav.syfo.personoppgave.domain.PersonIdent
 import no.nav.syfo.personoppgave.domain.*
 import no.nav.syfo.personoppgavehendelse.PersonoppgavehendelseProducer
 import no.nav.syfo.personoppgavehendelse.domain.PersonoppgavehendelseType

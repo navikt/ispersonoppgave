@@ -1,8 +1,8 @@
 package no.nav.syfo.identhendelse.database
 
-import no.nav.syfo.database.DatabaseInterface
-import no.nav.syfo.database.toList
-import no.nav.syfo.domain.PersonIdent
+import no.nav.syfo.personoppgave.infrastructure.database.DatabaseInterface
+import no.nav.syfo.personoppgave.infrastructure.database.toList
+import no.nav.syfo.personoppgave.domain.PersonIdent
 import java.sql.Connection
 import java.sql.PreparedStatement
 import java.time.OffsetDateTime

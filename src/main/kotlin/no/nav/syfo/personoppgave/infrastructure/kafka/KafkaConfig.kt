@@ -1,4 +1,4 @@
-package no.nav.syfo.kafka
+package no.nav.syfo.personoppgave.infrastructure.kafka
 
 import no.nav.syfo.EnvironmentKafka
 import org.apache.kafka.clients.CommonClientConfigs

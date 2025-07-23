@@ -1,4 +1,4 @@
-package no.nav.syfo.api.authentication
+package no.nav.syfo.personoppgave.api.authentication
 
 data class JwtIssuer(
     val acceptedAudienceList: List<String>,

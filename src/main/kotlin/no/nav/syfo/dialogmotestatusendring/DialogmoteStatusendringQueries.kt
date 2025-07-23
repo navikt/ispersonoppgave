@@ -1,6 +1,6 @@
 package no.nav.syfo.dialogmotestatusendring
 
-import no.nav.syfo.database.toList
+import no.nav.syfo.personoppgave.infrastructure.database.toList
 import no.nav.syfo.dialogmotestatusendring.domain.DialogmoteStatusendring
 import no.nav.syfo.dialogmotestatusendring.domain.PDialogmoteStatusendring
 import java.sql.Connection

@@ -1,6 +1,5 @@
 package no.nav.syfo.personoppgave.domain
 
-import no.nav.syfo.domain.PersonIdent
 import java.time.LocalDateTime
 import java.time.OffsetDateTime
 import java.util.*

@@ -3,8 +3,8 @@ package no.nav.syfo.cronjob
 import no.nav.syfo.ApplicationState
 import no.nav.syfo.Environment
 import no.nav.syfo.cronjob.leaderelection.LeaderPodClient
-import no.nav.syfo.database.DatabaseInterface
-import no.nav.syfo.database.PersonOppgaveRepository
+import no.nav.syfo.personoppgave.infrastructure.database.DatabaseInterface
+import no.nav.syfo.personoppgave.infrastructure.database.PersonOppgaveRepository
 import no.nav.syfo.launchBackgroundTask
 import no.nav.syfo.personoppgavehendelse.PersonoppgavehendelseProducer
 import no.nav.syfo.personoppgavehendelse.PublishPersonoppgavehendelseService

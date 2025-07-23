@@ -1,6 +1,6 @@
 package no.nav.syfo.identhendelse.kafka
 
-import no.nav.syfo.domain.PersonIdent
+import no.nav.syfo.personoppgave.domain.PersonIdent
 
 // Basert på https://github.com/navikt/pdl/blob/master/libs/contract-pdl-avro/src/main/avro/no/nav/person/pdl/aktor/AktorV2.avdl
 

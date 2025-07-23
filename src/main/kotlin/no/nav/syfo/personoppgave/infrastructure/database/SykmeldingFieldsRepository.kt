@@ -1,6 +1,6 @@
-package no.nav.syfo.database
+package no.nav.syfo.personoppgave.infrastructure.database
 
-import no.nav.syfo.domain.PersonIdent
+import no.nav.syfo.personoppgave.domain.PersonIdent
 import java.security.MessageDigest
 import java.sql.Connection
 import java.sql.SQLException

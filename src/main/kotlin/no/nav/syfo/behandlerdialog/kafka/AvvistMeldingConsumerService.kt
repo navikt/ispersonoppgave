@@ -5,9 +5,9 @@ import no.nav.syfo.Environment
 import no.nav.syfo.behandlerdialog.AvvistMeldingService
 import no.nav.syfo.behandlerdialog.domain.KMeldingDTO
 import no.nav.syfo.behandlerdialog.domain.toMelding
-import no.nav.syfo.kafka.KafkaConsumerService
-import no.nav.syfo.kafka.kafkaAivenConsumerConfig
-import no.nav.syfo.kafka.launchKafkaTask
+import no.nav.syfo.personoppgave.infrastructure.kafka.KafkaConsumerService
+import no.nav.syfo.personoppgave.infrastructure.kafka.kafkaAivenConsumerConfig
+import no.nav.syfo.personoppgave.infrastructure.kafka.launchKafkaTask
 import org.apache.kafka.clients.consumer.ConsumerConfig
 import org.apache.kafka.clients.consumer.ConsumerRecords
 import org.apache.kafka.clients.consumer.KafkaConsumer
