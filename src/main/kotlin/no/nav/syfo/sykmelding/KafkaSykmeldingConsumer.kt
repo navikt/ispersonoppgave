@@ -71,6 +71,7 @@ class KafkaSykmeldingConsumer(
     ) {
         database.connection.use { connection ->
             consumerRecords.forEach { sykmeldingRecord ->
+                log.info("Processing sykmelding record with key: ${sykmeldingRecord.key()}")
                 sykmeldingRecord.value()?.let { receivedSykmeldingDTO ->
                     processSykmelding(receivedSykmeldingDTO, connection)
                 }

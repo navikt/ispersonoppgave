@@ -13,7 +13,7 @@ data class ReceivedSykmeldingDTO(
     val msgId: String,
     val legekontorOrgNr: String?,
     val legekontorHerId: String?,
-    val legekontorOrgName: String,
+    val legekontorOrgName: String = "",
     val mottattDato: LocalDateTime,
     val partnerreferanse: String?,
     val fellesformat: String,
