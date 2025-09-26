@@ -3,26 +3,26 @@ version = "1.0-SNAPSHOT"
 
 val confluentVersion = "7.9.1"
 val jacksonDataTypeVersion = "2.20.0"
-val flywayVersion = "11.11.2"
+val flywayVersion = "11.13.1"
 val hikariVersion = "6.3.0"
 val isdialogmoteSchemaVersion = "1.0.5"
 val jsonVersion = "20250107"
 val kafkaVersion = "3.9.0"
 val kluentVersion = "1.73"
-val ktorVersion = "3.2.3"
+val ktorVersion = "3.3.0"
 val logbackVersion = "1.5.18"
 val logstashEncoderVersion = "8.1"
 val micrometerRegistryVersion = "1.12.13"
 val mockkVersion = "1.14.5"
-val nimbusjosejwtVersion = "10.4.2"
+val nimbusjosejwtVersion = "10.5"
 val joseVersion = "0.9.4"
-val postgresVersion = "42.7.7"
+val postgresVersion = "42.7.8"
 val postgresEmbeddedVersion = "2.1.1"
 val postgresRuntimeVersion = "17.6.0"
 val spekVersion = "2.0.19"
 
 plugins {
-    kotlin("jvm") version "2.2.10"
+    kotlin("jvm") version "2.2.20"
     id("com.gradleup.shadow") version "8.3.6"
     id("org.jlleitschuh.gradle.ktlint") version "11.6.1"
 }
@@ -82,16 +82,16 @@ dependencies {
     // Kafka
     implementation("org.apache.kafka:kafka_2.13:$kafkaVersion", excludeLog4j)
     constraints {
-        implementation("org.apache.zookeeper:zookeeper") {
-            because("org.apache.kafka:kafka_2.13:$kafkaVersion -> https://www.cve.org/CVERecord?id=CVE-2023-44981")
-            version {
-                require("3.9.3")
-            }
-        }
         implementation("org.bitbucket.b_c:jose4j") {
             because("org.apache.kafka:kafka_2.13:$kafkaVersion -> https://github.com/advisories/GHSA-6qvw-249j-h44c")
             version {
                 require("0.9.6")
+            }
+        }
+        implementation("commons-beanutils:commons-beanutils") {
+            because("org.apache.kafka:kafka_2.13:$kafkaVersion -> https://www.cve.org/CVERecord?id=CVE-2025-48734")
+            version {
+                require("1.11.0")
             }
         }
     }
