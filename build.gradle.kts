@@ -12,7 +12,7 @@ val kluentVersion = "1.73"
 val ktorVersion = "3.3.0"
 val logbackVersion = "1.5.18"
 val logstashEncoderVersion = "8.1"
-val micrometerRegistryVersion = "1.15.4"
+val micrometerRegistryVersion = "1.11.13"
 val mockkVersion = "1.14.5"
 val nimbusjosejwtVersion = "10.5"
 val joseVersion = "0.9.4"
@@ -82,16 +82,16 @@ dependencies {
     // Kafka
     implementation("org.apache.kafka:kafka_2.13:$kafkaVersion", excludeLog4j)
     constraints {
-        implementation("org.apache.zookeeper:zookeeper") {
-            because("org.apache.kafka:kafka_2.13:$kafkaVersion -> https://www.cve.org/CVERecord?id=CVE-2023-44981")
-            version {
-                require("3.9.3")
-            }
-        }
         implementation("org.bitbucket.b_c:jose4j") {
             because("org.apache.kafka:kafka_2.13:$kafkaVersion -> https://github.com/advisories/GHSA-6qvw-249j-h44c")
             version {
                 require("0.9.6")
+            }
+        }
+        implementation("commons-beanutils:commons-beanutils") {
+            because("org.apache.kafka:kafka_2.13:$kafkaVersion -> https://www.cve.org/CVERecord?id=CVE-2025-48734")
+            version {
+                require("1.11.0")
             }
         }
     }
