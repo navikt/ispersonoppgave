@@ -1,28 +1,28 @@
 group = "no.nav.syfo"
 version = "1.0-SNAPSHOT"
 
-val confluentVersion = "8.0.0"
+val confluentVersion = "8.1.0"
 val jacksonDataTypeVersion = "2.20.0"
-val flywayVersion = "11.13.1"
+val flywayVersion = "11.15.0"
 val hikariVersion = "7.0.2"
 val isdialogmoteSchemaVersion = "1.0.5"
-val jsonVersion = "20250107"
-val kafkaVersion = "3.9.0"
+val jsonVersion = "20250517"
+val kafkaVersion = "4.1.0"
 val kluentVersion = "1.73"
-val ktorVersion = "3.3.1"
-val logbackVersion = "1.5.18"
-val logstashEncoderVersion = "8.1"
+val ktorVersion = "3.3.2"
+val logbackVersion = "1.5.20"
+val logstashEncoderVersion = "9.0"
 val micrometerRegistryVersion = "1.12.13"
-val mockkVersion = "1.14.5"
+val mockkVersion = "1.14.6"
 val nimbusjosejwtVersion = "10.5"
-val joseVersion = "0.9.4"
+val joseVersion = "0.9.6"
 val postgresVersion = "42.7.8"
 val postgresEmbeddedVersion = "2.1.1"
 val postgresRuntimeVersion = "17.6.0"
 val spekVersion = "2.0.19"
 
 plugins {
-    kotlin("jvm") version "2.2.20"
+    kotlin("jvm") version "2.2.21"
     id("com.gradleup.shadow") version "8.3.6"
     id("org.jlleitschuh.gradle.ktlint") version "11.6.1"
 }
@@ -78,6 +78,7 @@ dependencies {
 
     val excludeLog4j = fun ExternalModuleDependency.() {
         exclude(group = "log4j")
+        exclude(group = "org.apache.logging.log4j")
     }
     // Kafka
     implementation("org.apache.kafka:kafka_2.13:$kafkaVersion", excludeLog4j)
@@ -85,7 +86,7 @@ dependencies {
         implementation("org.bitbucket.b_c:jose4j") {
             because("org.apache.kafka:kafka_2.13:$kafkaVersion -> https://github.com/advisories/GHSA-6qvw-249j-h44c")
             version {
-                require("0.9.6")
+                require(joseVersion)
             }
         }
         implementation("commons-beanutils:commons-beanutils") {
@@ -100,7 +101,7 @@ dependencies {
         implementation("org.apache.commons:commons-compress") {
             because("org.apache.commons:commons-compress:1.22 -> https://www.cve.org/CVERecord?id=CVE-2012-2098")
             version {
-                require("1.27.1")
+                require("1.28.0")
             }
         }
     }
@@ -115,7 +116,7 @@ dependencies {
         implementation("org.json:json") {
             because("io.confluent:kafka-schema-registry:$confluentVersion -> https://www.cve.org/CVERecord?id=CVE-2023-5072")
             version {
-                require("20250107")
+                require(jsonVersion)
             }
         }
         implementation("org.apache.mina:mina-core") {
