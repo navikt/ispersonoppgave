@@ -8,7 +8,6 @@ val hikariVersion = "7.0.2"
 val isdialogmoteSchemaVersion = "1.0.5"
 val jsonVersion = "20250517"
 val kafkaVersion = "4.1.0"
-val kluentVersion = "1.73"
 val ktorVersion = "3.3.2"
 val logbackVersion = "1.5.20"
 val logstashEncoderVersion = "9.0"
@@ -19,12 +18,12 @@ val joseVersion = "0.9.6"
 val postgresVersion = "42.7.8"
 val postgresEmbeddedVersion = "2.1.1"
 val postgresRuntimeVersion = "17.6.0"
-val spekVersion = "2.0.19"
 
 plugins {
     kotlin("jvm") version "2.2.21"
     id("com.gradleup.shadow") version "8.3.6"
     id("org.jlleitschuh.gradle.ktlint") version "11.6.1"
+    id("com.adarshr.test-logger") version "4.0.0"
 }
 
 val githubUser: String by project
@@ -133,13 +132,7 @@ dependencies {
     testImplementation("io.ktor:ktor-server-test-host:$ktorVersion")
     testImplementation("io.ktor:ktor-client-mock:$ktorVersion")
     testImplementation("io.mockk:mockk:$mockkVersion")
-    testImplementation("org.amshove.kluent:kluent:$kluentVersion")
-    testImplementation("org.spekframework.spek2:spek-dsl-jvm:$spekVersion") {
-        exclude(group = "org.jetbrains.kotlin")
-    }
-    testRuntimeOnly("org.spekframework.spek2:spek-runner-junit5:$spekVersion") {
-        exclude(group = "org.jetbrains.kotlin")
-    }
+    testImplementation(kotlin("test"))
 }
 
 kotlin {
@@ -152,9 +145,7 @@ tasks {
     }
 
     create("printVersion") {
-        doLast {
-            println(project.version)
-        }
+        doLast { println(project.version) }
     }
 
     shadowJar {
@@ -165,9 +156,7 @@ tasks {
     }
 
     test {
-        useJUnitPlatform {
-            includeEngines("spek2")
-        }
+        useJUnitPlatform()
         testLogging.showStandardStreams = true
     }
 }
