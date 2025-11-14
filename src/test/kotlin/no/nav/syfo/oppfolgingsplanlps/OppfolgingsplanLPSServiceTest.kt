@@ -12,11 +12,12 @@ import no.nav.syfo.testutil.dropData
 import no.nav.syfo.testutil.generators.generateKOppfolgingsplanLPS
 import no.nav.syfo.testutil.generators.generateKOppfolgingsplanLPSNoBehovforForBistand
 import no.nav.syfo.testutil.getPersonOppgaveList
-import no.nav.syfo.testutil.stopExternalMocks
 import org.apache.kafka.clients.producer.KafkaProducer
 import org.apache.kafka.clients.producer.ProducerRecord
 import org.apache.kafka.clients.producer.RecordMetadata
 import org.junit.jupiter.api.*
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertNotNull
 import java.util.*
 import java.util.concurrent.Future
 
@@ -48,18 +49,18 @@ class OppfolgingsplanLPSServiceTest {
         oppfolgingsplanLPSService.receiveOppfolgingsplanLPS(kOppfolgingsplanLPS)
 
         val personListe = database.getPersonOppgaveList(ARBEIDSTAKER_FNR)
-        Assertions.assertEquals(1, personListe.size)
-        Assertions.assertEquals(kOppfolgingsplanLPS.fodselsnummer, personListe[0].fnr)
-        Assertions.assertEquals(kOppfolgingsplanLPS.virksomhetsnummer, personListe[0].virksomhetsnummer)
-        Assertions.assertEquals(PersonOppgaveType.OPPFOLGINGSPLANLPS.name, personListe[0].type)
-        Assertions.assertEquals(UUID.fromString(kOppfolgingsplanLPS.uuid), personListe[0].referanseUuid)
-        Assertions.assertNotNull(personListe[0].oversikthendelseTidspunkt)
+        assertEquals(1, personListe.size)
+        assertEquals(kOppfolgingsplanLPS.fodselsnummer, personListe[0].fnr)
+        assertEquals(kOppfolgingsplanLPS.virksomhetsnummer, personListe[0].virksomhetsnummer)
+        assertEquals(PersonOppgaveType.OPPFOLGINGSPLANLPS.name, personListe[0].type)
+        assertEquals(UUID.fromString(kOppfolgingsplanLPS.uuid), personListe[0].referanseUuid)
+        assertNotNull(personListe[0].oversikthendelseTidspunkt)
 
         val producerRecordSlot = slot<ProducerRecord<String, KPersonoppgavehendelse>>()
         verify(exactly = 1) { kafkaProducer.send(capture(producerRecordSlot)) }
         val producedPersonoppgaveHendelse = producerRecordSlot.captured.value()
-        Assertions.assertEquals(kOppfolgingsplanLPS.fodselsnummer, producedPersonoppgaveHendelse.personident)
-        Assertions.assertEquals(PersonoppgavehendelseType.OPPFOLGINGSPLANLPS_BISTAND_MOTTATT.name, producedPersonoppgaveHendelse.hendelsetype)
+        assertEquals(kOppfolgingsplanLPS.fodselsnummer, producedPersonoppgaveHendelse.personident)
+        assertEquals(PersonoppgavehendelseType.OPPFOLGINGSPLANLPS_BISTAND_MOTTATT.name, producedPersonoppgaveHendelse.hendelsetype)
     }
 
     @Test
@@ -69,17 +70,11 @@ class OppfolgingsplanLPSServiceTest {
         oppfolgingsplanLPSService.receiveOppfolgingsplanLPS(kOppfolgingsplanLPS)
 
         val personListe = database.getPersonOppgaveList(ARBEIDSTAKER_FNR)
-        Assertions.assertEquals(0, personListe.size)
+        assertEquals(0, personListe.size)
         verify(exactly = 0) { kafkaProducer.send(any()) }
     }
 
     companion object {
-        private val externalMockEnvironment: ExternalMockEnvironment = ExternalMockEnvironment()
-
-        @AfterAll
-        @JvmStatic
-        fun afterAll() {
-            externalMockEnvironment.stopExternalMocks()
-        }
+        private val externalMockEnvironment: ExternalMockEnvironment = ExternalMockEnvironment.instance
     }
 }

@@ -24,13 +24,14 @@ import org.apache.kafka.clients.producer.KafkaProducer
 import org.apache.kafka.clients.producer.ProducerRecord
 import org.apache.kafka.clients.producer.RecordMetadata
 import org.junit.jupiter.api.*
+import org.junit.jupiter.api.Assertions.assertEquals
 import java.time.LocalDateTime
 import java.time.OffsetDateTime
 import java.util.*
 import java.util.concurrent.Future
 
 class PublishOppgavehendelseCronjobTest {
-    private lateinit var externalMockEnvironment: ExternalMockEnvironment
+    private val externalMockEnvironment = ExternalMockEnvironment.instance
     private lateinit var database: no.nav.syfo.personoppgave.infrastructure.database.DatabaseInterface
     private lateinit var kafkaProducer: KafkaProducer<String, KPersonoppgavehendelse>
     private lateinit var personoppgaveHendelseProducer: PersonoppgavehendelseProducer
@@ -41,7 +42,6 @@ class PublishOppgavehendelseCronjobTest {
 
     @BeforeEach
     fun setup() {
-        externalMockEnvironment = ExternalMockEnvironment()
         database = externalMockEnvironment.database
         kafkaProducer = mockk()
         personoppgaveHendelseProducer = PersonoppgavehendelseProducer(producer = kafkaProducer)
@@ -79,8 +79,8 @@ class PublishOppgavehendelseCronjobTest {
             ),
         )
         val result = publishOppgavehendelseCronjob.publishOppgavehendelserJob()
-        Assertions.assertEquals(0, result.failed)
-        Assertions.assertEquals(2, result.updated)
+        assertEquals(0, result.failed)
+        assertEquals(2, result.updated)
 
         val kafkaRecordSlot1 = slot<ProducerRecord<String, KPersonoppgavehendelse>>()
         val kafkaRecordSlot2 = slot<ProducerRecord<String, KPersonoppgavehendelse>>()
@@ -89,11 +89,11 @@ class PublishOppgavehendelseCronjobTest {
             kafkaProducer.send(capture(kafkaRecordSlot2))
         }
         val kafkaPersonoppgavehendelse1 = kafkaRecordSlot1.captured.value()
-        Assertions.assertEquals(unpublishedUbehandletPersonoppgave.personIdent.value, kafkaPersonoppgavehendelse1.personident)
-        Assertions.assertEquals(PersonoppgavehendelseType.BEHANDLER_BER_OM_BISTAND_MOTTATT.name, kafkaPersonoppgavehendelse1.hendelsetype)
+        assertEquals(unpublishedUbehandletPersonoppgave.personIdent.value, kafkaPersonoppgavehendelse1.personident)
+        assertEquals(PersonoppgavehendelseType.BEHANDLER_BER_OM_BISTAND_MOTTATT.name, kafkaPersonoppgavehendelse1.hendelsetype)
         val kafkaPersonoppgavehendelse2 = kafkaRecordSlot2.captured.value()
-        Assertions.assertEquals(unpublishedUbehandletPersonoppgave.personIdent.value, kafkaPersonoppgavehendelse2.personident)
-        Assertions.assertEquals(PersonoppgavehendelseType.BEHANDLERDIALOG_SVAR_MOTTATT.name, kafkaPersonoppgavehendelse2.hendelsetype)
+        assertEquals(unpublishedUbehandletPersonoppgave.personIdent.value, kafkaPersonoppgavehendelse2.personident)
+        assertEquals(PersonoppgavehendelseType.BEHANDLERDIALOG_SVAR_MOTTATT.name, kafkaPersonoppgavehendelse2.hendelsetype)
     }
 
     @Test
@@ -113,14 +113,14 @@ class PublishOppgavehendelseCronjobTest {
         }
 
         val result = publishOppgavehendelseCronjob.publishOppgavehendelserJob()
-        Assertions.assertEquals(0, result.failed)
-        Assertions.assertEquals(2, result.updated) // maybe-publish increments updated regardless
+        assertEquals(0, result.failed)
+        assertEquals(2, result.updated) // maybe-publish increments updated regardless
 
         val kafkaRecordSlot = slot<ProducerRecord<String, KPersonoppgavehendelse>>()
         verify(exactly = 1) { kafkaProducer.send(capture(kafkaRecordSlot)) }
         val kafkaPersonoppgavehendelse = kafkaRecordSlot.captured.value()
-        Assertions.assertEquals(unpublishedUbehandletPersonoppgave.personIdent.value, kafkaPersonoppgavehendelse.personident)
-        Assertions.assertEquals(PersonoppgavehendelseType.BEHANDLER_BER_OM_BISTAND_BEHANDLET.name, kafkaPersonoppgavehendelse.hendelsetype)
+        assertEquals(unpublishedUbehandletPersonoppgave.personIdent.value, kafkaPersonoppgavehendelse.personident)
+        assertEquals(PersonoppgavehendelseType.BEHANDLER_BER_OM_BISTAND_BEHANDLET.name, kafkaPersonoppgavehendelse.hendelsetype)
     }
 
     @Test
@@ -128,16 +128,16 @@ class PublishOppgavehendelseCronjobTest {
         val alreadyPublishedOppgave = unpublishedUbehandletPersonoppgave.copy(publishedAt = OffsetDateTime.now(), publish = false)
         createPersonoppgaver(alreadyPublishedOppgave)
         val result = publishOppgavehendelseCronjob.publishOppgavehendelserJob()
-        Assertions.assertEquals(0, result.failed)
-        Assertions.assertEquals(0, result.updated)
+        assertEquals(0, result.failed)
+        assertEquals(0, result.updated)
         verify(exactly = 0) { kafkaProducer.send(any()) }
     }
 
     @Test
     fun `Will not publish if no personoppgaver`() = runBlocking {
         val result = publishOppgavehendelseCronjob.publishOppgavehendelserJob()
-        Assertions.assertEquals(0, result.failed)
-        Assertions.assertEquals(0, result.updated)
+        assertEquals(0, result.failed)
+        assertEquals(0, result.updated)
         verify(exactly = 0) { kafkaProducer.send(any()) }
     }
 
@@ -146,8 +146,8 @@ class PublishOppgavehendelseCronjobTest {
         createPersonoppgaver(unpublishedUbehandletPersonoppgave)
         coEvery { kafkaProducer.send(any()) } coAnswers { throw Exception() }
         val result = publishOppgavehendelseCronjob.publishOppgavehendelserJob()
-        Assertions.assertEquals(1, result.failed)
-        Assertions.assertEquals(0, result.updated)
+        assertEquals(1, result.failed)
+        assertEquals(0, result.updated)
         verify(exactly = 1) { kafkaProducer.send(any()) }
     }
 }

@@ -13,20 +13,21 @@ import no.nav.syfo.testutil.generators.generateKDialogmotesvar
 import no.nav.syfo.testutil.mock.mockPollConsumerRecords
 import org.apache.kafka.clients.consumer.KafkaConsumer
 import org.junit.jupiter.api.*
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertTrue
 import java.time.LocalDate
 import java.time.OffsetDateTime
 import java.time.temporal.ChronoUnit
 import java.util.*
 
 class DialogmotesvarConsumerTest {
-    private lateinit var externalMockEnvironment: ExternalMockEnvironment
+    private val externalMockEnvironment = ExternalMockEnvironment.instance
     private lateinit var database: no.nav.syfo.personoppgave.infrastructure.database.DatabaseInterface
     private lateinit var kafkaConsumer: KafkaConsumer<String, KDialogmotesvar>
     private lateinit var kafkaDialogmotesvarConsumer: KafkaDialogmotesvarConsumer
 
     @BeforeEach
     fun setup() {
-        externalMockEnvironment = ExternalMockEnvironment()
         database = externalMockEnvironment.database
         kafkaConsumer = mockk(relaxed = true)
         kafkaDialogmotesvarConsumer = KafkaDialogmotesvarConsumer(database = database, cutoffDate = LocalDate.now().minusDays(20))
@@ -53,13 +54,13 @@ class DialogmotesvarConsumerTest {
         val allPMotesvar = database.connection.use { connection ->
             connection.getDialogmotesvar(moteUuid = moteUuid)
         }
-        Assertions.assertEquals(1, allPMotesvar.size)
+        assertEquals(1, allPMotesvar.size)
         val pMotesvar = allPMotesvar[0]
-        Assertions.assertEquals(moteUuid.toString(), pMotesvar.moteUuid)
-        Assertions.assertEquals(UserConstants.ARBEIDSTAKER_FNR.value, pMotesvar.arbeidstakerIdent)
-        Assertions.assertEquals(DialogmoteSvartype.KOMMER.name, pMotesvar.svarType)
-        Assertions.assertEquals(SenderType.ARBEIDSTAKER.name, pMotesvar.senderType)
-        Assertions.assertTrue(pMotesvar.brevSentAt.isEqual(offsetNow))
-        Assertions.assertTrue(pMotesvar.svarReceivedAt.isEqual(offsetNow))
+        assertEquals(moteUuid.toString(), pMotesvar.moteUuid)
+        assertEquals(UserConstants.ARBEIDSTAKER_FNR.value, pMotesvar.arbeidstakerIdent)
+        assertEquals(DialogmoteSvartype.KOMMER.name, pMotesvar.svarType)
+        assertEquals(SenderType.ARBEIDSTAKER.name, pMotesvar.senderType)
+        assertTrue(pMotesvar.brevSentAt.isEqual(offsetNow))
+        assertTrue(pMotesvar.svarReceivedAt.isEqual(offsetNow))
     }
 }

@@ -10,13 +10,13 @@ import no.nav.syfo.personoppgave.infrastructure.database.DatabaseInterface
 import no.nav.syfo.personoppgave.api.v2.podLivenessPath
 import no.nav.syfo.personoppgave.api.v2.podReadinessPath
 import no.nav.syfo.personoppgave.api.v2.registerPodApi
-import no.nav.syfo.testutil.TestDB
+import no.nav.syfo.testutil.ExternalMockEnvironment
 import no.nav.syfo.testutil.TestDatabaseNotResponding
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 
 class PodApiTest {
-    private val database = TestDB()
+    private val database = ExternalMockEnvironment.instance.database
     private val databaseNotResponding = TestDatabaseNotResponding()
 
     private fun ApplicationTestBuilder.setupPodApi(database: DatabaseInterface, applicationState: ApplicationState) {

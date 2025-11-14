@@ -16,10 +16,11 @@ import no.nav.syfo.testutil.generators.generateKMeldingDTO
 import no.nav.syfo.testutil.mock.mockPollConsumerRecords
 import org.apache.kafka.clients.consumer.KafkaConsumer
 import org.junit.jupiter.api.*
+import org.junit.jupiter.api.Assertions.assertEquals
 import java.util.*
 
 class UbesvartMeldingTest {
-    private lateinit var externalMockEnvironment: ExternalMockEnvironment
+    private val externalMockEnvironment = ExternalMockEnvironment.instance
     private lateinit var database: no.nav.syfo.personoppgave.infrastructure.database.DatabaseInterface
     private lateinit var kafkaConsumer: KafkaConsumer<String, KMeldingDTO>
     private lateinit var personoppgavehendelseProducer: PersonoppgavehendelseProducer
@@ -29,7 +30,6 @@ class UbesvartMeldingTest {
 
     @BeforeEach
     fun setup() {
-        externalMockEnvironment = ExternalMockEnvironment()
         database = externalMockEnvironment.database
         kafkaConsumer = mockk(relaxed = true)
         personoppgavehendelseProducer = mockk(relaxed = true)
@@ -61,8 +61,8 @@ class UbesvartMeldingTest {
         val personOppgave = database.connection.use { connection ->
             connection.getPersonOppgaverByReferanseUuid(referanseUuid = referanseUuid).map { it.toPersonOppgave() }.first()
         }
-        Assertions.assertEquals(false, personOppgave.publish)
-        Assertions.assertEquals(PersonOppgaveType.BEHANDLERDIALOG_MELDING_UBESVART.name, personOppgave.type.name)
+        assertEquals(false, personOppgave.publish)
+        assertEquals(PersonOppgaveType.BEHANDLERDIALOG_MELDING_UBESVART.name, personOppgave.type.name)
 
         verify(exactly = 1) {
             personoppgavehendelseProducer.sendPersonoppgavehendelse(

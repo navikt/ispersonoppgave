@@ -20,10 +20,13 @@ import no.nav.syfo.testutil.mock.mockPollConsumerRecords
 import no.nav.syfo.util.Constants
 import org.apache.kafka.clients.consumer.KafkaConsumer
 import org.junit.jupiter.api.*
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertNotNull
+import org.junit.jupiter.api.Assertions.assertNull
 import java.util.*
 
 class MeldingFraBehandlerTest {
-    private lateinit var externalMockEnvironment: ExternalMockEnvironment
+    private val externalMockEnvironment = ExternalMockEnvironment.instance
     private lateinit var database: no.nav.syfo.personoppgave.infrastructure.database.DatabaseInterface
     private lateinit var kafkaConsumer: KafkaConsumer<String, KMeldingDTO>
     private lateinit var personoppgavehendelseProducer: PersonoppgavehendelseProducer
@@ -33,7 +36,6 @@ class MeldingFraBehandlerTest {
 
     @BeforeEach
     fun setup() {
-        externalMockEnvironment = ExternalMockEnvironment()
         database = externalMockEnvironment.database
         kafkaConsumer = mockk(relaxed = true)
         personoppgavehendelseProducer = mockk(relaxed = true)
@@ -65,8 +67,8 @@ class MeldingFraBehandlerTest {
         val personOppgave = database.connection.use { connection ->
             connection.getPersonOppgaverByReferanseUuid(referanseUuid = referanseUuid).map { it.toPersonOppgave() }.first()
         }
-        Assertions.assertEquals(false, personOppgave.publish)
-        Assertions.assertEquals(PersonOppgaveType.BEHANDLERDIALOG_SVAR.name, personOppgave.type.name)
+        assertEquals(false, personOppgave.publish)
+        assertEquals(PersonOppgaveType.BEHANDLERDIALOG_SVAR.name, personOppgave.type.name)
 
         verify(exactly = 1) {
             personoppgavehendelseProducer.sendPersonoppgavehendelse(
@@ -91,14 +93,14 @@ class MeldingFraBehandlerTest {
         kafkaMeldingFraBehandler.pollAndProcessRecords(kafkaConsumer)
 
         val personoppgaveList = database.getPersonOppgaver(personIdent = PersonIdent(kUbesvartMeldingDTO.personIdent)).map { it.toPersonOppgave() }
-        Assertions.assertEquals(2, personoppgaveList.size)
+        assertEquals(2, personoppgaveList.size)
         val personoppgaveUbesvart = personoppgaveList.first { it.type == PersonOppgaveType.BEHANDLERDIALOG_MELDING_UBESVART }
         val personoppgaveSvar = personoppgaveList.first { it.type == PersonOppgaveType.BEHANDLERDIALOG_SVAR }
-        Assertions.assertNotNull(personoppgaveUbesvart.behandletTidspunkt)
-        Assertions.assertEquals(Constants.SYSTEM_VEILEDER_IDENT, personoppgaveUbesvart.behandletVeilederIdent)
-        Assertions.assertEquals(false, personoppgaveUbesvart.publish)
-        Assertions.assertNull(personoppgaveSvar.behandletTidspunkt)
-        Assertions.assertEquals(false, personoppgaveSvar.publish)
+        assertNotNull(personoppgaveUbesvart.behandletTidspunkt)
+        assertEquals(Constants.SYSTEM_VEILEDER_IDENT, personoppgaveUbesvart.behandletVeilederIdent)
+        assertEquals(false, personoppgaveUbesvart.publish)
+        assertNull(personoppgaveSvar.behandletTidspunkt)
+        assertEquals(false, personoppgaveSvar.publish)
 
         verify(exactly = 1) {
             personoppgavehendelseProducer.sendPersonoppgavehendelse(
@@ -141,17 +143,17 @@ class MeldingFraBehandlerTest {
         kafkaMeldingFraBehandler.pollAndProcessRecords(kafkaConsumer)
 
         val personoppgaveList = database.getPersonOppgaver(personIdent = PersonIdent(kUbesvartMeldingDTO.personIdent)).map { it.toPersonOppgave() }
-        Assertions.assertEquals(3, personoppgaveList.size)
+        assertEquals(3, personoppgaveList.size)
         val personoppgaveUbesvart = personoppgaveList.first { it.referanseUuid == referanseUuid }
         val otherPersonoppgaveUbesvart = personoppgaveList.first { it.referanseUuid == otherReferanseUuid }
         val personoppgaveSvar = personoppgaveList.first { it.type == PersonOppgaveType.BEHANDLERDIALOG_SVAR }
-        Assertions.assertNotNull(personoppgaveUbesvart.behandletTidspunkt)
-        Assertions.assertEquals(Constants.SYSTEM_VEILEDER_IDENT, personoppgaveUbesvart.behandletVeilederIdent)
-        Assertions.assertEquals(false, personoppgaveUbesvart.publish)
-        Assertions.assertNull(otherPersonoppgaveUbesvart.behandletTidspunkt)
-        Assertions.assertNull(otherPersonoppgaveUbesvart.behandletVeilederIdent)
-        Assertions.assertNull(personoppgaveSvar.behandletTidspunkt)
-        Assertions.assertEquals(false, personoppgaveSvar.publish)
+        assertNotNull(personoppgaveUbesvart.behandletTidspunkt)
+        assertEquals(Constants.SYSTEM_VEILEDER_IDENT, personoppgaveUbesvart.behandletVeilederIdent)
+        assertEquals(false, personoppgaveUbesvart.publish)
+        assertNull(otherPersonoppgaveUbesvart.behandletTidspunkt)
+        assertNull(otherPersonoppgaveUbesvart.behandletVeilederIdent)
+        assertNull(personoppgaveSvar.behandletTidspunkt)
+        assertEquals(false, personoppgaveSvar.publish)
 
         verify(exactly = 0) {
             personoppgavehendelseProducer.sendPersonoppgavehendelse(

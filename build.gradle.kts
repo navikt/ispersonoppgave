@@ -1,3 +1,5 @@
+import com.adarshr.gradle.testlogger.theme.ThemeType
+
 group = "no.nav.syfo"
 version = "1.0-SNAPSHOT"
 
@@ -157,6 +159,10 @@ tasks {
 
     test {
         useJUnitPlatform()
-        testLogging.showStandardStreams = true
+        testlogger {
+            theme = ThemeType.STANDARD_PARALLEL
+            showFullStackTraces = true
+            showPassed = false
+        }
     }
 }

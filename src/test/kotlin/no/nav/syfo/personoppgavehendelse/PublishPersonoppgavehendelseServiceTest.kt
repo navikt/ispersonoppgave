@@ -19,6 +19,9 @@ import no.nav.syfo.testutil.generators.generatePPersonoppgave
 import no.nav.syfo.testutil.generators.generatePPersonoppgaver
 import no.nav.syfo.testutil.generators.generatePersonoppgave
 import org.junit.jupiter.api.*
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertFalse
+import org.junit.jupiter.api.Assertions.assertNotNull
 import java.sql.Connection
 import java.time.OffsetDateTime
 import java.util.*
@@ -63,8 +66,8 @@ class PublishPersonoppgavehendelseServiceTest {
         val unpublished = publishPersonoppgavehendelseService.getUnpublishedOppgaver()
 
         verify(exactly = 1) { connection.getPersonOppgaverByPublish(publish = true) }
-        Assertions.assertEquals(pPersonoppgaver.size, unpublished.size)
-        Assertions.assertEquals(pPersonoppgaver[0].uuid, unpublished[0].uuid)
+        assertEquals(pPersonoppgaver.size, unpublished.size)
+        assertEquals(pPersonoppgaver[0].uuid, unpublished[0].uuid)
     }
 
     @Test
@@ -94,7 +97,7 @@ class PublishPersonoppgavehendelseServiceTest {
         verify(exactly = 1) { connection.getPersonOppgaver(personoppgave.personIdent) }
         val updatedPersonoppgaveSlot = slot<PersonOppgave>()
         verify(exactly = 1) { personOppgaveRepository.updatePersonoppgaveBehandlet(capture(updatedPersonoppgaveSlot)) }
-        Assertions.assertFalse(updatedPersonoppgaveSlot.captured.publish)
+        assertFalse(updatedPersonoppgaveSlot.captured.publish)
     }
 
     @Test
@@ -132,9 +135,9 @@ class PublishPersonoppgavehendelseServiceTest {
         val updatedpersonoppgaveSlot = slot<PersonOppgave>()
         verify(exactly = 1) { personOppgaveRepository.updatePersonoppgaveBehandlet(capture(updatedpersonoppgaveSlot)) }
         val updatedPersonoppgave = updatedpersonoppgaveSlot.captured
-        Assertions.assertNotNull(updatedPersonoppgave.publishedAt)
-        Assertions.assertFalse(updatedPersonoppgave.publish)
-        Assertions.assertEquals(moteUuid, updatedPersonoppgave.referanseUuid)
-        Assertions.assertEquals(personOppgave.uuid, updatedPersonoppgave.uuid)
+        assertNotNull(updatedPersonoppgave.publishedAt)
+        assertFalse(updatedPersonoppgave.publish)
+        assertEquals(moteUuid, updatedPersonoppgave.referanseUuid)
+        assertEquals(personOppgave.uuid, updatedPersonoppgave.uuid)
     }
 }

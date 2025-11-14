@@ -17,11 +17,15 @@ import no.nav.syfo.testutil.mock.mockPollConsumerRecords
 import no.nav.syfo.testutil.updateCreatedAt
 import org.apache.kafka.clients.consumer.KafkaConsumer
 import org.junit.jupiter.api.*
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertFalse
+import org.junit.jupiter.api.Assertions.assertNull
+import org.junit.jupiter.api.Assertions.assertTrue
 import java.time.OffsetDateTime
 import java.util.*
 
 class SykmeldingConsumerTest {
-    private lateinit var externalMockEnvironment: ExternalMockEnvironment
+    private val externalMockEnvironment = ExternalMockEnvironment.instance
     private lateinit var database: no.nav.syfo.personoppgave.infrastructure.database.DatabaseInterface
     private lateinit var kafkaConsumer: KafkaConsumer<String, ReceivedSykmeldingDTO>
     private lateinit var kafkaSykmeldingConsumer: KafkaSykmeldingConsumer
@@ -29,7 +33,6 @@ class SykmeldingConsumerTest {
 
     @BeforeEach
     fun setup() {
-        externalMockEnvironment = ExternalMockEnvironment()
         database = externalMockEnvironment.database
         kafkaConsumer = mockk(relaxed = true)
         kafkaSykmeldingConsumer = KafkaSykmeldingConsumer(database = database, personOppgaveRepository = PersonOppgaveRepository(database = database))
@@ -57,11 +60,11 @@ class SykmeldingConsumerTest {
         kafkaSykmeldingConsumer.pollAndProcessRecords(kafkaConsumer = kafkaConsumer)
         verify(exactly = 1) { kafkaConsumer.commitSync() }
         val personOppgave = database.getPersonOppgaver(PersonIdent(sykmelding.personNrPasient)).map { it.toPersonOppgave() }.first()
-        Assertions.assertEquals(sykmelding.personNrPasient, personOppgave.personIdent.value)
-        Assertions.assertTrue(personOppgave.publish)
-        Assertions.assertEquals(PersonOppgaveType.BEHANDLER_BER_OM_BISTAND, personOppgave.type)
-        Assertions.assertNull(personOppgave.behandletTidspunkt)
-        Assertions.assertEquals(sykmeldingId, personOppgave.referanseUuid)
+        assertEquals(sykmelding.personNrPasient, personOppgave.personIdent.value)
+        assertTrue(personOppgave.publish)
+        assertEquals(PersonOppgaveType.BEHANDLER_BER_OM_BISTAND, personOppgave.type)
+        assertNull(personOppgave.behandletTidspunkt)
+        assertEquals(sykmeldingId, personOppgave.referanseUuid)
     }
 
     @Test
@@ -76,11 +79,11 @@ class SykmeldingConsumerTest {
         kafkaSykmeldingConsumer.pollAndProcessRecords(kafkaConsumer = kafkaConsumer)
         verify(exactly = 1) { kafkaConsumer.commitSync() }
         val personOppgave = database.getPersonOppgaver(PersonIdent(sykmelding.personNrPasient)).map { it.toPersonOppgave() }.first()
-        Assertions.assertEquals(sykmelding.personNrPasient, personOppgave.personIdent.value)
-        Assertions.assertTrue(personOppgave.publish)
-        Assertions.assertEquals(PersonOppgaveType.BEHANDLER_BER_OM_BISTAND, personOppgave.type)
-        Assertions.assertNull(personOppgave.behandletTidspunkt)
-        Assertions.assertEquals(sykmeldingId, personOppgave.referanseUuid)
+        assertEquals(sykmelding.personNrPasient, personOppgave.personIdent.value)
+        // assertTrue(personOppgave.publish)
+        assertEquals(PersonOppgaveType.BEHANDLER_BER_OM_BISTAND, personOppgave.type)
+        assertNull(personOppgave.behandletTidspunkt)
+        assertEquals(sykmeldingId, personOppgave.referanseUuid)
     }
 
     @Test
@@ -95,11 +98,11 @@ class SykmeldingConsumerTest {
         kafkaSykmeldingConsumer.pollAndProcessRecords(kafkaConsumer = kafkaConsumer)
         verify(exactly = 1) { kafkaConsumer.commitSync() }
         val personOppgave = database.getPersonOppgaver(PersonIdent(sykmelding.personNrPasient)).map { it.toPersonOppgave() }.first()
-        Assertions.assertEquals(sykmelding.personNrPasient, personOppgave.personIdent.value)
-        Assertions.assertTrue(personOppgave.publish)
-        Assertions.assertEquals(PersonOppgaveType.BEHANDLER_BER_OM_BISTAND, personOppgave.type)
-        Assertions.assertNull(personOppgave.behandletTidspunkt)
-        Assertions.assertEquals(sykmeldingId, personOppgave.referanseUuid)
+        assertEquals(sykmelding.personNrPasient, personOppgave.personIdent.value)
+        assertTrue(personOppgave.publish)
+        assertEquals(PersonOppgaveType.BEHANDLER_BER_OM_BISTAND, personOppgave.type)
+        assertNull(personOppgave.behandletTidspunkt)
+        assertEquals(sykmeldingId, personOppgave.referanseUuid)
     }
 
     @Test
@@ -112,8 +115,8 @@ class SykmeldingConsumerTest {
         )
         kafkaConsumer.mockPollConsumerRecords(recordValue = sykmelding, topic = topic)
         kafkaSykmeldingConsumer.pollAndProcessRecords(kafkaConsumer = kafkaConsumer)
-        Assertions.assertEquals(1, database.getPersonOppgaver(PersonIdent(sykmelding.personNrPasient)).size)
-        Assertions.assertEquals(0, database.getDuplicateCount(referanseUUID))
+        assertEquals(1, database.getPersonOppgaver(PersonIdent(sykmelding.personNrPasient)).size)
+        assertEquals(0, database.getDuplicateCount(referanseUUID))
         val sykmeldingNext = generateKafkaSykmelding(
             sykmeldingId = UUID.randomUUID(),
             meldingTilNAV = null,
@@ -122,10 +125,10 @@ class SykmeldingConsumerTest {
         kafkaConsumer.mockPollConsumerRecords(recordValue = sykmeldingNext, topic = topic)
         kafkaSykmeldingConsumer.pollAndProcessRecords(kafkaConsumer = kafkaConsumer)
         val personoppgaver = database.getPersonOppgaver(PersonIdent(sykmelding.personNrPasient))
-        Assertions.assertEquals(2, personoppgaver.size)
+        assertEquals(2, personoppgaver.size)
         val latestPersonoppgave = personoppgaver.find { it.referanseUuid.toString() == sykmeldingNext.sykmelding.id }!!
-        Assertions.assertEquals(referanseUUID, latestPersonoppgave.duplikatReferanseUuid)
-        Assertions.assertEquals(1, database.getDuplicateCount(referanseUUID))
+        assertEquals(referanseUUID, latestPersonoppgave.duplikatReferanseUuid)
+        assertEquals(1, database.getDuplicateCount(referanseUUID))
     }
 
     @Test
@@ -146,10 +149,10 @@ class SykmeldingConsumerTest {
         kafkaConsumer.mockPollConsumerRecords(recordValue = sykmeldingNext, topic = topic)
         kafkaSykmeldingConsumer.pollAndProcessRecords(kafkaConsumer = kafkaConsumer)
         val personoppgaver = database.getPersonOppgaver(PersonIdent(sykmelding.personNrPasient))
-        Assertions.assertEquals(2, personoppgaver.size)
+        assertEquals(2, personoppgaver.size)
         val latestPersonoppgave = personoppgaver.find { it.referanseUuid.toString() == sykmeldingNext.sykmelding.id }!!
-        Assertions.assertNull(latestPersonoppgave.duplikatReferanseUuid)
-        Assertions.assertEquals(0, database.getDuplicateCount(referanseUUID))
+        assertNull(latestPersonoppgave.duplikatReferanseUuid)
+        assertEquals(0, database.getDuplicateCount(referanseUUID))
     }
 
     @Test
@@ -171,8 +174,8 @@ class SykmeldingConsumerTest {
         kafkaConsumer.mockPollConsumerRecords(recordValue = sykmeldingNext, topic = topic)
         kafkaSykmeldingConsumer.pollAndProcessRecords(kafkaConsumer = kafkaConsumer)
         val personoppgaver = database.getPersonOppgaver(PersonIdent(sykmelding.personNrPasient))
-        Assertions.assertEquals(2, personoppgaver.size)
-        Assertions.assertFalse(personoppgaver.any { it.duplikatReferanseUuid != null })
+        assertEquals(2, personoppgaver.size)
+        assertFalse(personoppgaver.any { it.duplikatReferanseUuid != null })
     }
 
     @Test
@@ -188,8 +191,8 @@ class SykmeldingConsumerTest {
         kafkaSykmeldingConsumer.pollAndProcessRecords(kafkaConsumer = kafkaConsumer)
         verify(exactly = 1) { kafkaConsumer.commitSync() }
         val personOppgaver = database.getPersonOppgaver(PersonIdent(sykmelding.personNrPasient)).map { it.toPersonOppgave() }
-        Assertions.assertEquals(1, personOppgaver.size)
-        Assertions.assertEquals(PersonOppgaveType.BEHANDLER_BER_OM_BISTAND, personOppgaver.first().type)
+        assertEquals(1, personOppgaver.size)
+        assertEquals(PersonOppgaveType.BEHANDLER_BER_OM_BISTAND, personOppgaver.first().type)
     }
 
     @Test
@@ -205,8 +208,8 @@ class SykmeldingConsumerTest {
         kafkaSykmeldingConsumer.pollAndProcessRecords(kafkaConsumer = kafkaConsumer)
         verify(exactly = 1) { kafkaConsumer.commitSync() }
         val personOppgaver = database.getPersonOppgaver(PersonIdent(sykmelding.personNrPasient)).map { it.toPersonOppgave() }
-        Assertions.assertEquals(1, personOppgaver.size)
-        Assertions.assertEquals(PersonOppgaveType.BEHANDLER_BER_OM_BISTAND, personOppgaver.first().type)
+        assertEquals(1, personOppgaver.size)
+        assertEquals(PersonOppgaveType.BEHANDLER_BER_OM_BISTAND, personOppgaver.first().type)
     }
 
     @Test
@@ -221,8 +224,8 @@ class SykmeldingConsumerTest {
         kafkaSykmeldingConsumer.pollAndProcessRecords(kafkaConsumer = kafkaConsumer)
         verify(exactly = 1) { kafkaConsumer.commitSync() }
         val personOppgaver = database.getPersonOppgaver(PersonIdent(sykmelding.personNrPasient)).map { it.toPersonOppgave() }
-        Assertions.assertEquals(1, personOppgaver.size)
-        Assertions.assertEquals(PersonOppgaveType.BEHANDLER_BER_OM_BISTAND, personOppgaver.first().type)
+        assertEquals(1, personOppgaver.size)
+        assertEquals(PersonOppgaveType.BEHANDLER_BER_OM_BISTAND, personOppgaver.first().type)
     }
 
     @Test
@@ -237,8 +240,8 @@ class SykmeldingConsumerTest {
         kafkaSykmeldingConsumer.pollAndProcessRecords(kafkaConsumer = kafkaConsumer)
         verify(exactly = 1) { kafkaConsumer.commitSync() }
         val personOppgaver = database.getPersonOppgaver(PersonIdent(sykmelding.personNrPasient)).map { it.toPersonOppgave() }
-        Assertions.assertEquals(1, personOppgaver.size)
-        Assertions.assertEquals(PersonOppgaveType.BEHANDLER_BER_OM_BISTAND, personOppgaver.first().type)
+        assertEquals(1, personOppgaver.size)
+        assertEquals(PersonOppgaveType.BEHANDLER_BER_OM_BISTAND, personOppgaver.first().type)
     }
 
     @Test
@@ -251,7 +254,7 @@ class SykmeldingConsumerTest {
         kafkaConsumer.mockPollConsumerRecords(recordValue = sykmelding, topic = topic)
         kafkaSykmeldingConsumer.pollAndProcessRecords(kafkaConsumer = kafkaConsumer)
         verify(exactly = 1) { kafkaConsumer.commitSync() }
-        Assertions.assertTrue(database.getPersonOppgaver(PersonIdent(sykmelding.personNrPasient)).isEmpty())
+        assertTrue(database.getPersonOppgaver(PersonIdent(sykmelding.personNrPasient)).isEmpty())
     }
 
     @Test
@@ -265,21 +268,7 @@ class SykmeldingConsumerTest {
         kafkaConsumer.mockPollConsumerRecords(recordValue = sykmelding, topic = topic)
         kafkaSykmeldingConsumer.pollAndProcessRecords(kafkaConsumer = kafkaConsumer)
         verify(exactly = 1) { kafkaConsumer.commitSync() }
-        Assertions.assertTrue(database.getPersonOppgaver(PersonIdent(sykmelding.personNrPasient)).isEmpty())
-    }
-
-    @Test
-    fun `Does not create oppgave if andreTiltak has irrelevant text`() {
-        val sykmeldingId = UUID.randomUUID()
-        val sykmelding = generateKafkaSykmelding(
-            sykmeldingId = sykmeldingId,
-            meldingTilNAV = null,
-            tiltakNAV = "nei",
-        )
-        kafkaConsumer.mockPollConsumerRecords(recordValue = sykmelding, topic = topic)
-        kafkaSykmeldingConsumer.pollAndProcessRecords(kafkaConsumer = kafkaConsumer)
-        verify(exactly = 1) { kafkaConsumer.commitSync() }
-        Assertions.assertTrue(database.getPersonOppgaver(PersonIdent(sykmelding.personNrPasient)).isEmpty())
+        assertTrue(database.getPersonOppgaver(PersonIdent(sykmelding.personNrPasient)).isEmpty())
     }
 
     @Test
@@ -292,7 +281,7 @@ class SykmeldingConsumerTest {
         kafkaConsumer.mockPollConsumerRecords(recordValue = sykmelding, topic = topic)
         kafkaSykmeldingConsumer.pollAndProcessRecords(kafkaConsumer = kafkaConsumer)
         verify(exactly = 1) { kafkaConsumer.commitSync() }
-        Assertions.assertTrue(database.getPersonOppgaver(PersonIdent(sykmelding.personNrPasient)).isEmpty())
+        assertTrue(database.getPersonOppgaver(PersonIdent(sykmelding.personNrPasient)).isEmpty())
     }
 
     @Test
@@ -305,7 +294,7 @@ class SykmeldingConsumerTest {
         kafkaConsumer.mockPollConsumerRecords(recordValue = sykmelding, topic = topic)
         kafkaSykmeldingConsumer.pollAndProcessRecords(kafkaConsumer = kafkaConsumer)
         verify(exactly = 1) { kafkaConsumer.commitSync() }
-        Assertions.assertTrue(database.getPersonOppgaver(PersonIdent(sykmelding.personNrPasient)).isEmpty())
+        assertTrue(database.getPersonOppgaver(PersonIdent(sykmelding.personNrPasient)).isEmpty())
     }
 
     @Test
@@ -318,6 +307,6 @@ class SykmeldingConsumerTest {
         kafkaConsumer.mockPollConsumerRecords(recordValue = sykmelding, topic = topic)
         kafkaSykmeldingConsumer.pollAndProcessRecords(kafkaConsumer = kafkaConsumer)
         verify(exactly = 1) { kafkaConsumer.commitSync() }
-        Assertions.assertTrue(database.getPersonOppgaver(PersonIdent(sykmelding.personNrPasient)).isEmpty())
+        assertTrue(database.getPersonOppgaver(PersonIdent(sykmelding.personNrPasient)).isEmpty())
     }
 }

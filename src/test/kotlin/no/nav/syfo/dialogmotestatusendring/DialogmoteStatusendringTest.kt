@@ -11,6 +11,7 @@ import no.nav.syfo.testutil.dropData
 import no.nav.syfo.testutil.mock.mockPollConsumerRecords
 import org.apache.kafka.clients.consumer.KafkaConsumer
 import org.junit.jupiter.api.*
+import org.junit.jupiter.api.Assertions.assertEquals
 import java.time.Instant
 import java.time.OffsetDateTime
 import java.time.ZoneOffset
@@ -18,14 +19,13 @@ import java.time.temporal.ChronoUnit
 import java.util.*
 
 class DialogmoteStatusendringTest {
-    private lateinit var externalMockEnvironment: ExternalMockEnvironment
+    private val externalMockEnvironment = ExternalMockEnvironment.instance
     private lateinit var database: no.nav.syfo.personoppgave.infrastructure.database.DatabaseInterface
     private lateinit var kafkaConsumer: KafkaConsumer<String, KDialogmoteStatusEndring>
     private lateinit var kafkaDialogmoteStatusendring: KafkaDialogmoteStatusendring
 
     @BeforeEach
     fun setup() {
-        externalMockEnvironment = ExternalMockEnvironment()
         database = externalMockEnvironment.database
         kafkaConsumer = mockk(relaxed = true)
         kafkaDialogmoteStatusendring = KafkaDialogmoteStatusendring(database = database)
@@ -63,12 +63,12 @@ class DialogmoteStatusendringTest {
         val allPDialogmoteStatusendring = database.connection.use { connection ->
             connection.getDialogmoteStatusendring(moteUuid = moteUuid)
         }
-        Assertions.assertEquals(1, allPDialogmoteStatusendring.size)
+        assertEquals(1, allPDialogmoteStatusendring.size)
         val pDialogmoteStatusendring = allPDialogmoteStatusendring[0]
-        Assertions.assertEquals(moteUuid.toString(), pDialogmoteStatusendring.moteUuid)
-        Assertions.assertEquals(offsetNow, pDialogmoteStatusendring.endringTidspunkt)
-        Assertions.assertEquals(DialogmoteStatusendringType.AVLYST.name, pDialogmoteStatusendring.type)
-        Assertions.assertEquals(UserConstants.ARBEIDSTAKER_FNR.value, pDialogmoteStatusendring.arbeidstakerIdent)
-        Assertions.assertEquals(UserConstants.VEILEDER_IDENT, pDialogmoteStatusendring.veilederIdent)
+        assertEquals(moteUuid.toString(), pDialogmoteStatusendring.moteUuid)
+        assertEquals(offsetNow, pDialogmoteStatusendring.endringTidspunkt)
+        assertEquals(DialogmoteStatusendringType.AVLYST.name, pDialogmoteStatusendring.type)
+        assertEquals(UserConstants.ARBEIDSTAKER_FNR.value, pDialogmoteStatusendring.arbeidstakerIdent)
+        assertEquals(UserConstants.VEILEDER_IDENT, pDialogmoteStatusendring.veilederIdent)
     }
 }

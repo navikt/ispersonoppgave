@@ -35,6 +35,10 @@ import org.apache.kafka.clients.producer.KafkaProducer
 import org.apache.kafka.clients.producer.ProducerRecord
 import org.apache.kafka.clients.producer.RecordMetadata
 import org.junit.jupiter.api.*
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertNotNull
+import org.junit.jupiter.api.Assertions.assertNull
+import org.junit.jupiter.api.Assertions.assertTrue
 import java.time.LocalDateTime
 import java.util.*
 import java.util.concurrent.Future
@@ -49,7 +53,6 @@ class VeilederPersonOppgaveApiV2Test {
 
     @BeforeEach
     fun setup() {
-        externalMockEnvironment = ExternalMockEnvironment()
         database = externalMockEnvironment.database
         kafkaProducer = mockk(relaxed = true)
         personoppgavehendelseProducer = PersonoppgavehendelseProducer(kafkaProducer)
@@ -84,7 +87,7 @@ class VeilederPersonOppgaveApiV2Test {
     fun `returns BadRequest if NAV_PERSONIDENT_HEADER missing`() = testApplication {
         val client = setupApiAndClient()
         val response = client.get("$baseUrl/personident") { bearerAuth(validToken) }
-        Assertions.assertEquals(HttpStatusCode.BadRequest, response.status)
+        assertEquals(HttpStatusCode.BadRequest, response.status)
     }
 
     @Test
@@ -94,7 +97,7 @@ class VeilederPersonOppgaveApiV2Test {
             bearerAuth(validToken)
             header(NAV_PERSONIDENT_HEADER, ARBEIDSTAKER_FNR.value.drop(1))
         }
-        Assertions.assertEquals(HttpStatusCode.BadRequest, response.status)
+        assertEquals(HttpStatusCode.BadRequest, response.status)
     }
 
     @Test
@@ -104,7 +107,7 @@ class VeilederPersonOppgaveApiV2Test {
             bearerAuth(validToken)
             header(NAV_PERSONIDENT_HEADER, ARBEIDSTAKER_FNR.value.drop(1) + "0")
         }
-        Assertions.assertEquals(HttpStatusCode.Forbidden, response.status)
+        assertEquals(HttpStatusCode.Forbidden, response.status)
     }
 
     @Test
@@ -114,7 +117,7 @@ class VeilederPersonOppgaveApiV2Test {
             bearerAuth(validToken)
             header(NAV_PERSONIDENT_HEADER, ARBEIDSTAKER_FNR.value)
         }
-        Assertions.assertEquals(HttpStatusCode.NoContent, response.status)
+        assertEquals(HttpStatusCode.NoContent, response.status)
     }
 
     @Test
@@ -130,18 +133,18 @@ class VeilederPersonOppgaveApiV2Test {
             bearerAuth(validToken)
             header(NAV_PERSONIDENT_HEADER, ARBEIDSTAKER_FNR.value)
         }
-        Assertions.assertEquals(HttpStatusCode.OK, response.status)
+        assertEquals(HttpStatusCode.OK, response.status)
         val list = response.body<List<PersonOppgaveVeileder>>()
-        Assertions.assertEquals(1, list.size)
+        assertEquals(1, list.size)
         val personOppgave = list.first()
-        Assertions.assertNotNull(personOppgave.uuid)
-        Assertions.assertEquals(kOppfolgingsplanLPS.uuid, personOppgave.referanseUuid)
-        Assertions.assertEquals(kOppfolgingsplanLPS.fodselsnummer, personOppgave.fnr)
-        Assertions.assertEquals("", personOppgave.virksomhetsnummer)
-        Assertions.assertEquals(personOppgaveType.name, personOppgave.type)
-        Assertions.assertNull(personOppgave.behandletTidspunkt)
-        Assertions.assertNull(personOppgave.behandletVeilederIdent)
-        Assertions.assertNotNull(personOppgave.opprettet)
+        assertNotNull(personOppgave.uuid)
+        assertEquals(kOppfolgingsplanLPS.uuid, personOppgave.referanseUuid)
+        assertEquals(kOppfolgingsplanLPS.fodselsnummer, personOppgave.fnr)
+        assertEquals("", personOppgave.virksomhetsnummer)
+        assertEquals(personOppgaveType.name, personOppgave.type)
+        assertNull(personOppgave.behandletTidspunkt)
+        assertNull(personOppgave.behandletVeilederIdent)
+        assertNotNull(personOppgave.opprettet)
     }
 
     @Test
@@ -155,18 +158,18 @@ class VeilederPersonOppgaveApiV2Test {
         }
         val urlProcess = "$baseUrl/$uuid/behandle"
         val client = setupApiAndClient()
-        client.post(urlProcess) { bearerAuth(validToken) }.apply { Assertions.assertEquals(HttpStatusCode.OK, status) }
+        client.post(urlProcess) { bearerAuth(validToken) }.apply { assertEquals(HttpStatusCode.OK, status) }
         val response = client.get("$baseUrl/personident") {
             bearerAuth(validToken)
             header(NAV_PERSONIDENT_HEADER, ARBEIDSTAKER_FNR.value)
         }
-        Assertions.assertEquals(HttpStatusCode.OK, response.status)
+        assertEquals(HttpStatusCode.OK, response.status)
         val list = response.body<List<PersonOppgaveVeileder>>()
-        Assertions.assertEquals(2, list.size)
+        assertEquals(2, list.size)
         val behandlet = list.first { it.behandletTidspunkt != null }
-        Assertions.assertEquals(k1.uuid, behandlet.referanseUuid)
+        assertEquals(k1.uuid, behandlet.referanseUuid)
         val ubehandlet = list.first { it.behandletTidspunkt == null }
-        Assertions.assertEquals(k2.uuid, ubehandlet.referanseUuid)
+        assertEquals(k2.uuid, ubehandlet.referanseUuid)
         verify(exactly = 0) { kafkaProducer.send(any()) }
     }
 
@@ -176,21 +179,21 @@ class VeilederPersonOppgaveApiV2Test {
         val type = PersonOppgaveType.OPPFOLGINGSPLANLPS
         val uuid = database.connection.use { c -> c.createPersonOppgave(k, type).also { c.commit() } }
         val client = setupApiAndClient()
-        client.post("$baseUrl/$uuid/behandle") { bearerAuth(validToken) }.apply { Assertions.assertEquals(HttpStatusCode.OK, status) }
+        client.post("$baseUrl/$uuid/behandle") { bearerAuth(validToken) }.apply { assertEquals(HttpStatusCode.OK, status) }
         val response = client.get("$baseUrl/personident") {
             bearerAuth(validToken)
             header(NAV_PERSONIDENT_HEADER, ARBEIDSTAKER_FNR.value)
         }
-        Assertions.assertEquals(HttpStatusCode.OK, response.status)
+        assertEquals(HttpStatusCode.OK, response.status)
         val list = response.body<List<PersonOppgaveVeileder>>()
-        Assertions.assertEquals(1, list.size)
+        assertEquals(1, list.size)
         val oppgave = list.first()
-        Assertions.assertNotNull(oppgave.behandletTidspunkt)
+        assertNotNull(oppgave.behandletTidspunkt)
         val slotRecord = slot<ProducerRecord<String, KPersonoppgavehendelse>>()
         verify(exactly = 1) { kafkaProducer.send(capture(slotRecord)) }
         val hendelse = slotRecord.captured.value()
-        Assertions.assertEquals(k.fodselsnummer, hendelse.personident)
-        Assertions.assertEquals(PersonoppgavehendelseType.OPPFOLGINGSPLANLPS_BISTAND_BEHANDLET.name, hendelse.hendelsetype)
+        assertEquals(k.fodselsnummer, hendelse.personident)
+        assertEquals(PersonoppgavehendelseType.OPPFOLGINGSPLANLPS_BISTAND_BEHANDLET.name, hendelse.hendelsetype)
     }
 
     @Test
@@ -200,7 +203,7 @@ class VeilederPersonOppgaveApiV2Test {
         val oppgaveUuid = database.connection.use { c -> c.createPersonOppgave(dialogmotesvar).also { c.commit() } }
         val client = setupApiAndClient()
         val response = client.post("$baseUrl/$oppgaveUuid/behandle") { bearerAuth(validToken) }
-        Assertions.assertEquals(HttpStatusCode.OK, response.status)
+        assertEquals(HttpStatusCode.OK, response.status)
     }
 
     @Test
@@ -210,10 +213,10 @@ class VeilederPersonOppgaveApiV2Test {
         val oppgaveUuid = database.connection.use { c -> c.createPersonOppgave(ubesvartMelding, PersonOppgaveType.BEHANDLERDIALOG_MELDING_UBESVART).also { c.commit() } }
         val client = setupApiAndClient()
         val response = client.post("$baseUrl/$oppgaveUuid/behandle") { bearerAuth(validToken) }
-        Assertions.assertEquals(HttpStatusCode.OK, response.status)
+        assertEquals(HttpStatusCode.OK, response.status)
         val slotRecord = slot<ProducerRecord<String, KPersonoppgavehendelse>>()
         verify(exactly = 1) { kafkaProducer.send(capture(slotRecord)) }
-        Assertions.assertEquals(PersonoppgavehendelseType.BEHANDLERDIALOG_MELDING_UBESVART_BEHANDLET.name, slotRecord.captured.value().hendelsetype)
+        assertEquals(PersonoppgavehendelseType.BEHANDLERDIALOG_MELDING_UBESVART_BEHANDLET.name, slotRecord.captured.value().hendelsetype)
     }
 
     @Test
@@ -226,7 +229,7 @@ class VeilederPersonOppgaveApiV2Test {
             c.commit()
             val client = setupApiAndClient()
             val response = client.post("$baseUrl/$uuid/behandle") { bearerAuth(validToken) }
-            Assertions.assertEquals(HttpStatusCode.OK, response.status)
+            assertEquals(HttpStatusCode.OK, response.status)
             verify(exactly = 0) { kafkaProducer.send(any()) }
         }
     }
@@ -237,10 +240,10 @@ class VeilederPersonOppgaveApiV2Test {
         val oppgaveUuid = database.connection.use { c -> c.createPersonOppgave(melding, PersonOppgaveType.BEHANDLERDIALOG_MELDING_AVVIST).also { c.commit() } }
         val client = setupApiAndClient()
         val response = client.post("$baseUrl/$oppgaveUuid/behandle") { bearerAuth(validToken) }
-        Assertions.assertEquals(HttpStatusCode.OK, response.status)
+        assertEquals(HttpStatusCode.OK, response.status)
         val slotRecord = slot<ProducerRecord<String, KPersonoppgavehendelse>>()
         verify(exactly = 1) { kafkaProducer.send(capture(slotRecord)) }
-        Assertions.assertEquals(PersonoppgavehendelseType.BEHANDLERDIALOG_MELDING_AVVIST_BEHANDLET.name, slotRecord.captured.value().hendelsetype)
+        assertEquals(PersonoppgavehendelseType.BEHANDLERDIALOG_MELDING_AVVIST_BEHANDLET.name, slotRecord.captured.value().hendelsetype)
     }
 
     @Test
@@ -253,7 +256,7 @@ class VeilederPersonOppgaveApiV2Test {
             c.commit()
             val client = setupApiAndClient()
             val response = client.post("$baseUrl/$uuid/behandle") { bearerAuth(validToken) }
-            Assertions.assertEquals(HttpStatusCode.OK, response.status)
+            assertEquals(HttpStatusCode.OK, response.status)
             verify(exactly = 0) { kafkaProducer.send(any()) }
         }
     }
@@ -265,10 +268,10 @@ class VeilederPersonOppgaveApiV2Test {
         personOppgaveRepository.createPersonoppgave(oppgave)
         val client = setupApiAndClient()
         val response = client.post("$baseUrl/${oppgave.uuid}/behandle") { bearerAuth(validToken) }
-        Assertions.assertEquals(HttpStatusCode.OK, response.status)
+        assertEquals(HttpStatusCode.OK, response.status)
         val slotRecord = slot<ProducerRecord<String, KPersonoppgavehendelse>>()
         verify(exactly = 1) { kafkaProducer.send(capture(slotRecord)) }
-        Assertions.assertEquals(PersonoppgavehendelseType.BEHANDLER_BER_OM_BISTAND_BEHANDLET.name, slotRecord.captured.value().hendelsetype)
+        assertEquals(PersonoppgavehendelseType.BEHANDLER_BER_OM_BISTAND_BEHANDLET.name, slotRecord.captured.value().hendelsetype)
     }
 
     @Test
@@ -281,7 +284,7 @@ class VeilederPersonOppgaveApiV2Test {
             c.commit()
             val client = setupApiAndClient()
             val response = client.post("$baseUrl/${oppgave1.uuid}/behandle") { bearerAuth(validToken) }
-            Assertions.assertEquals(HttpStatusCode.OK, response.status)
+            assertEquals(HttpStatusCode.OK, response.status)
             verify(exactly = 0) { kafkaProducer.send(any()) }
         }
     }
@@ -301,14 +304,14 @@ class VeilederPersonOppgaveApiV2Test {
             contentType(ContentType.Application.Json)
             setBody(request)
         }
-        Assertions.assertEquals(HttpStatusCode.OK, response.status)
+        assertEquals(HttpStatusCode.OK, response.status)
         val personoppgaver = database.getPersonOppgaver(PersonIdent(request.personIdent))
-        Assertions.assertEquals(2, personoppgaver.size)
-        Assertions.assertTrue(personoppgaver.all { it.behandletVeilederIdent == VEILEDER_IDENT && it.behandletTidspunkt != null })
-        Assertions.assertTrue(personoppgaver.all { !it.publish })
+        assertEquals(2, personoppgaver.size)
+        assertTrue(personoppgaver.all { it.behandletVeilederIdent == VEILEDER_IDENT && it.behandletTidspunkt != null })
+        assertTrue(personoppgaver.all { !it.publish })
         val slotRecord = slot<ProducerRecord<String, KPersonoppgavehendelse>>()
         verify(exactly = 1) { kafkaProducer.send(capture(slotRecord)) }
-        Assertions.assertEquals(PersonoppgavehendelseType.BEHANDLERDIALOG_SVAR_BEHANDLET.name, slotRecord.captured.value().hendelsetype)
+        assertEquals(PersonoppgavehendelseType.BEHANDLERDIALOG_SVAR_BEHANDLET.name, slotRecord.captured.value().hendelsetype)
     }
 
     @Test
@@ -328,13 +331,13 @@ class VeilederPersonOppgaveApiV2Test {
             contentType(ContentType.Application.Json)
             setBody(request)
         }
-        Assertions.assertEquals(HttpStatusCode.OK, response.status)
+        assertEquals(HttpStatusCode.OK, response.status)
         val personoppgaver = database.getPersonOppgaver(PersonIdent(request.personIdent))
         val svarOppgaver = personoppgaver.filter { it.type == PersonOppgaveType.BEHANDLERDIALOG_SVAR.name }
-        Assertions.assertEquals(3, personoppgaver.size)
-        Assertions.assertEquals(2, svarOppgaver.size)
-        Assertions.assertTrue(svarOppgaver.all { it.behandletVeilederIdent == VEILEDER_IDENT && it.behandletTidspunkt != null })
-        Assertions.assertNull(personoppgaver.first { it.type != PersonOppgaveType.BEHANDLERDIALOG_SVAR.name }.behandletVeilederIdent)
+        assertEquals(3, personoppgaver.size)
+        assertEquals(2, svarOppgaver.size)
+        assertTrue(svarOppgaver.all { it.behandletVeilederIdent == VEILEDER_IDENT && it.behandletTidspunkt != null })
+        assertNull(personoppgaver.first { it.type != PersonOppgaveType.BEHANDLERDIALOG_SVAR.name }.behandletVeilederIdent)
     }
 
     @Test
@@ -354,11 +357,11 @@ class VeilederPersonOppgaveApiV2Test {
             contentType(ContentType.Application.Json)
             setBody(request)
         }
-        Assertions.assertEquals(HttpStatusCode.OK, response.status)
+        assertEquals(HttpStatusCode.OK, response.status)
         val list = database.getPersonOppgaver(PersonIdent(request.personIdent))
         val alreadyTid = list.first { it.uuid == already.uuid }.behandletTidspunkt!!
         val newlyTid = list.first { it.uuid == p.uuid }.behandletTidspunkt!!
-        Assertions.assertTrue(alreadyTid.isBefore(newlyTid))
+        assertTrue(alreadyTid.isBefore(newlyTid))
     }
 
     @Test
@@ -370,16 +373,10 @@ class VeilederPersonOppgaveApiV2Test {
             contentType(ContentType.Application.Json)
             setBody(request)
         }
-        Assertions.assertEquals(HttpStatusCode.Conflict, response.status)
+        assertEquals(HttpStatusCode.Conflict, response.status)
     }
 
     companion object {
-        private lateinit var externalMockEnvironment: ExternalMockEnvironment
-
-        @AfterAll
-        @JvmStatic
-        fun afterAll() {
-            externalMockEnvironment.stopExternalMocks()
-        }
+        private val externalMockEnvironment = ExternalMockEnvironment.instance
     }
 }

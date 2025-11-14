@@ -30,11 +30,13 @@ import org.apache.kafka.clients.producer.KafkaProducer
 import org.apache.kafka.clients.producer.ProducerRecord
 import org.apache.kafka.clients.producer.RecordMetadata
 import org.junit.jupiter.api.*
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertNotNull
 import java.util.*
 import java.util.concurrent.Future
 
 class AvvistMeldingTest {
-    private lateinit var externalMockEnvironment: ExternalMockEnvironment
+    private val externalMockEnvironment = ExternalMockEnvironment.instance
     private lateinit var database: no.nav.syfo.personoppgave.infrastructure.database.DatabaseInterface
     private lateinit var kafkaConsumer: KafkaConsumer<String, KMeldingDTO>
     private lateinit var producer: KafkaProducer<String, KPersonoppgavehendelse>
@@ -45,7 +47,6 @@ class AvvistMeldingTest {
 
     @BeforeEach
     fun setup() {
-        externalMockEnvironment = ExternalMockEnvironment()
         database = externalMockEnvironment.database
         kafkaConsumer = mockk(relaxed = true)
         producer = mockk()
@@ -78,15 +79,15 @@ class AvvistMeldingTest {
         val personOppgave = database.connection.use { connection ->
             connection.getPersonOppgaverByReferanseUuid(referanseUuid = referanseUuid).map { it.toPersonOppgave() }.first()
         }
-        Assertions.assertEquals(false, personOppgave.publish)
-        Assertions.assertEquals(PersonOppgaveType.BEHANDLERDIALOG_MELDING_AVVIST.name, personOppgave.type.name)
+        assertEquals(false, personOppgave.publish)
+        assertEquals(PersonOppgaveType.BEHANDLERDIALOG_MELDING_AVVIST.name, personOppgave.type.name)
 
         val producerRecordSlot = slot<ProducerRecord<String, KPersonoppgavehendelse>>()
         verify(exactly = 1) { producer.send(capture(producerRecordSlot)) }
 
         val kPersonoppgavehendelse = producerRecordSlot.captured.value()
-        Assertions.assertEquals(PersonoppgavehendelseType.BEHANDLERDIALOG_MELDING_AVVIST_MOTTATT.name, kPersonoppgavehendelse.hendelsetype)
-        Assertions.assertEquals(UserConstants.ARBEIDSTAKER_FNR.value, kPersonoppgavehendelse.personident)
+        assertEquals(PersonoppgavehendelseType.BEHANDLERDIALOG_MELDING_AVVIST_MOTTATT.name, kPersonoppgavehendelse.hendelsetype)
+        assertEquals(UserConstants.ARBEIDSTAKER_FNR.value, kPersonoppgavehendelse.personident)
     }
 
     @Test
@@ -114,19 +115,19 @@ class AvvistMeldingTest {
                 .map { it.toPersonOppgave() }
                 .first { it.type == PersonOppgaveType.BEHANDLERDIALOG_MELDING_AVVIST }
         }
-        Assertions.assertEquals(false, personOppgave.publish)
-        Assertions.assertEquals(PersonOppgaveType.BEHANDLERDIALOG_MELDING_AVVIST.name, personOppgave.type.name)
+        assertEquals(false, personOppgave.publish)
+        assertEquals(PersonOppgaveType.BEHANDLERDIALOG_MELDING_AVVIST.name, personOppgave.type.name)
 
         val producerRecordSlot = mutableListOf<ProducerRecord<String, KPersonoppgavehendelse>>()
         verify(exactly = 2) { producer.send(capture(producerRecordSlot)) }
 
         val kPersonoppgavehendelse = producerRecordSlot.first().value()
-        Assertions.assertEquals(PersonoppgavehendelseType.BEHANDLERDIALOG_MELDING_AVVIST_MOTTATT.name, kPersonoppgavehendelse.hendelsetype)
-        Assertions.assertEquals(UserConstants.ARBEIDSTAKER_FNR.value, kPersonoppgavehendelse.personident)
+        assertEquals(PersonoppgavehendelseType.BEHANDLERDIALOG_MELDING_AVVIST_MOTTATT.name, kPersonoppgavehendelse.hendelsetype)
+        assertEquals(UserConstants.ARBEIDSTAKER_FNR.value, kPersonoppgavehendelse.personident)
 
         val paaminnelsesOppgave = personOppgaveService.getPersonOppgave(paaminnelsesOppgaveUUID)
-        Assertions.assertNotNull(paaminnelsesOppgave!!.behandletTidspunkt)
-        Assertions.assertEquals(Constants.SYSTEM_VEILEDER_IDENT, paaminnelsesOppgave.behandletVeilederIdent)
+        assertNotNull(paaminnelsesOppgave!!.behandletTidspunkt)
+        assertEquals(Constants.SYSTEM_VEILEDER_IDENT, paaminnelsesOppgave.behandletVeilederIdent)
     }
 
     @Test
@@ -160,19 +161,19 @@ class AvvistMeldingTest {
                 .map { it.toPersonOppgave() }
                 .first { it.type == PersonOppgaveType.BEHANDLERDIALOG_MELDING_AVVIST }
         }
-        Assertions.assertEquals(false, personOppgave.publish)
-        Assertions.assertEquals(PersonOppgaveType.BEHANDLERDIALOG_MELDING_AVVIST.name, personOppgave.type.name)
+        assertEquals(false, personOppgave.publish)
+        assertEquals(PersonOppgaveType.BEHANDLERDIALOG_MELDING_AVVIST.name, personOppgave.type.name)
 
         val producerRecordSlot = mutableListOf<ProducerRecord<String, KPersonoppgavehendelse>>()
         verify(exactly = 1) { producer.send(capture(producerRecordSlot)) }
 
         val kPersonoppgavehendelse = producerRecordSlot.first().value()
-        Assertions.assertEquals(PersonoppgavehendelseType.BEHANDLERDIALOG_MELDING_AVVIST_MOTTATT.name, kPersonoppgavehendelse.hendelsetype)
-        Assertions.assertEquals(UserConstants.ARBEIDSTAKER_FNR.value, kPersonoppgavehendelse.personident)
+        assertEquals(PersonoppgavehendelseType.BEHANDLERDIALOG_MELDING_AVVIST_MOTTATT.name, kPersonoppgavehendelse.hendelsetype)
+        assertEquals(UserConstants.ARBEIDSTAKER_FNR.value, kPersonoppgavehendelse.personident)
 
         val paaminnelsesOppgave = personOppgaveService.getPersonOppgave(paaminnelsesOppgaveUUID)
-        Assertions.assertNotNull(paaminnelsesOppgave!!.behandletTidspunkt)
-        Assertions.assertEquals(Constants.SYSTEM_VEILEDER_IDENT, paaminnelsesOppgave.behandletVeilederIdent)
+        assertNotNull(paaminnelsesOppgave!!.behandletTidspunkt)
+        assertEquals(Constants.SYSTEM_VEILEDER_IDENT, paaminnelsesOppgave.behandletVeilederIdent)
     }
 
     @Test
@@ -181,7 +182,7 @@ class AvvistMeldingTest {
         avvistMeldingConsumerService.pollAndProcessRecords(kafkaConsumer = kafkaConsumer)
 
         val pPersonOppgaver = database.getPersonOppgaver(personIdent = UserConstants.ARBEIDSTAKER_FNR)
-        Assertions.assertEquals(0, pPersonOppgaver.size)
+        assertEquals(0, pPersonOppgaver.size)
 
         verify(exactly = 0) { producer.send(any()) }
     }

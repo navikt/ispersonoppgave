@@ -12,10 +12,13 @@ import no.nav.syfo.personoppgave.domain.PersonOppgaveType
 import no.nav.syfo.personoppgave.getPersonOppgaver
 import no.nav.syfo.testutil.*
 import no.nav.syfo.testutil.generators.*
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertThrows
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.*
 
 class IdenthendelseServiceTest {
-    private lateinit var externalMockEnvironment: ExternalMockEnvironment
+    private val externalMockEnvironment = ExternalMockEnvironment.instance
     private lateinit var database: TestDB
     private lateinit var mockHttpClient: HttpClient
     private lateinit var azureAdClient: AzureAdClient
@@ -24,7 +27,6 @@ class IdenthendelseServiceTest {
 
     @BeforeEach
     fun setup() {
-        externalMockEnvironment = ExternalMockEnvironment()
         database = externalMockEnvironment.database
         mockHttpClient = externalMockEnvironment.mockHttpClient
         azureAdClient = AzureAdClient(
@@ -66,9 +68,9 @@ class IdenthendelseServiceTest {
         identhendelseService.handleIdenthendelse(kafkaIdenthendelseDTO)
 
         val allPersonoppgaver = database.getAllPersonoppgaver()
-        Assertions.assertEquals(3, allPersonoppgaver.size)
-        Assertions.assertEquals(0, allPersonoppgaver.filter { it.fnr == personOppgaveOldIdent.personIdent.value }.size)
-        Assertions.assertEquals(2, allPersonoppgaver.filter { it.fnr == personOppgaveNewIdent.personIdent.value }.size)
+        assertEquals(3, allPersonoppgaver.size)
+        assertEquals(0, allPersonoppgaver.filter { it.fnr == personOppgaveOldIdent.personIdent.value }.size)
+        assertEquals(2, allPersonoppgaver.filter { it.fnr == personOppgaveNewIdent.personIdent.value }.size)
     }
 
     @Test
@@ -89,10 +91,10 @@ class IdenthendelseServiceTest {
         identhendelseService.handleIdenthendelse(kafkaIdenthendelseDTO)
 
         val allMotesvar = database.getAllMotesvar()
-        Assertions.assertEquals(3, allMotesvar.size)
-        Assertions.assertEquals(0, allMotesvar.filter { it.arbeidstakerIdent == dialogmotesvarOldIdent.arbeidstakerIdent.value }.size)
-        Assertions.assertEquals(2, allMotesvar.filter { it.arbeidstakerIdent == dialogmotesvarNewIdent.arbeidstakerIdent.value }.size)
-        Assertions.assertTrue(allMotesvar.first().updatedAt.isAfter(oldIdentUpdatedAt))
+        assertEquals(3, allMotesvar.size)
+        assertEquals(0, allMotesvar.filter { it.arbeidstakerIdent == dialogmotesvarOldIdent.arbeidstakerIdent.value }.size)
+        assertEquals(2, allMotesvar.filter { it.arbeidstakerIdent == dialogmotesvarNewIdent.arbeidstakerIdent.value }.size)
+        assertTrue(allMotesvar.first().updatedAt.isAfter(oldIdentUpdatedAt))
     }
 
     @Test
@@ -113,10 +115,10 @@ class IdenthendelseServiceTest {
         identhendelseService.handleIdenthendelse(kafkaIdenthendelseDTO)
 
         val allDialogmotestatusendring = database.getAllDialogmoteStatusendring()
-        Assertions.assertEquals(3, allDialogmotestatusendring.size)
-        Assertions.assertEquals(0, allDialogmotestatusendring.filter { it.arbeidstakerIdent == dialogmotestatusendringOldIdent.personIdent.value }.size)
-        Assertions.assertEquals(2, allDialogmotestatusendring.filter { it.arbeidstakerIdent == dialogmotestatusendringNewIdent.personIdent.value }.size)
-        Assertions.assertTrue(allDialogmotestatusendring.first().updatedAt.isAfter(oldIdentUpdatedAt))
+        assertEquals(3, allDialogmotestatusendring.size)
+        assertEquals(0, allDialogmotestatusendring.filter { it.arbeidstakerIdent == dialogmotestatusendringOldIdent.personIdent.value }.size)
+        assertEquals(2, allDialogmotestatusendring.filter { it.arbeidstakerIdent == dialogmotestatusendringNewIdent.personIdent.value }.size)
+        assertTrue(allDialogmotestatusendring.first().updatedAt.isAfter(oldIdentUpdatedAt))
     }
 
     @Test
@@ -131,9 +133,9 @@ class IdenthendelseServiceTest {
         database.createPersonOppgave(kOppfolgingsplanLPS = kOppfolgingsplanLPS, type = PersonOppgaveType.OPPFOLGINGSPLANLPS)
 
         val currentPersonOppgave = database.getPersonOppgaver(oldIdent)
-        Assertions.assertEquals(1, currentPersonOppgave.size)
+        assertEquals(1, currentPersonOppgave.size)
 
-        Assertions.assertThrows(IllegalStateException::class.java) {
+        assertThrows(IllegalStateException::class.java) {
             runBlocking { identhendelseService.handleIdenthendelse(kafkaIdenthendelseDTO) }
         }
     }
