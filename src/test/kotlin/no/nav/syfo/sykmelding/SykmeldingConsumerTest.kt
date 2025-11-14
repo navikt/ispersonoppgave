@@ -1,6 +1,5 @@
 package no.nav.syfo.sykmelding
 
-import io.mockk.clearMocks
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
@@ -34,16 +33,11 @@ class SykmeldingConsumerTest {
     @BeforeEach
     fun setup() {
         database = externalMockEnvironment.database
+        database.dropData()
         kafkaConsumer = mockk(relaxed = true)
+        every { kafkaConsumer.commitSync() } returns Unit
         kafkaSykmeldingConsumer = KafkaSykmeldingConsumer(database = database, personOppgaveRepository = PersonOppgaveRepository(database = database))
         topic = SYKMELDING_TOPIC
-        every { kafkaConsumer.commitSync() } returns Unit
-    }
-
-    @AfterEach
-    fun teardown() {
-        database.dropData()
-        clearMocks(kafkaConsumer)
     }
 
     @Test
@@ -80,7 +74,7 @@ class SykmeldingConsumerTest {
         verify(exactly = 1) { kafkaConsumer.commitSync() }
         val personOppgave = database.getPersonOppgaver(PersonIdent(sykmelding.personNrPasient)).map { it.toPersonOppgave() }.first()
         assertEquals(sykmelding.personNrPasient, personOppgave.personIdent.value)
-        // assertTrue(personOppgave.publish)
+        assertTrue(personOppgave.publish)
         assertEquals(PersonOppgaveType.BEHANDLER_BER_OM_BISTAND, personOppgave.type)
         assertNull(personOppgave.behandletTidspunkt)
         assertEquals(sykmeldingId, personOppgave.referanseUuid)
@@ -264,6 +258,21 @@ class SykmeldingConsumerTest {
             sykmeldingId = sykmeldingId,
             meldingTilNAV = null,
             tiltakNAV = "-",
+        )
+        kafkaConsumer.mockPollConsumerRecords(recordValue = sykmelding, topic = topic)
+        kafkaSykmeldingConsumer.pollAndProcessRecords(kafkaConsumer = kafkaConsumer)
+        verify(exactly = 1) { kafkaConsumer.commitSync() }
+        assertTrue(database.getPersonOppgaver(PersonIdent(sykmelding.personNrPasient)).isEmpty())
+    }
+
+    @Test
+    fun `Does not create oppgave if tiltakAndre has irrelevant text`() {
+        val sykmeldingId = UUID.randomUUID()
+        val sykmelding = generateKafkaSykmelding(
+            sykmeldingId = sykmeldingId,
+            meldingTilNAV = null,
+            tiltakNAV = null,
+            andreTiltak = "-",
         )
         kafkaConsumer.mockPollConsumerRecords(recordValue = sykmelding, topic = topic)
         kafkaSykmeldingConsumer.pollAndProcessRecords(kafkaConsumer = kafkaConsumer)

@@ -1,11 +1,10 @@
 package no.nav.syfo.testutil
 
-import io.ktor.server.netty.*
 import no.nav.syfo.ApplicationState
 import no.nav.syfo.testutil.mock.mockHttpClient
 import no.nav.syfo.testutil.mock.*
 
-class ExternalMockEnvironment {
+class ExternalMockEnvironment private constructor() {
     val applicationState: ApplicationState = testAppState()
     val database = TestDB()
     val environment = testEnvironment()
@@ -13,7 +12,6 @@ class ExternalMockEnvironment {
     val wellKnownInternADV2Mock = wellKnownInternADV2Mock()
 
     companion object {
-        val instance: ExternalMockEnvironment by lazy { ExternalMockEnvironment() }
-        fun newInstance(): ExternalMockEnvironment = ExternalMockEnvironment()
+        val instance: ExternalMockEnvironment = ExternalMockEnvironment()
     }
 }
