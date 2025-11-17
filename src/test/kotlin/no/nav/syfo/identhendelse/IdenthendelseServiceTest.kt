@@ -122,21 +122,23 @@ class IdenthendelseServiceTest {
     }
 
     @Test
-    fun `Skal kaste feil hvis PDL ikke har oppdatert identen`() = runBlocking {
-        val kafkaIdenthendelseDTO = generateKafkaIdenthendelseDTO(
-            personident = UserConstants.ARBEIDSTAKER_3_FNR,
-            hasOldPersonident = true,
-        )
-        val oldIdent = kafkaIdenthendelseDTO.getInactivePersonidenter().first()
+    fun `Skal kaste feil hvis PDL ikke har oppdatert identen`() {
+        runBlocking {
+            val kafkaIdenthendelseDTO = generateKafkaIdenthendelseDTO(
+                personident = UserConstants.ARBEIDSTAKER_3_FNR,
+                hasOldPersonident = true,
+            )
+            val oldIdent = kafkaIdenthendelseDTO.getInactivePersonidenter().first()
 
-        val kOppfolgingsplanLPS = generateKOppfolgingsplanLPS.copy(fodselsnummer = oldIdent.value)
-        database.createPersonOppgave(kOppfolgingsplanLPS = kOppfolgingsplanLPS, type = PersonOppgaveType.OPPFOLGINGSPLANLPS)
+            val kOppfolgingsplanLPS = generateKOppfolgingsplanLPS.copy(fodselsnummer = oldIdent.value)
+            database.createPersonOppgave(kOppfolgingsplanLPS = kOppfolgingsplanLPS, type = PersonOppgaveType.OPPFOLGINGSPLANLPS)
 
-        val currentPersonOppgave = database.getPersonOppgaver(oldIdent)
-        assertEquals(1, currentPersonOppgave.size)
+            val currentPersonOppgave = database.getPersonOppgaver(oldIdent)
+            assertEquals(1, currentPersonOppgave.size)
 
-        assertThrows(IllegalStateException::class.java) {
-            runBlocking { identhendelseService.handleIdenthendelse(kafkaIdenthendelseDTO) }
+            assertThrows(IllegalStateException::class.java) {
+                identhendelseService.handleIdenthendelse(kafkaIdenthendelseDTO)
+            }
         }
     }
 }
