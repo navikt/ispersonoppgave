@@ -22,26 +22,22 @@ import java.util.*
 
 class UbesvartMeldingTest {
     private val externalMockEnvironment = ExternalMockEnvironment.instance
-    private lateinit var database: no.nav.syfo.personoppgave.infrastructure.database.DatabaseInterface
-    private lateinit var kafkaConsumer: KafkaConsumer<String, KMeldingDTO>
-    private lateinit var personoppgavehendelseProducer: PersonoppgavehendelseProducer
-    private lateinit var personOppgaveService: PersonOppgaveService
-    private lateinit var ubesvartMeldingService: UbesvartMeldingService
-    private lateinit var kafkaUbesvartMelding: KafkaUbesvartMelding
+    private val database = externalMockEnvironment.database
+    private val kafkaConsumer: KafkaConsumer<String, KMeldingDTO> = mockk(relaxed = true)
+    private val personoppgavehendelseProducer: PersonoppgavehendelseProducer = mockk(relaxed = true)
+    private val personOppgaveService = PersonOppgaveService(
+        database = database,
+        personoppgavehendelseProducer = personoppgavehendelseProducer,
+        personoppgaveRepository = PersonOppgaveRepository(database = database)
+    )
+    private val ubesvartMeldingService = UbesvartMeldingService(personOppgaveService)
+    private val kafkaUbesvartMelding = KafkaUbesvartMelding(database, ubesvartMeldingService)
 
     @BeforeEach
     fun setup() {
-        database = externalMockEnvironment.database
-        kafkaConsumer = mockk(relaxed = true)
-        personoppgavehendelseProducer = mockk(relaxed = true)
-        personOppgaveService = PersonOppgaveService(
-            database = database,
-            personoppgavehendelseProducer = personoppgavehendelseProducer,
-            personoppgaveRepository = PersonOppgaveRepository(database = database)
-        )
-        ubesvartMeldingService = UbesvartMeldingService(personOppgaveService)
-        kafkaUbesvartMelding = KafkaUbesvartMelding(database, ubesvartMeldingService)
+        clearMocks(kafkaConsumer)
         every { kafkaConsumer.commitSync() } returns Unit
+        database.dropData()
     }
 
     @AfterEach

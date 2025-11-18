@@ -1,5 +1,6 @@
 package no.nav.syfo.dialogmotestatusendring
 
+import io.mockk.clearMocks
 import io.mockk.every
 import io.mockk.mockk
 import no.nav.syfo.dialogmote.avro.KDialogmoteStatusEndring
@@ -20,20 +21,14 @@ import java.util.*
 
 class DialogmoteStatusendringTest {
     private val externalMockEnvironment = ExternalMockEnvironment.instance
-    private lateinit var database: no.nav.syfo.personoppgave.infrastructure.database.DatabaseInterface
-    private lateinit var kafkaConsumer: KafkaConsumer<String, KDialogmoteStatusEndring>
-    private lateinit var kafkaDialogmoteStatusendring: KafkaDialogmoteStatusendring
+    private val database = externalMockEnvironment.database
+    private val kafkaConsumer: KafkaConsumer<String, KDialogmoteStatusEndring> = mockk(relaxed = true)
+    private val kafkaDialogmoteStatusendring = KafkaDialogmoteStatusendring(database = database)
 
     @BeforeEach
     fun setup() {
-        database = externalMockEnvironment.database
-        kafkaConsumer = mockk(relaxed = true)
-        kafkaDialogmoteStatusendring = KafkaDialogmoteStatusendring(database = database)
+        clearMocks(kafkaConsumer)
         every { kafkaConsumer.commitSync() } returns Unit
-    }
-
-    @AfterEach
-    fun teardown() {
         database.dropData()
     }
 

@@ -1,5 +1,6 @@
 package no.nav.syfo.dialogmotesvar
 
+import io.mockk.clearMocks
 import io.mockk.every
 import io.mockk.mockk
 import no.nav.syfo.dialogmotesvar.domain.DialogmoteSvartype
@@ -22,20 +23,17 @@ import java.util.*
 
 class DialogmotesvarConsumerTest {
     private val externalMockEnvironment = ExternalMockEnvironment.instance
-    private lateinit var database: no.nav.syfo.personoppgave.infrastructure.database.DatabaseInterface
-    private lateinit var kafkaConsumer: KafkaConsumer<String, KDialogmotesvar>
-    private lateinit var kafkaDialogmotesvarConsumer: KafkaDialogmotesvarConsumer
+    private val database = externalMockEnvironment.database
+    private val kafkaConsumer: KafkaConsumer<String, KDialogmotesvar> = mockk(relaxed = true)
+    private val kafkaDialogmotesvarConsumer = KafkaDialogmotesvarConsumer(
+        database = database,
+        cutoffDate = LocalDate.now().minusDays(20),
+    )
 
     @BeforeEach
     fun setup() {
-        database = externalMockEnvironment.database
-        kafkaConsumer = mockk(relaxed = true)
-        kafkaDialogmotesvarConsumer = KafkaDialogmotesvarConsumer(database = database, cutoffDate = LocalDate.now().minusDays(20))
+        clearMocks(kafkaConsumer)
         every { kafkaConsumer.commitSync() } returns Unit
-    }
-
-    @AfterEach
-    fun teardown() {
         database.dropData()
     }
 

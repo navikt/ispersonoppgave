@@ -38,35 +38,24 @@ import java.util.concurrent.Future
 
 class AvvistMeldingTest {
     private val externalMockEnvironment = ExternalMockEnvironment.instance
-    private lateinit var database: no.nav.syfo.personoppgave.infrastructure.database.DatabaseInterface
-    private lateinit var kafkaConsumer: KafkaConsumer<String, KMeldingDTO>
-    private lateinit var producer: KafkaProducer<String, KPersonoppgavehendelse>
-    private lateinit var personoppgavehendelseProducer: PersonoppgavehendelseProducer
-    private lateinit var personOppgaveService: PersonOppgaveService
-    private lateinit var avvistMeldingService: AvvistMeldingService
-    private lateinit var avvistMeldingConsumerService: AvvistMeldingConsumerService
+    private val database = externalMockEnvironment.database
+    private val kafkaConsumer: KafkaConsumer<String, KMeldingDTO> = mockk(relaxed = true)
+    private val producer: KafkaProducer<String, KPersonoppgavehendelse> = mockk()
+    private val personoppgavehendelseProducer = PersonoppgavehendelseProducer(producer)
+    private val personOppgaveService = PersonOppgaveService(
+        database = database,
+        personoppgavehendelseProducer = personoppgavehendelseProducer,
+        personoppgaveRepository = PersonOppgaveRepository(database = database)
+    )
+    private val avvistMeldingService = AvvistMeldingService(database, personOppgaveService)
+    private val avvistMeldingConsumerService = AvvistMeldingConsumerService(avvistMeldingService)
 
     @BeforeEach
     fun setup() {
-        database = externalMockEnvironment.database
-        kafkaConsumer = mockk(relaxed = true)
-        producer = mockk()
-        personoppgavehendelseProducer = PersonoppgavehendelseProducer(producer)
-        personOppgaveService = PersonOppgaveService(
-            database = database,
-            personoppgavehendelseProducer = personoppgavehendelseProducer,
-            personoppgaveRepository = PersonOppgaveRepository(database = database)
-        )
-        avvistMeldingService = AvvistMeldingService(database, personOppgaveService)
-        avvistMeldingConsumerService = AvvistMeldingConsumerService(avvistMeldingService)
+        clearMocks(producer, kafkaConsumer)
         every { kafkaConsumer.commitSync() } returns Unit
         coEvery { producer.send(any()) } returns mockk<Future<RecordMetadata>>(relaxed = true)
-    }
-
-    @AfterEach
-    fun teardown() {
         database.dropData()
-        clearMocks(producer, kafkaConsumer)
     }
 
     @Test

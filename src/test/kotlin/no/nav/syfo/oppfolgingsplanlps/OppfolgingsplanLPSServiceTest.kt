@@ -22,23 +22,16 @@ import java.util.*
 import java.util.concurrent.Future
 
 class OppfolgingsplanLPSServiceTest {
-    private lateinit var kafkaProducer: KafkaProducer<String, KPersonoppgavehendelse>
-    private lateinit var personoppgavehendelseProducer: PersonoppgavehendelseProducer
-    private lateinit var database: no.nav.syfo.personoppgave.infrastructure.database.DatabaseInterface
-    private lateinit var oppfolgingsplanLPSService: OppfolgingsplanLPSService
+    private val externalMockEnvironment = ExternalMockEnvironment.instance
+    private val database = externalMockEnvironment.database
+    private val kafkaProducer: KafkaProducer<String, KPersonoppgavehendelse> = mockk(relaxed = true)
+    private val personoppgavehendelseProducer = PersonoppgavehendelseProducer(kafkaProducer)
+    private val oppfolgingsplanLPSService = OppfolgingsplanLPSService(database, personoppgavehendelseProducer)
 
     @BeforeEach
     fun setup() {
-        kafkaProducer = mockk(relaxed = true)
-        personoppgavehendelseProducer = PersonoppgavehendelseProducer(kafkaProducer)
-        database = externalMockEnvironment.database
-        oppfolgingsplanLPSService = OppfolgingsplanLPSService(database, personoppgavehendelseProducer)
         clearMocks(kafkaProducer)
         coEvery { kafkaProducer.send(any()) } returns mockk<Future<RecordMetadata>>(relaxed = true)
-    }
-
-    @AfterEach
-    fun teardown() {
         database.dropData()
     }
 
@@ -72,9 +65,5 @@ class OppfolgingsplanLPSServiceTest {
         val personListe = database.getPersonOppgaveList(ARBEIDSTAKER_FNR)
         assertEquals(0, personListe.size)
         verify(exactly = 0) { kafkaProducer.send(any()) }
-    }
-
-    companion object {
-        private val externalMockEnvironment: ExternalMockEnvironment = ExternalMockEnvironment.instance
     }
 }

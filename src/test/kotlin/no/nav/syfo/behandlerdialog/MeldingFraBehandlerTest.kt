@@ -28,33 +28,26 @@ import java.util.*
 
 class MeldingFraBehandlerTest {
     private val externalMockEnvironment = ExternalMockEnvironment.instance
-    private lateinit var database: no.nav.syfo.personoppgave.infrastructure.database.DatabaseInterface
-    private lateinit var kafkaConsumer: KafkaConsumer<String, KMeldingDTO>
-    private lateinit var personoppgavehendelseProducer: PersonoppgavehendelseProducer
-    private lateinit var personOppgaveService: PersonOppgaveService
-    private lateinit var meldingFraBehandlerService: MeldingFraBehandlerService
-    private lateinit var kafkaMeldingFraBehandler: KafkaMeldingFraBehandler
+    private val database = externalMockEnvironment.database
+    private val kafkaConsumer: KafkaConsumer<String, KMeldingDTO> = mockk(relaxed = true)
+    private val personoppgavehendelseProducer: PersonoppgavehendelseProducer = mockk(relaxed = true)
+    private val personOppgaveService = PersonOppgaveService(
+        database = database,
+        personoppgavehendelseProducer = personoppgavehendelseProducer,
+        personoppgaveRepository = PersonOppgaveRepository(database = database)
+    )
+    private val meldingFraBehandlerService = MeldingFraBehandlerService(
+        database = database,
+        personOppgaveService = personOppgaveService,
+    )
+    private val kafkaMeldingFraBehandler = KafkaMeldingFraBehandler(meldingFraBehandlerService = meldingFraBehandlerService)
 
     @BeforeEach
     fun setup() {
-        database = externalMockEnvironment.database
-        kafkaConsumer = mockk(relaxed = true)
-        personoppgavehendelseProducer = mockk(relaxed = true)
-        personOppgaveService = PersonOppgaveService(
-            database = database,
-            personoppgavehendelseProducer = personoppgavehendelseProducer,
-            personoppgaveRepository = PersonOppgaveRepository(database = database)
-        )
-        meldingFraBehandlerService = MeldingFraBehandlerService(database = database, personOppgaveService = personOppgaveService)
-        kafkaMeldingFraBehandler = KafkaMeldingFraBehandler(meldingFraBehandlerService = meldingFraBehandlerService)
+        clearMocks(personoppgavehendelseProducer, kafkaConsumer)
         every { kafkaConsumer.commitSync() } returns Unit
         justRun { personoppgavehendelseProducer.sendPersonoppgavehendelse(any(), any(), any()) }
-    }
-
-    @AfterEach
-    fun teardown() {
         database.dropData()
-        clearMocks(personoppgavehendelseProducer)
     }
 
     @Test

@@ -1,6 +1,5 @@
 package no.nav.syfo.identhendelse
 
-import io.ktor.client.HttpClient
 import kotlinx.coroutines.runBlocking
 import no.nav.syfo.client.azuread.AzureAdClient
 import no.nav.syfo.client.pdl.PdlClient
@@ -19,36 +18,27 @@ import org.junit.jupiter.api.*
 
 class IdenthendelseServiceTest {
     private val externalMockEnvironment = ExternalMockEnvironment.instance
-    private lateinit var database: TestDB
-    private lateinit var mockHttpClient: HttpClient
-    private lateinit var azureAdClient: AzureAdClient
-    private lateinit var pdlClient: PdlClient
-    private lateinit var identhendelseService: IdenthendelseService
+    private val database = externalMockEnvironment.database
+    private val mockHttpClient = externalMockEnvironment.mockHttpClient
+    private val azureAdClient = AzureAdClient(
+        azureAppClientId = externalMockEnvironment.environment.azureAppClientId,
+        azureAppClientSecret = externalMockEnvironment.environment.azureAppClientSecret,
+        azureTokenEndpoint = externalMockEnvironment.environment.azureTokenEndpoint,
+        httpClient = mockHttpClient,
+    )
+    private val pdlClient = PdlClient(
+        azureAdClient = azureAdClient,
+        pdlClientId = externalMockEnvironment.environment.pdlClientId,
+        pdlUrl = externalMockEnvironment.environment.pdlUrl,
+        httpClient = mockHttpClient,
+    )
+    private val identhendelseService = IdenthendelseService(
+        database = database,
+        pdlClient = pdlClient,
+    )
 
     @BeforeEach
     fun setup() {
-        database = externalMockEnvironment.database
-        mockHttpClient = externalMockEnvironment.mockHttpClient
-        azureAdClient = AzureAdClient(
-            azureAppClientId = externalMockEnvironment.environment.azureAppClientId,
-            azureAppClientSecret = externalMockEnvironment.environment.azureAppClientSecret,
-            azureTokenEndpoint = externalMockEnvironment.environment.azureTokenEndpoint,
-            httpClient = mockHttpClient,
-        )
-        pdlClient = PdlClient(
-            azureAdClient = azureAdClient,
-            pdlClientId = externalMockEnvironment.environment.pdlClientId,
-            pdlUrl = externalMockEnvironment.environment.pdlUrl,
-            httpClient = mockHttpClient,
-        )
-        identhendelseService = IdenthendelseService(
-            database = database,
-            pdlClient = pdlClient,
-        )
-    }
-
-    @AfterEach
-    fun teardown() {
         database.dropData()
     }
 

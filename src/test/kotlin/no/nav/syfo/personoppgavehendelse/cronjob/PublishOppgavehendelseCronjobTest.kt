@@ -32,33 +32,28 @@ import java.util.concurrent.Future
 
 class PublishOppgavehendelseCronjobTest {
     private val externalMockEnvironment = ExternalMockEnvironment.instance
-    private lateinit var database: no.nav.syfo.personoppgave.infrastructure.database.DatabaseInterface
-    private lateinit var kafkaProducer: KafkaProducer<String, KPersonoppgavehendelse>
-    private lateinit var personoppgaveHendelseProducer: PersonoppgavehendelseProducer
-    private lateinit var publishOppgavehendelseService: PublishPersonoppgavehendelseService
-    private lateinit var publishOppgavehendelseCronjob: PublishOppgavehendelseCronjob
-
-    private lateinit var unpublishedUbehandletPersonoppgave: PersonOppgave
+    private val database = externalMockEnvironment.database
+    private val kafkaProducer: KafkaProducer<String, KPersonoppgavehendelse> = mockk()
+    private val personoppgaveHendelseProducer = PersonoppgavehendelseProducer(producer = kafkaProducer)
+    private val publishOppgavehendelseService = PublishPersonoppgavehendelseService(
+        database = database,
+        personoppgavehendelseProducer = personoppgaveHendelseProducer,
+        personOppgaveRepository = PersonOppgaveRepository(database = database),
+    )
+    private val publishOppgavehendelseCronjob = PublishOppgavehendelseCronjob(
+        publishOppgavehendelseService = publishOppgavehendelseService,
+    )
+    private val unpublishedUbehandletPersonoppgave = generatePersonoppgave(
+        personIdent = UserConstants.ARBEIDSTAKER_FNR,
+        type = PersonOppgaveType.BEHANDLER_BER_OM_BISTAND,
+        publish = true,
+    )
 
     @BeforeEach
     fun setup() {
-        database = externalMockEnvironment.database
-        kafkaProducer = mockk()
-        personoppgaveHendelseProducer = PersonoppgavehendelseProducer(producer = kafkaProducer)
-        publishOppgavehendelseService = PublishPersonoppgavehendelseService(
-            database = database,
-            personoppgavehendelseProducer = personoppgaveHendelseProducer,
-            personOppgaveRepository = PersonOppgaveRepository(database = database),
-        )
-        publishOppgavehendelseCronjob = PublishOppgavehendelseCronjob(publishOppgavehendelseService = publishOppgavehendelseService)
         clearMocks(kafkaProducer)
         coEvery { kafkaProducer.send(any()) } returns mockk<Future<RecordMetadata>>(relaxed = true)
         database.dropData()
-        unpublishedUbehandletPersonoppgave = generatePersonoppgave(
-            personIdent = UserConstants.ARBEIDSTAKER_FNR,
-            type = PersonOppgaveType.BEHANDLER_BER_OM_BISTAND,
-            publish = true,
-        )
     }
 
     private fun createPersonoppgaver(vararg oppgaver: PersonOppgave) {
