@@ -180,10 +180,10 @@ class VeilederPersonOppgaveApiV2Test {
 
     @Test
     fun `returns OK and sends Personoppgavehendelse if processed the 1 and only existing oppfolgingsplan-oppgave`() = testApplication {
-        val kOppfolgingsplanLPS  = generateKOppfolgingsplanLPS
+        val kOppfolgingsplanLPS = generateKOppfolgingsplanLPS
         val type = PersonOppgaveType.OPPFOLGINGSPLANLPS
         val uuid = database.connection.use { connection ->
-            connection.createPersonOppgave(kOppfolgingsplanLPS , type).also {
+            connection.createPersonOppgave(kOppfolgingsplanLPS, type).also {
                 connection.commit()
             }
         }
@@ -229,9 +229,9 @@ class VeilederPersonOppgaveApiV2Test {
     fun `returns OK on behandle and sends Personoppgavehendelse if no other ubehandlede ubesvart-oppgave`() = testApplication {
         val meldingUuid = UUID.randomUUID()
         val ubesvartMelding = generateKMeldingDTO(uuid = meldingUuid).toMelding()
-        val oppgaveUuid = database.connection.use {
-            c -> c.createPersonOppgave(ubesvartMelding, PersonOppgaveType.BEHANDLERDIALOG_MELDING_UBESVART).also {
-                c.commit()
+        val oppgaveUuid = database.connection.use { connection ->
+            connection.createPersonOppgave(ubesvartMelding, PersonOppgaveType.BEHANDLERDIALOG_MELDING_UBESVART).also {
+                connection.commit()
             }
         }
         val client = setupApiAndClient()
@@ -261,9 +261,9 @@ class VeilederPersonOppgaveApiV2Test {
     @Test
     fun `returns OK on behandle and sends Personoppgavehendelse if no other ubehandlede avvist-oppgaver`() = testApplication {
         val melding = generateKMeldingDTO().toMelding()
-        val oppgaveUuid = database.connection.use {
-            c -> c.createPersonOppgave(melding, PersonOppgaveType.BEHANDLERDIALOG_MELDING_AVVIST).also {
-                c.commit()
+        val oppgaveUuid = database.connection.use { connection ->
+            connection.createPersonOppgave(melding, PersonOppgaveType.BEHANDLERDIALOG_MELDING_AVVIST).also {
+                connection.commit()
             }
         }
         val client = setupApiAndClient()
@@ -397,7 +397,7 @@ class VeilederPersonOppgaveApiV2Test {
 
         val list = database.getPersonOppgaver(PersonIdent(request.personIdent))
         val alreadyBehandletPersonoppgaveTidspunkt = list.first { it.uuid == already.uuid }.behandletTidspunkt!!
-        val newlyBehandletPersonoppgaveTidspunkt  = list.first { it.uuid == p.uuid }.behandletTidspunkt!!
+        val newlyBehandletPersonoppgaveTidspunkt = list.first { it.uuid == p.uuid }.behandletTidspunkt!!
         assertTrue(alreadyBehandletPersonoppgaveTidspunkt.isBefore(newlyBehandletPersonoppgaveTidspunkt))
     }
 
