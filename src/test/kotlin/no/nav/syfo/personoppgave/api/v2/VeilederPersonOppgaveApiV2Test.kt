@@ -44,30 +44,22 @@ import java.util.*
 import java.util.concurrent.Future
 
 class VeilederPersonOppgaveApiV2Test {
-    private lateinit var database: no.nav.syfo.personoppgave.infrastructure.database.DatabaseInterface
-    private lateinit var kafkaProducer: KafkaProducer<String, KPersonoppgavehendelse>
-    private lateinit var personoppgavehendelseProducer: PersonoppgavehendelseProducer
-    private lateinit var personOppgaveRepository: PersonOppgaveRepository
+    private val externalMockEnvironment = ExternalMockEnvironment.instance
+    private val database = externalMockEnvironment.database
+    private val kafkaProducer: KafkaProducer<String, KPersonoppgavehendelse> = mockk(relaxed = true)
+    private val personoppgavehendelseProducer = PersonoppgavehendelseProducer(kafkaProducer)
+    private val personOppgaveRepository = PersonOppgaveRepository(database = database)
     private val baseUrl = registerVeilederPersonOppgaveApiV2BasePath
-    private lateinit var validToken: String
+    private val validToken = generateJWT(
+        audience = externalMockEnvironment.environment.azureAppClientId,
+        issuer = externalMockEnvironment.wellKnownInternADV2Mock.issuer,
+        navIdent = VEILEDER_IDENT,
+    )
 
     @BeforeEach
     fun setup() {
-        database = externalMockEnvironment.database
-        kafkaProducer = mockk(relaxed = true)
-        personoppgavehendelseProducer = PersonoppgavehendelseProducer(kafkaProducer)
-        personOppgaveRepository = PersonOppgaveRepository(database = database)
         clearMocks(kafkaProducer)
         coEvery { kafkaProducer.send(any()) } returns mockk<Future<RecordMetadata>>(relaxed = true)
-        validToken = generateJWT(
-            audience = externalMockEnvironment.environment.azureAppClientId,
-            issuer = externalMockEnvironment.wellKnownInternADV2Mock.issuer,
-            navIdent = VEILEDER_IDENT,
-        )
-    }
-
-    @AfterEach
-    fun teardown() {
         database.dropData()
     }
 
@@ -91,7 +83,7 @@ class VeilederPersonOppgaveApiV2Test {
     }
 
     @Test
-    fun `returns BadRequest if NAV_PERSONIDENT_HEADER invalid`() = testApplication {
+    fun `returns status BadRequest if NAV_PERSONIDENT_HEADER has an invalid Fodselsnummer`() = testApplication {
         val client = setupApiAndClient()
         val response = client.get("$baseUrl/personident") {
             bearerAuth(validToken)
@@ -101,7 +93,7 @@ class VeilederPersonOppgaveApiV2Test {
     }
 
     @Test
-    fun `returns Forbidden if veileder lacks access`() = testApplication {
+    fun `returns status Forbidden if Veileder does not have access to request PersonIdent`() = testApplication {
         val client = setupApiAndClient()
         val response = client.get("$baseUrl/personident") {
             bearerAuth(validToken)
@@ -111,7 +103,7 @@ class VeilederPersonOppgaveApiV2Test {
     }
 
     @Test
-    fun `returns NoContent if no oppgaver`() = testApplication {
+    fun `returns status NoContent if there is no PersonOppgaver for PersonIdent`() = testApplication {
         val client = setupApiAndClient()
         val response = client.get("$baseUrl/personident") {
             bearerAuth(validToken)
@@ -121,7 +113,7 @@ class VeilederPersonOppgaveApiV2Test {
     }
 
     @Test
-    fun `returns PersonOppgaveList for OppfolgingsplanLPS`() = testApplication {
+    fun `returns PersonOppgaveList if there is a PersonOppgave with type OppfolgingsplanLPS for PersonIdent`() = testApplication {
         val kOppfolgingsplanLPS = generateKOppfolgingsplanLPS
         val personOppgaveType = PersonOppgaveType.OPPFOLGINGSPLANLPS
         database.connection.use {
@@ -148,13 +140,15 @@ class VeilederPersonOppgaveApiV2Test {
     }
 
     @Test
-    fun `processing one of two oppfolgingsplan-oppgaver does not send hendelse`() = testApplication {
+    fun `Process OppfolgingsplanLPS-PersonOppgave for PersonIdent`() = testApplication {
         val k1 = generateKOppfolgingsplanLPS
         val k2 = generateKOppfolgingsplanLPS2
         val type = PersonOppgaveType.OPPFOLGINGSPLANLPS
         val uuid = database.connection.use { c ->
             c.createPersonOppgave(k2, type)
-            c.createPersonOppgave(k1, type).also { c.commit() }
+            c.createPersonOppgave(k1, type).also {
+                c.commit()
+            }
         }
         val urlProcess = "$baseUrl/$uuid/behandle"
         val client = setupApiAndClient()
@@ -168,18 +162,36 @@ class VeilederPersonOppgaveApiV2Test {
         assertEquals(2, list.size)
         val behandlet = list.first { it.behandletTidspunkt != null }
         assertEquals(k1.uuid, behandlet.referanseUuid)
+        assertEquals(k1.fodselsnummer, behandlet.fnr)
+        assertEquals(type.name, behandlet.type)
+        assertNotNull(behandlet.behandletTidspunkt)
+        assertNotNull(behandlet.behandletVeilederIdent)
+        assertNotNull(behandlet.opprettet)
+
         val ubehandlet = list.first { it.behandletTidspunkt == null }
         assertEquals(k2.uuid, ubehandlet.referanseUuid)
+        assertEquals(k2.fodselsnummer, ubehandlet.fnr)
+        assertEquals(type.name, ubehandlet.type)
+        assertNull(ubehandlet.behandletTidspunkt)
+        assertNull(ubehandlet.behandletVeilederIdent)
+        assertNotNull(ubehandlet.opprettet)
         verify(exactly = 0) { kafkaProducer.send(any()) }
     }
 
     @Test
-    fun `processing only oppfolgingsplan-oppgave sends hendelse`() = testApplication {
-        val k = generateKOppfolgingsplanLPS
+    fun `returns OK and sends Personoppgavehendelse if processed the 1 and only existing oppfolgingsplan-oppgave`() = testApplication {
+        val kOppfolgingsplanLPS  = generateKOppfolgingsplanLPS
         val type = PersonOppgaveType.OPPFOLGINGSPLANLPS
-        val uuid = database.connection.use { c -> c.createPersonOppgave(k, type).also { c.commit() } }
+        val uuid = database.connection.use { connection ->
+            connection.createPersonOppgave(kOppfolgingsplanLPS , type).also {
+                connection.commit()
+            }
+        }
         val client = setupApiAndClient()
-        client.post("$baseUrl/$uuid/behandle") { bearerAuth(validToken) }.apply { assertEquals(HttpStatusCode.OK, status) }
+        client.post("$baseUrl/$uuid/behandle") {
+            bearerAuth(validToken)
+        }.apply { assertEquals(HttpStatusCode.OK, status) }
+
         val response = client.get("$baseUrl/personident") {
             bearerAuth(validToken)
             header(NAV_PERSONIDENT_HEADER, ARBEIDSTAKER_FNR.value)
@@ -187,12 +199,19 @@ class VeilederPersonOppgaveApiV2Test {
         assertEquals(HttpStatusCode.OK, response.status)
         val list = response.body<List<PersonOppgaveVeileder>>()
         assertEquals(1, list.size)
-        val oppgave = list.first()
-        assertNotNull(oppgave.behandletTidspunkt)
+        val personOppgave = list.first()
+
+        assertNotNull(personOppgave.uuid)
+        assertEquals(kOppfolgingsplanLPS.uuid, personOppgave.referanseUuid)
+        assertEquals(kOppfolgingsplanLPS.fodselsnummer, personOppgave.fnr)
+        assertEquals(type.name, personOppgave.type)
+        assertNotNull(personOppgave.behandletTidspunkt)
+        assertNotNull(personOppgave.behandletVeilederIdent)
+
         val slotRecord = slot<ProducerRecord<String, KPersonoppgavehendelse>>()
         verify(exactly = 1) { kafkaProducer.send(capture(slotRecord)) }
         val hendelse = slotRecord.captured.value()
-        assertEquals(k.fodselsnummer, hendelse.personident)
+        assertEquals(kOppfolgingsplanLPS.fodselsnummer, hendelse.personident)
         assertEquals(PersonoppgavehendelseType.OPPFOLGINGSPLANLPS_BISTAND_BEHANDLET.name, hendelse.hendelsetype)
     }
 
@@ -207,10 +226,14 @@ class VeilederPersonOppgaveApiV2Test {
     }
 
     @Test
-    fun `behandle ubesvart oppgave sends hendelse when no other ubehandlede`() = testApplication {
+    fun `returns OK on behandle and sends Personoppgavehendelse if no other ubehandlede ubesvart-oppgave`() = testApplication {
         val meldingUuid = UUID.randomUUID()
         val ubesvartMelding = generateKMeldingDTO(uuid = meldingUuid).toMelding()
-        val oppgaveUuid = database.connection.use { c -> c.createPersonOppgave(ubesvartMelding, PersonOppgaveType.BEHANDLERDIALOG_MELDING_UBESVART).also { c.commit() } }
+        val oppgaveUuid = database.connection.use {
+            c -> c.createPersonOppgave(ubesvartMelding, PersonOppgaveType.BEHANDLERDIALOG_MELDING_UBESVART).also {
+                c.commit()
+            }
+        }
         val client = setupApiAndClient()
         val response = client.post("$baseUrl/$oppgaveUuid/behandle") { bearerAuth(validToken) }
         assertEquals(HttpStatusCode.OK, response.status)
@@ -220,24 +243,29 @@ class VeilederPersonOppgaveApiV2Test {
     }
 
     @Test
-    fun `behandle ubesvart oppgave no hendelse when other ubehandlede exist`() = testApplication {
+    fun `returns OK on behandle and do NOT send Personoppgavehendelse when there are other ubehandlede ubesvart-oppgaver`() = testApplication {
         val m1 = generateKMeldingDTO().toMelding()
         val m2 = generateKMeldingDTO().toMelding()
-        database.connection.use { c ->
+        val uuid = database.connection.use { c ->
             c.createPersonOppgave(m1, PersonOppgaveType.BEHANDLERDIALOG_MELDING_UBESVART)
-            val uuid = c.createPersonOppgave(m2, PersonOppgaveType.BEHANDLERDIALOG_MELDING_UBESVART)
-            c.commit()
-            val client = setupApiAndClient()
-            val response = client.post("$baseUrl/$uuid/behandle") { bearerAuth(validToken) }
-            assertEquals(HttpStatusCode.OK, response.status)
-            verify(exactly = 0) { kafkaProducer.send(any()) }
+            c.createPersonOppgave(m2, PersonOppgaveType.BEHANDLERDIALOG_MELDING_UBESVART).also {
+                c.commit()
+            }
         }
+        val client = setupApiAndClient()
+        val response = client.post("$baseUrl/$uuid/behandle") { bearerAuth(validToken) }
+        assertEquals(HttpStatusCode.OK, response.status)
+        verify(exactly = 0) { kafkaProducer.send(any()) }
     }
 
     @Test
-    fun `behandle avvist oppgave sends hendelse when alone`() = testApplication {
+    fun `returns OK on behandle and sends Personoppgavehendelse if no other ubehandlede avvist-oppgaver`() = testApplication {
         val melding = generateKMeldingDTO().toMelding()
-        val oppgaveUuid = database.connection.use { c -> c.createPersonOppgave(melding, PersonOppgaveType.BEHANDLERDIALOG_MELDING_AVVIST).also { c.commit() } }
+        val oppgaveUuid = database.connection.use {
+            c -> c.createPersonOppgave(melding, PersonOppgaveType.BEHANDLERDIALOG_MELDING_AVVIST).also {
+                c.commit()
+            }
+        }
         val client = setupApiAndClient()
         val response = client.post("$baseUrl/$oppgaveUuid/behandle") { bearerAuth(validToken) }
         assertEquals(HttpStatusCode.OK, response.status)
@@ -247,35 +275,40 @@ class VeilederPersonOppgaveApiV2Test {
     }
 
     @Test
-    fun `behandle avvist oppgave no hendelse when others exist`() = testApplication {
-        database.connection.use { c ->
-            val m1 = generateKMeldingDTO().toMelding()
-            val m2 = generateKMeldingDTO().toMelding()
+    fun `returns OK on behandle and do NOT send Personoppgavehendelse where there are other ubehandlede avvist-oppgaver`() = testApplication {
+        val m1 = generateKMeldingDTO().toMelding()
+        val m2 = generateKMeldingDTO().toMelding()
+        val uuid = database.connection.use { c ->
             c.createPersonOppgave(m1, PersonOppgaveType.BEHANDLERDIALOG_MELDING_AVVIST)
-            val uuid = c.createPersonOppgave(m2, PersonOppgaveType.BEHANDLERDIALOG_MELDING_AVVIST)
-            c.commit()
-            val client = setupApiAndClient()
-            val response = client.post("$baseUrl/$uuid/behandle") { bearerAuth(validToken) }
-            assertEquals(HttpStatusCode.OK, response.status)
-            verify(exactly = 0) { kafkaProducer.send(any()) }
+            c.createPersonOppgave(m2, PersonOppgaveType.BEHANDLERDIALOG_MELDING_AVVIST).also {
+                c.commit()
+            }
         }
+        val client = setupApiAndClient()
+        val response = client.post("$baseUrl/$uuid/behandle") { bearerAuth(validToken) }
+        assertEquals(HttpStatusCode.OK, response.status)
+        verify(exactly = 0) { kafkaProducer.send(any()) }
     }
 
     @Test
-    fun `behandle behandler ber om bistand oppgave sends hendelse when alone`() = testApplication {
-        val sykmeldingId = UUID.randomUUID()
-        val oppgave = PersonOppgave(referanseUuid = sykmeldingId, personIdent = ARBEIDSTAKER_FNR, type = PersonOppgaveType.BEHANDLER_BER_OM_BISTAND)
+    fun `returns OK on behandle and sends Personoppgavehendelse if no other behandler_ber_om_bistand-oppgave`() = testApplication {
+        val oppgave = PersonOppgave(
+            referanseUuid = UUID.randomUUID(),
+            personIdent = ARBEIDSTAKER_FNR,
+            type = PersonOppgaveType.BEHANDLER_BER_OM_BISTAND,
+        )
         personOppgaveRepository.createPersonoppgave(oppgave)
         val client = setupApiAndClient()
         val response = client.post("$baseUrl/${oppgave.uuid}/behandle") { bearerAuth(validToken) }
         assertEquals(HttpStatusCode.OK, response.status)
+
         val slotRecord = slot<ProducerRecord<String, KPersonoppgavehendelse>>()
         verify(exactly = 1) { kafkaProducer.send(capture(slotRecord)) }
         assertEquals(PersonoppgavehendelseType.BEHANDLER_BER_OM_BISTAND_BEHANDLET.name, slotRecord.captured.value().hendelsetype)
     }
 
     @Test
-    fun `behandle behandler ber om bistand oppgave no hendelse when others exist`() = testApplication {
+    fun `returns OK on behandle and do NOT send Personoppgavehendelse when there are other ubehandlede behandler_ber_om_bistand-oppgaver`() = testApplication {
         val oppgave1 = PersonOppgave(referanseUuid = UUID.randomUUID(), personIdent = ARBEIDSTAKER_FNR, type = PersonOppgaveType.BEHANDLER_BER_OM_BISTAND)
         val oppgave2 = PersonOppgave(referanseUuid = UUID.randomUUID(), personIdent = ARBEIDSTAKER_FNR, type = PersonOppgaveType.BEHANDLER_BER_OM_BISTAND)
         database.connection.use { c ->
@@ -290,7 +323,7 @@ class VeilederPersonOppgaveApiV2Test {
     }
 
     @Test
-    fun `process several personoppgaver updates them and produces hendelse`() = testApplication {
+    fun `Will behandle several personoppgaver and produce Personoppgavehendelse`() = testApplication {
         val p = generatePersonoppgave(type = PersonOppgaveType.BEHANDLERDIALOG_SVAR)
         val request = BehandlePersonoppgaveRequestDTO(personIdent = p.personIdent.value, personOppgaveType = p.type)
         database.connection.use { c ->
@@ -318,20 +351,22 @@ class VeilederPersonOppgaveApiV2Test {
     fun `process several personoppgaver only updates correct type`() = testApplication {
         val pSvar = generatePersonoppgave(type = PersonOppgaveType.BEHANDLERDIALOG_SVAR)
         val pOther = generatePersonoppgave()
-        val request = BehandlePersonoppgaveRequestDTO(personIdent = pSvar.personIdent.value, personOppgaveType = pSvar.type)
         database.connection.use { c ->
             c.createPersonOppgave(pSvar)
             c.createPersonOppgave(pSvar.copy(uuid = UUID.randomUUID(), referanseUuid = UUID.randomUUID()))
             c.createPersonOppgave(pOther)
             c.commit()
         }
+
         val client = setupApiAndClient()
+        val request = BehandlePersonoppgaveRequestDTO(personIdent = pSvar.personIdent.value, personOppgaveType = pSvar.type)
         val response = client.post("$baseUrl/behandle") {
             bearerAuth(validToken)
             contentType(ContentType.Application.Json)
             setBody(request)
         }
         assertEquals(HttpStatusCode.OK, response.status)
+
         val personoppgaver = database.getPersonOppgaver(PersonIdent(request.personIdent))
         val svarOppgaver = personoppgaver.filter { it.type == PersonOppgaveType.BEHANDLERDIALOG_SVAR.name }
         assertEquals(3, personoppgaver.size)
@@ -350,33 +385,31 @@ class VeilederPersonOppgaveApiV2Test {
             c.updatePersonOppgaveBehandlet(already)
             c.commit()
         }
-        val request = BehandlePersonoppgaveRequestDTO(personIdent = p.personIdent.value, personOppgaveType = p.type)
+
         val client = setupApiAndClient()
+        val request = BehandlePersonoppgaveRequestDTO(personIdent = p.personIdent.value, personOppgaveType = p.type)
         val response = client.post("$baseUrl/behandle") {
             bearerAuth(validToken)
             contentType(ContentType.Application.Json)
             setBody(request)
         }
         assertEquals(HttpStatusCode.OK, response.status)
+
         val list = database.getPersonOppgaver(PersonIdent(request.personIdent))
-        val alreadyTid = list.first { it.uuid == already.uuid }.behandletTidspunkt!!
-        val newlyTid = list.first { it.uuid == p.uuid }.behandletTidspunkt!!
-        assertTrue(alreadyTid.isBefore(newlyTid))
+        val alreadyBehandletPersonoppgaveTidspunkt = list.first { it.uuid == already.uuid }.behandletTidspunkt!!
+        val newlyBehandletPersonoppgaveTidspunkt  = list.first { it.uuid == p.uuid }.behandletTidspunkt!!
+        assertTrue(alreadyBehandletPersonoppgaveTidspunkt.isBefore(newlyBehandletPersonoppgaveTidspunkt))
     }
 
     @Test
-    fun `process several personoppgaver conflict when none to behandle`() = testApplication {
-        val request = BehandlePersonoppgaveRequestDTO(personIdent = ARBEIDSTAKER_FNR.value, personOppgaveType = PersonOppgaveType.BEHANDLERDIALOG_SVAR)
+    fun `Will not behandle when no ubehandlede personoppgaver for person`() = testApplication {
         val client = setupApiAndClient()
+        val request = BehandlePersonoppgaveRequestDTO(personIdent = ARBEIDSTAKER_FNR.value, personOppgaveType = PersonOppgaveType.BEHANDLERDIALOG_SVAR)
         val response = client.post("$baseUrl/behandle") {
             bearerAuth(validToken)
             contentType(ContentType.Application.Json)
             setBody(request)
         }
         assertEquals(HttpStatusCode.Conflict, response.status)
-    }
-
-    companion object {
-        private val externalMockEnvironment = ExternalMockEnvironment.instance
     }
 }
