@@ -21,6 +21,7 @@ import no.nav.syfo.util.Constants
 import org.apache.kafka.clients.consumer.KafkaConsumer
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertNull
 import java.util.*
@@ -67,7 +68,7 @@ class MeldingFraBehandlerTest {
         val personOppgave = database.connection.use { connection ->
             connection.getPersonOppgaverByReferanseUuid(referanseUuid = referanseUuid).map { it.toPersonOppgave() }.first()
         }
-        assertEquals(false, personOppgave.publish)
+        assertFalse(personOppgave.publish)
         assertEquals(PersonOppgaveType.BEHANDLERDIALOG_SVAR.name, personOppgave.type.name)
 
         verify(exactly = 1) {
@@ -98,9 +99,9 @@ class MeldingFraBehandlerTest {
         val personoppgaveSvar = personoppgaveList.first { it.type == PersonOppgaveType.BEHANDLERDIALOG_SVAR }
         assertNotNull(personoppgaveUbesvart.behandletTidspunkt)
         assertEquals(Constants.SYSTEM_VEILEDER_IDENT, personoppgaveUbesvart.behandletVeilederIdent)
-        assertEquals(false, personoppgaveUbesvart.publish)
+        assertFalse(personoppgaveUbesvart.publish)
         assertNull(personoppgaveSvar.behandletTidspunkt)
-        assertEquals(false, personoppgaveSvar.publish)
+        assertFalse(personoppgaveSvar.publish)
 
         verify(exactly = 1) {
             personoppgavehendelseProducer.sendPersonoppgavehendelse(
@@ -149,11 +150,11 @@ class MeldingFraBehandlerTest {
         val personoppgaveSvar = personoppgaveList.first { it.type == PersonOppgaveType.BEHANDLERDIALOG_SVAR }
         assertNotNull(personoppgaveUbesvart.behandletTidspunkt)
         assertEquals(Constants.SYSTEM_VEILEDER_IDENT, personoppgaveUbesvart.behandletVeilederIdent)
-        assertEquals(false, personoppgaveUbesvart.publish)
+        assertFalse(personoppgaveUbesvart.publish)
         assertNull(otherPersonoppgaveUbesvart.behandletTidspunkt)
         assertNull(otherPersonoppgaveUbesvart.behandletVeilederIdent)
         assertNull(personoppgaveSvar.behandletTidspunkt)
-        assertEquals(false, personoppgaveSvar.publish)
+        assertFalse(personoppgaveSvar.publish)
 
         verify(exactly = 0) {
             personoppgavehendelseProducer.sendPersonoppgavehendelse(

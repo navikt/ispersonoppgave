@@ -282,11 +282,11 @@ class VeilederPersonOppgaveApiV2Test {
             personOppgaveRepository.createPersonoppgave(oppgave1, c)
             personOppgaveRepository.createPersonoppgave(oppgave2, c)
             c.commit()
-            val client = setupApiAndClient()
-            val response = client.post("$baseUrl/${oppgave1.uuid}/behandle") { bearerAuth(validToken) }
-            assertEquals(HttpStatusCode.OK, response.status)
-            verify(exactly = 0) { kafkaProducer.send(any()) }
         }
+        val client = setupApiAndClient()
+        val response = client.post("$baseUrl/${oppgave1.uuid}/behandle") { bearerAuth(validToken) }
+        assertEquals(HttpStatusCode.OK, response.status)
+        verify(exactly = 0) { kafkaProducer.send(any()) }
     }
 
     @Test

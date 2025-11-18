@@ -17,6 +17,7 @@ import no.nav.syfo.testutil.mock.mockPollConsumerRecords
 import org.apache.kafka.clients.consumer.KafkaConsumer
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertFalse
 import java.util.*
 
 class UbesvartMeldingTest {
@@ -61,7 +62,7 @@ class UbesvartMeldingTest {
         val personOppgave = database.connection.use { connection ->
             connection.getPersonOppgaverByReferanseUuid(referanseUuid = referanseUuid).map { it.toPersonOppgave() }.first()
         }
-        assertEquals(false, personOppgave.publish)
+        assertFalse(personOppgave.publish)
         assertEquals(PersonOppgaveType.BEHANDLERDIALOG_MELDING_UBESVART.name, personOppgave.type.name)
 
         verify(exactly = 1) {

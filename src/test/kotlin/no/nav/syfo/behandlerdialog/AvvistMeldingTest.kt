@@ -31,6 +31,7 @@ import org.apache.kafka.clients.producer.ProducerRecord
 import org.apache.kafka.clients.producer.RecordMetadata
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertNotNull
 import java.util.*
 import java.util.concurrent.Future
@@ -79,7 +80,7 @@ class AvvistMeldingTest {
         val personOppgave = database.connection.use { connection ->
             connection.getPersonOppgaverByReferanseUuid(referanseUuid = referanseUuid).map { it.toPersonOppgave() }.first()
         }
-        assertEquals(false, personOppgave.publish)
+        assertFalse(personOppgave.publish)
         assertEquals(PersonOppgaveType.BEHANDLERDIALOG_MELDING_AVVIST.name, personOppgave.type.name)
 
         val producerRecordSlot = slot<ProducerRecord<String, KPersonoppgavehendelse>>()
@@ -115,7 +116,7 @@ class AvvistMeldingTest {
                 .map { it.toPersonOppgave() }
                 .first { it.type == PersonOppgaveType.BEHANDLERDIALOG_MELDING_AVVIST }
         }
-        assertEquals(false, personOppgave.publish)
+        assertFalse(personOppgave.publish)
         assertEquals(PersonOppgaveType.BEHANDLERDIALOG_MELDING_AVVIST.name, personOppgave.type.name)
 
         val producerRecordSlot = mutableListOf<ProducerRecord<String, KPersonoppgavehendelse>>()
@@ -161,7 +162,7 @@ class AvvistMeldingTest {
                 .map { it.toPersonOppgave() }
                 .first { it.type == PersonOppgaveType.BEHANDLERDIALOG_MELDING_AVVIST }
         }
-        assertEquals(false, personOppgave.publish)
+        assertFalse(personOppgave.publish)
         assertEquals(PersonOppgaveType.BEHANDLERDIALOG_MELDING_AVVIST.name, personOppgave.type.name)
 
         val producerRecordSlot = mutableListOf<ProducerRecord<String, KPersonoppgavehendelse>>()
