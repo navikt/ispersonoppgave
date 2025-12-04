@@ -5,17 +5,17 @@ version = "1.0-SNAPSHOT"
 
 val confluentVersion = "8.1.0"
 val jacksonDataTypeVersion = "2.20.0"
-val flywayVersion = "11.15.0"
+val flywayVersion = "11.17.1"
 val hikariVersion = "7.0.2"
 val isdialogmoteSchemaVersion = "1.0.5"
 val jsonVersion = "20250517"
 val kafkaVersion = "4.1.0"
-val ktorVersion = "3.3.2"
-val logbackVersion = "1.5.20"
+val ktorVersion = "3.3.3"
+val logbackVersion = "1.5.21"
 val logstashEncoderVersion = "9.0"
 val micrometerRegistryVersion = "1.12.13"
 val mockkVersion = "1.14.6"
-val nimbusjosejwtVersion = "10.5"
+val nimbusjosejwtVersion = "10.6"
 val joseVersion = "0.9.6"
 val postgresVersion = "42.7.8"
 val postgresEmbeddedVersion = "2.1.1"
@@ -23,7 +23,7 @@ val postgresRuntimeVersion = "17.6.0"
 
 plugins {
     kotlin("jvm") version "2.2.21"
-    id("com.gradleup.shadow") version "8.3.6"
+    id("com.gradleup.shadow") version "8.3.8"
     id("org.jlleitschuh.gradle.ktlint") version "11.6.1"
     id("com.adarshr.test-logger") version "4.0.0"
 }
@@ -120,10 +120,15 @@ dependencies {
                 require(jsonVersion)
             }
         }
-        implementation("org.apache.mina:mina-core") {
-            because("io.confluent:kafka-schema-registry:$confluentVersion -> https://www.cve.org/CVERecord?id=CVE-2024-52046")
+        implementation("org.glassfish.jersey.core:jersey-client") {
+            because("io.confluent:kafka-schema-registry:$confluentVersion -> https://www.cve.org/CVERecord?id=CVE-2025-12383")
             version {
-                require("2.2.4")
+                require("3.1.11")
+            }
+        }
+        implementation("com.nimbusds:nimbus-jose-jwt") {
+            version {
+                require(nimbusjosejwtVersion)
             }
         }
     }
