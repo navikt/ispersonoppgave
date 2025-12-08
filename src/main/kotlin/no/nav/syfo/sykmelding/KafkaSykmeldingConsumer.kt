@@ -125,26 +125,18 @@ class KafkaSykmeldingConsumer(
                 bistand = receivedSykmeldingDTO.sykmelding.meldingTilNAV?.beskrivBistand,
                 connection = connection,
             ).firstOrNull()
-            val personOppgave = PersonOppgave(
-                referanseUuid = referanseUuid,
-                personIdent = arbeidstakerPersonident,
-                type = PersonOppgaveType.BEHANDLER_BER_OM_BISTAND,
-                publish = true,
-                duplikatReferanseUuid = existingDuplicate?.let { UUID.fromString(existingDuplicate.second) },
-            )
-            val id = personOppgaveRepository.createPersonoppgave(
-                personOppgave = personOppgave,
-                connection = connection
-            )
-            COUNT_MOTTATT_SYKMELDING_SUCCESS.increment()
-            if (existingDuplicate != null) {
-                log.info("Received sykmelding with duplicate fields: ${existingDuplicate.second}")
-                sykmeldingFieldsRepository.incrementDuplicateCount(
-                    personoppgaveId = existingDuplicate.first,
-                    connection = connection,
+            if (existingDuplicate == null) {
+                val personOppgave = PersonOppgave(
+                    referanseUuid = referanseUuid,
+                    personIdent = arbeidstakerPersonident,
+                    type = PersonOppgaveType.BEHANDLER_BER_OM_BISTAND,
+                    publish = true,
+                    duplikatReferanseUuid = null,
                 )
-                COUNT_MOTTATT_SYKMELDING_DUPLICATE.increment()
-            } else {
+                val id = personOppgaveRepository.createPersonoppgave(
+                    personOppgave = personOppgave,
+                    connection = connection
+                )
                 sykmeldingFieldsRepository.createPersonoppgaveSykmeldingFields(
                     personoppgaveId = id,
                     tiltakNav = receivedSykmeldingDTO.sykmelding.tiltakNAV,
@@ -152,6 +144,14 @@ class KafkaSykmeldingConsumer(
                     bistand = receivedSykmeldingDTO.sykmelding.meldingTilNAV?.beskrivBistand,
                     connection = connection,
                 )
+                COUNT_MOTTATT_SYKMELDING_SUCCESS.increment()
+            } else {
+                log.info("Received sykmelding with duplicate fields: ${existingDuplicate.second}")
+                sykmeldingFieldsRepository.incrementDuplicateCount(
+                    personoppgaveId = existingDuplicate.first,
+                    connection = connection,
+                )
+                COUNT_MOTTATT_SYKMELDING_DUPLICATE.increment()
             }
         }
     }
