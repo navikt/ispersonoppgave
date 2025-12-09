@@ -125,33 +125,34 @@ class KafkaSykmeldingConsumer(
                 bistand = receivedSykmeldingDTO.sykmelding.meldingTilNAV?.beskrivBistand,
                 connection = connection,
             ).firstOrNull()
-            if (existingDuplicate == null) {
-                val personOppgave = PersonOppgave(
-                    referanseUuid = referanseUuid,
-                    personIdent = arbeidstakerPersonident,
-                    type = PersonOppgaveType.BEHANDLER_BER_OM_BISTAND,
-                    publish = true,
-                    duplikatReferanseUuid = null,
-                )
-                val id = personOppgaveRepository.createPersonoppgave(
-                    personOppgave = personOppgave,
-                    connection = connection
-                )
-                sykmeldingFieldsRepository.createPersonoppgaveSykmeldingFields(
-                    personoppgaveId = id,
-                    tiltakNav = receivedSykmeldingDTO.sykmelding.tiltakNAV,
-                    tiltakAndre = receivedSykmeldingDTO.sykmelding.andreTiltak,
-                    bistand = receivedSykmeldingDTO.sykmelding.meldingTilNAV?.beskrivBistand,
-                    connection = connection,
-                )
-                COUNT_MOTTATT_SYKMELDING_SUCCESS.increment()
-            } else {
+            val hasExistingDuplicate = existingDuplicate != null
+
+            if (hasExistingDuplicate) {
                 log.info("Received sykmelding with duplicate fields: ${existingDuplicate.second}")
                 sykmeldingFieldsRepository.incrementDuplicateCount(
                     personoppgaveId = existingDuplicate.first,
                     connection = connection,
                 )
                 COUNT_MOTTATT_SYKMELDING_DUPLICATE.increment()
+            } else {
+                val personOppgaveId = personOppgaveRepository.createPersonoppgave(
+                    personOppgave = PersonOppgave(
+                        referanseUuid = referanseUuid,
+                        personIdent = arbeidstakerPersonident,
+                        type = PersonOppgaveType.BEHANDLER_BER_OM_BISTAND,
+                        publish = true,
+                        duplikatReferanseUuid = null,
+                    ),
+                    connection = connection
+                )
+                sykmeldingFieldsRepository.createPersonoppgaveSykmeldingFields(
+                    personoppgaveId = personOppgaveId,
+                    tiltakNav = receivedSykmeldingDTO.sykmelding.tiltakNAV,
+                    tiltakAndre = receivedSykmeldingDTO.sykmelding.andreTiltak,
+                    bistand = receivedSykmeldingDTO.sykmelding.meldingTilNAV?.beskrivBistand,
+                    connection = connection,
+                )
+                COUNT_MOTTATT_SYKMELDING_SUCCESS.increment()
             }
         }
     }
