@@ -125,19 +125,9 @@ class KafkaSykmeldingConsumer(
                 bistand = receivedSykmeldingDTO.sykmelding.meldingTilNAV?.beskrivBistand,
                 connection = connection,
             ).firstOrNull()
-            val personOppgave = PersonOppgave(
-                referanseUuid = referanseUuid,
-                personIdent = arbeidstakerPersonident,
-                type = PersonOppgaveType.BEHANDLER_BER_OM_BISTAND,
-                publish = true,
-                duplikatReferanseUuid = existingDuplicate?.let { UUID.fromString(existingDuplicate.second) },
-            )
-            val id = personOppgaveRepository.createPersonoppgave(
-                personOppgave = personOppgave,
-                connection = connection
-            )
-            COUNT_MOTTATT_SYKMELDING_SUCCESS.increment()
-            if (existingDuplicate != null) {
+            val hasExistingDuplicate = existingDuplicate != null
+
+            if (hasExistingDuplicate) {
                 log.info("Received sykmelding with duplicate fields: ${existingDuplicate.second}")
                 sykmeldingFieldsRepository.incrementDuplicateCount(
                     personoppgaveId = existingDuplicate.first,
@@ -145,13 +135,24 @@ class KafkaSykmeldingConsumer(
                 )
                 COUNT_MOTTATT_SYKMELDING_DUPLICATE.increment()
             } else {
+                val personOppgaveId = personOppgaveRepository.createPersonoppgave(
+                    personOppgave = PersonOppgave(
+                        referanseUuid = referanseUuid,
+                        personIdent = arbeidstakerPersonident,
+                        type = PersonOppgaveType.BEHANDLER_BER_OM_BISTAND,
+                        publish = true,
+                        duplikatReferanseUuid = null,
+                    ),
+                    connection = connection
+                )
                 sykmeldingFieldsRepository.createPersonoppgaveSykmeldingFields(
-                    personoppgaveId = id,
+                    personoppgaveId = personOppgaveId,
                     tiltakNav = receivedSykmeldingDTO.sykmelding.tiltakNAV,
                     tiltakAndre = receivedSykmeldingDTO.sykmelding.andreTiltak,
                     bistand = receivedSykmeldingDTO.sykmelding.meldingTilNAV?.beskrivBistand,
                     connection = connection,
                 )
+                COUNT_MOTTATT_SYKMELDING_SUCCESS.increment()
             }
         }
     }
