@@ -3,7 +3,6 @@ package no.nav.syfo.client
 import io.ktor.client.*
 import io.ktor.client.engine.*
 import io.ktor.client.engine.apache.*
-import io.ktor.client.engine.cio.*
 import io.ktor.client.plugins.*
 import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.serialization.jackson.*
@@ -33,6 +32,6 @@ val proxyConfig: HttpClientConfig<ApacheEngineConfig>.() -> Unit = {
     }
 }
 
-fun httpClientDefault() = HttpClient(CIO, commonConfig)
+fun httpClientDefault() = HttpClient(Apache, commonConfig)
 
 fun httpClientProxy() = HttpClient(Apache, proxyConfig)
