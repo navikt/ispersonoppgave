@@ -54,7 +54,6 @@ dependencies {
     implementation("io.ktor:ktor-server-status-pages:$ktorVersion")
     implementation("io.ktor:ktor-server-netty:$ktorVersion")
     implementation("io.ktor:ktor-client-apache:$ktorVersion")
-    implementation("io.ktor:ktor-client-cio:$ktorVersion")
     implementation("io.ktor:ktor-client-content-negotiation:$ktorVersion")
     implementation("io.ktor:ktor-serialization-jackson:$ktorVersion")
 
@@ -120,10 +119,15 @@ dependencies {
                 require(jsonVersion)
             }
         }
-        implementation("org.apache.mina:mina-core") {
-            because("io.confluent:kafka-schema-registry:$confluentVersion -> https://www.cve.org/CVERecord?id=CVE-2024-52046")
+        implementation("org.glassfish.jersey.core:jersey-client") {
+            because("io.confluent:kafka-schema-registry:$confluentVersion -> https://www.cve.org/CVERecord?id=CVE-2025-12383")
             version {
-                require("2.2.4")
+                require("3.1.11")
+            }
+        }
+        implementation("com.nimbusds:nimbus-jose-jwt") {
+            version {
+                require(nimbusjosejwtVersion)
             }
         }
     }

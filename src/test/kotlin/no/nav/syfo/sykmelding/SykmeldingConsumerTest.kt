@@ -97,7 +97,7 @@ class SykmeldingConsumerTest {
     }
 
     @Test
-    fun `Marks second duplicate sykmelding oppgave with duplikatReferanseUuid`() {
+    fun `Does not create duplicate oppgave`() {
         val referanseUUID = UUID.randomUUID()
         val sykmelding = generateKafkaSykmelding(
             sykmeldingId = referanseUUID,
@@ -116,9 +116,7 @@ class SykmeldingConsumerTest {
         kafkaConsumer.mockPollConsumerRecords(recordValue = sykmeldingNext, topic = SYKMELDING_TOPIC)
         kafkaSykmeldingConsumer.pollAndProcessRecords(kafkaConsumer = kafkaConsumer)
         val personoppgaver = database.getPersonOppgaver(PersonIdent(sykmelding.personNrPasient))
-        assertEquals(2, personoppgaver.size)
-        val latestPersonoppgave = personoppgaver.find { it.referanseUuid.toString() == sykmeldingNext.sykmelding.id }!!
-        assertEquals(referanseUUID, latestPersonoppgave.duplikatReferanseUuid)
+        assertEquals(1, personoppgaver.size)
         assertEquals(1, database.getDuplicateCount(referanseUUID))
     }
 
