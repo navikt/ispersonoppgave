@@ -1,18 +1,20 @@
 package no.nav.syfo.behandlerdialog
 
 import io.mockk.*
-import no.nav.syfo.behandlerdialog.domain.KMeldingDTO
-import no.nav.syfo.behandlerdialog.kafka.KafkaMeldingFraBehandler
-import no.nav.syfo.behandlerdialog.kafka.KafkaUbesvartMelding
-import no.nav.syfo.personoppgave.infrastructure.database.PersonOppgaveRepository
-import no.nav.syfo.personoppgave.domain.PersonIdent
-import no.nav.syfo.personoppgave.PersonOppgaveService
-import no.nav.syfo.personoppgave.domain.PersonOppgaveType
-import no.nav.syfo.personoppgave.domain.toPersonOppgave
-import no.nav.syfo.personoppgave.getPersonOppgaver
-import no.nav.syfo.personoppgave.getPersonOppgaverByReferanseUuid
-import no.nav.syfo.personoppgavehendelse.PersonoppgavehendelseProducer
-import no.nav.syfo.personoppgavehendelse.domain.PersonoppgavehendelseType
+import no.nav.syfo.infrastructure.kafka.behandlerdialog.KMeldingDTO
+import no.nav.syfo.infrastructure.kafka.behandlerdialog.MeldingFraBehandlerConsumer
+import no.nav.syfo.infrastructure.kafka.behandlerdialog.KafkaUbesvartMelding
+import no.nav.syfo.application.MeldingFraBehandlerService
+import no.nav.syfo.infrastructure.database.PersonOppgaveRepository
+import no.nav.syfo.domain.PersonIdent
+import no.nav.syfo.application.PersonOppgaveService
+import no.nav.syfo.application.UbesvartMeldingService
+import no.nav.syfo.domain.PersonOppgaveType
+import no.nav.syfo.infrastructure.database.queries.toPersonOppgave
+import no.nav.syfo.infrastructure.database.queries.getPersonOppgaver
+import no.nav.syfo.infrastructure.database.queries.getPersonOppgaverByReferanseUuid
+import no.nav.syfo.infrastructure.kafka.oppgavehendelse.PersonoppgavehendelseProducer
+import no.nav.syfo.domain.PersonoppgavehendelseType
 import no.nav.syfo.testutil.ExternalMockEnvironment
 import no.nav.syfo.testutil.dropData
 import no.nav.syfo.testutil.generators.generateKMeldingDTO
@@ -40,7 +42,7 @@ class MeldingFraBehandlerTest {
         database = database,
         personOppgaveService = personOppgaveService,
     )
-    private val kafkaMeldingFraBehandler = KafkaMeldingFraBehandler(meldingFraBehandlerService = meldingFraBehandlerService)
+    private val meldingFraBehandlerConsumer = MeldingFraBehandlerConsumer(meldingFraBehandlerService = meldingFraBehandlerService)
 
     @BeforeEach
     fun setup() {
@@ -56,7 +58,7 @@ class MeldingFraBehandlerTest {
         val kMeldingFraBehandler = generateKMeldingDTO(referanseUuid)
         kafkaConsumer.mockPollConsumerRecords(recordValue = kMeldingFraBehandler)
 
-        kafkaMeldingFraBehandler.pollAndProcessRecords(kafkaConsumer = kafkaConsumer)
+        meldingFraBehandlerConsumer.pollAndProcessRecords(kafkaConsumer = kafkaConsumer)
 
         val personOppgave = database.connection.use { connection ->
             connection.getPersonOppgaverByReferanseUuid(referanseUuid = referanseUuid).map { it.toPersonOppgave() }.first()
@@ -84,9 +86,10 @@ class MeldingFraBehandlerTest {
         kafkaConsumer.mockPollConsumerRecords(recordValue = kUbesvartMeldingDTO)
         kafkaUbesvartMelding.pollAndProcessRecords(kafkaConsumer)
         kafkaConsumer.mockPollConsumerRecords(recordValue = kMeldingFraBehandlerDTO)
-        kafkaMeldingFraBehandler.pollAndProcessRecords(kafkaConsumer)
+        meldingFraBehandlerConsumer.pollAndProcessRecords(kafkaConsumer)
 
-        val personoppgaveList = database.getPersonOppgaver(personIdent = PersonIdent(kUbesvartMeldingDTO.personIdent)).map { it.toPersonOppgave() }
+        val personoppgaveList =
+            database.getPersonOppgaver(personIdent = PersonIdent(kUbesvartMeldingDTO.personIdent)).map { it.toPersonOppgave() }
         assertEquals(2, personoppgaveList.size)
         val personoppgaveUbesvart = personoppgaveList.first { it.type == PersonOppgaveType.BEHANDLERDIALOG_MELDING_UBESVART }
         val personoppgaveSvar = personoppgaveList.first { it.type == PersonOppgaveType.BEHANDLERDIALOG_SVAR }
@@ -134,9 +137,10 @@ class MeldingFraBehandlerTest {
         kafkaConsumer.mockPollConsumerRecords(recordValue = otherKUbesvartMeldingDTO)
         kafkaUbesvartMelding.pollAndProcessRecords(kafkaConsumer)
         kafkaConsumer.mockPollConsumerRecords(recordValue = kMeldingFraBehandlerDTO)
-        kafkaMeldingFraBehandler.pollAndProcessRecords(kafkaConsumer)
+        meldingFraBehandlerConsumer.pollAndProcessRecords(kafkaConsumer)
 
-        val personoppgaveList = database.getPersonOppgaver(personIdent = PersonIdent(kUbesvartMeldingDTO.personIdent)).map { it.toPersonOppgave() }
+        val personoppgaveList =
+            database.getPersonOppgaver(personIdent = PersonIdent(kUbesvartMeldingDTO.personIdent)).map { it.toPersonOppgave() }
         assertEquals(3, personoppgaveList.size)
         val personoppgaveUbesvart = personoppgaveList.first { it.referanseUuid == referanseUuid }
         val otherPersonoppgaveUbesvart = personoppgaveList.first { it.referanseUuid == otherReferanseUuid }

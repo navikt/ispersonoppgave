@@ -2,8 +2,8 @@ package no.nav.syfo.testutil.mock
 
 import io.ktor.client.engine.mock.*
 import io.ktor.client.request.*
-import no.nav.syfo.personoppgave.api.authentication.WellKnown
-import no.nav.syfo.client.azuread.AzureAdTokenResponse
+import no.nav.syfo.api.authentication.WellKnown
+import no.nav.syfo.infrastructure.clients.azuread.AzureAdTokenResponse
 import java.nio.file.Paths
 
 fun MockRequestHandleScope.azureAdMockResponse(): HttpResponseData = respond(

@@ -8,13 +8,15 @@ import io.mockk.mockkStatic
 import io.mockk.slot
 import io.mockk.unmockkStatic
 import io.mockk.verify
-import no.nav.syfo.personoppgave.infrastructure.database.DatabaseInterface
-import no.nav.syfo.personoppgave.infrastructure.database.PersonOppgaveRepository
-import no.nav.syfo.personoppgave.domain.PersonIdent
-import no.nav.syfo.personoppgave.getPersonOppgaver
-import no.nav.syfo.personoppgave.getPersonOppgaverByPublish
-import no.nav.syfo.personoppgave.domain.PersonOppgave
-import no.nav.syfo.personoppgavehendelse.domain.PersonoppgavehendelseType
+import no.nav.syfo.application.PublishPersonoppgavehendelseService
+import no.nav.syfo.infrastructure.database.DatabaseInterface
+import no.nav.syfo.infrastructure.database.PersonOppgaveRepository
+import no.nav.syfo.domain.PersonIdent
+import no.nav.syfo.infrastructure.database.queries.getPersonOppgaver
+import no.nav.syfo.infrastructure.database.queries.getPersonOppgaverByPublish
+import no.nav.syfo.domain.PersonOppgave
+import no.nav.syfo.infrastructure.kafka.oppgavehendelse.PersonoppgavehendelseProducer
+import no.nav.syfo.domain.PersonoppgavehendelseType
 import no.nav.syfo.testutil.generators.generatePPersonoppgave
 import no.nav.syfo.testutil.generators.generatePPersonoppgaver
 import no.nav.syfo.testutil.generators.generatePersonoppgave
@@ -47,15 +49,15 @@ class PublishPersonoppgavehendelseServiceTest {
             personoppgavehendelseProducer = personoppgavehendelseProducer,
             personOppgaveRepository = personOppgaveRepository,
         )
-        mockkStatic("no.nav.syfo.personoppgave.GetPersonOppgaveQueriesKt")
-        mockkStatic("no.nav.syfo.personoppgave.PersonOppgaveQueriesKt")
+        mockkStatic("no.nav.syfo.infrastructure.database.queries.GetPersonOppgaveQueriesKt")
+        mockkStatic("no.nav.syfo.infrastructure.database.queries.PersonOppgaveQueriesKt")
     }
 
     @AfterEach
     fun teardown() {
         clearMocks(connection, personoppgavehendelseProducer, personOppgaveRepository)
-        unmockkStatic("no.nav.syfo.personoppgave.GetPersonOppgaveQueriesKt")
-        unmockkStatic("no.nav.syfo.personoppgave.PersonOppgaveQueriesKt")
+        unmockkStatic("no.nav.syfo.infrastructure.database.queries.GetPersonOppgaveQueriesKt")
+        unmockkStatic("no.nav.syfo.infrastructure.database.queries.PersonOppgaveQueriesKt")
     }
 
     @Test

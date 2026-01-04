@@ -1,7 +1,7 @@
 package no.nav.syfo.testutil
 
-import no.nav.syfo.personoppgave.domain.PersonIdent
-import no.nav.syfo.personoppgave.domain.Virksomhetsnummer
+import no.nav.syfo.domain.PersonIdent
+import no.nav.syfo.domain.Virksomhetsnummer
 
 object UserConstants {
     val ARBEIDSTAKER_FNR = PersonIdent("12345678912")

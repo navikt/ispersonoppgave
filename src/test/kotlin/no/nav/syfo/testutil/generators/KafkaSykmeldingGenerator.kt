@@ -1,6 +1,12 @@
 package no.nav.syfo.testutil.generators
 
-import no.nav.syfo.sykmelding.*
+import no.nav.syfo.infrastructure.kafka.sykmelding.Adresse
+import no.nav.syfo.infrastructure.kafka.sykmelding.AvsenderSystem
+import no.nav.syfo.infrastructure.kafka.sykmelding.Behandler
+import no.nav.syfo.infrastructure.kafka.sykmelding.MedisinskVurdering
+import no.nav.syfo.infrastructure.kafka.sykmelding.MeldingTilNAV
+import no.nav.syfo.infrastructure.kafka.sykmelding.ReceivedSykmeldingDTO
+import no.nav.syfo.infrastructure.kafka.sykmelding.Sykmelding
 import no.nav.syfo.testutil.UserConstants
 import java.time.LocalDate
 import java.time.LocalDateTime

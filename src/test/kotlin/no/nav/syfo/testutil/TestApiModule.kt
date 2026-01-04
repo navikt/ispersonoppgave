@@ -1,12 +1,12 @@
 package no.nav.syfo.testutil
 
 import io.ktor.server.application.*
-import no.nav.syfo.personoppgave.api.apiModule
-import no.nav.syfo.client.azuread.AzureAdClient
-import no.nav.syfo.client.veiledertilgang.VeilederTilgangskontrollClient
-import no.nav.syfo.personoppgave.infrastructure.database.PersonOppgaveRepository
-import no.nav.syfo.personoppgave.PersonOppgaveService
-import no.nav.syfo.personoppgavehendelse.PersonoppgavehendelseProducer
+import no.nav.syfo.api.apiModule
+import no.nav.syfo.infrastructure.clients.azuread.AzureAdClient
+import no.nav.syfo.infrastructure.clients.veiledertilgang.VeilederTilgangskontrollClient
+import no.nav.syfo.infrastructure.database.PersonOppgaveRepository
+import no.nav.syfo.application.PersonOppgaveService
+import no.nav.syfo.infrastructure.kafka.oppgavehendelse.PersonoppgavehendelseProducer
 
 fun Application.testApiModule(
     externalMockEnvironment: ExternalMockEnvironment,

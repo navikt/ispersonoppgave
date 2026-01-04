@@ -2,7 +2,7 @@ package no.nav.syfo.testutil.mock
 
 import io.ktor.client.engine.mock.*
 import io.ktor.client.request.*
-import no.nav.syfo.client.veiledertilgang.Tilgang
+import no.nav.syfo.infrastructure.clients.veiledertilgang.Tilgang
 import no.nav.syfo.testutil.UserConstants.ARBEIDSTAKER_FNR
 import no.nav.syfo.util.NAV_PERSONIDENT_HEADER
 

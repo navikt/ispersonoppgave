@@ -1,10 +1,10 @@
 package no.nav.syfo.testutil.generators
 
-import no.nav.syfo.personoppgave.domain.PersonIdent
-import no.nav.syfo.personoppgave.domain.Virksomhetsnummer
-import no.nav.syfo.personoppgave.domain.PPersonOppgave
-import no.nav.syfo.personoppgave.domain.PersonOppgave
-import no.nav.syfo.personoppgave.domain.PersonOppgaveType
+import no.nav.syfo.domain.PersonIdent
+import no.nav.syfo.domain.Virksomhetsnummer
+import no.nav.syfo.infrastructure.database.queries.PPersonOppgave
+import no.nav.syfo.domain.PersonOppgave
+import no.nav.syfo.domain.PersonOppgaveType
 import no.nav.syfo.testutil.UserConstants
 import java.time.LocalDateTime
 import java.util.*

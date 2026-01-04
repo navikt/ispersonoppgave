@@ -3,8 +3,13 @@ package no.nav.syfo.testutil.mock
 import io.ktor.client.engine.mock.*
 import io.ktor.client.request.*
 import io.ktor.http.*
-import no.nav.syfo.client.pdl.domain.*
-import no.nav.syfo.personoppgave.domain.PersonIdent
+import no.nav.syfo.infrastructure.clients.pdl.IdentType
+import no.nav.syfo.infrastructure.clients.pdl.PdlHentIdenter
+import no.nav.syfo.infrastructure.clients.pdl.PdlHentIdenterRequest
+import no.nav.syfo.infrastructure.clients.pdl.PdlIdent
+import no.nav.syfo.infrastructure.clients.pdl.PdlIdenter
+import no.nav.syfo.infrastructure.clients.pdl.PdlIdenterResponse
+import no.nav.syfo.domain.PersonIdent
 import no.nav.syfo.testutil.UserConstants
 
 fun PersonIdent.toHistoricalPersonIdent(): PersonIdent {

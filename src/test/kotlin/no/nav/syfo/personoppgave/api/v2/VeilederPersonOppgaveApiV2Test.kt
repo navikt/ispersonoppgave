@@ -12,19 +12,21 @@ import io.mockk.coEvery
 import io.mockk.mockk
 import io.mockk.slot
 import io.mockk.verify
-import no.nav.syfo.behandlerdialog.domain.toMelding
-import no.nav.syfo.personoppgave.infrastructure.database.PersonOppgaveRepository
-import no.nav.syfo.dialogmotesvar.domain.DialogmoteSvartype
-import no.nav.syfo.personoppgave.domain.PersonIdent
-import no.nav.syfo.personoppgave.api.PersonOppgaveVeileder
-import no.nav.syfo.personoppgave.createPersonOppgave
-import no.nav.syfo.personoppgave.domain.PersonOppgave
-import no.nav.syfo.personoppgave.domain.PersonOppgaveType
-import no.nav.syfo.personoppgave.getPersonOppgaver
-import no.nav.syfo.personoppgave.updatePersonOppgaveBehandlet
-import no.nav.syfo.personoppgavehendelse.PersonoppgavehendelseProducer
-import no.nav.syfo.personoppgavehendelse.domain.KPersonoppgavehendelse
-import no.nav.syfo.personoppgavehendelse.domain.PersonoppgavehendelseType
+import no.nav.syfo.infrastructure.kafka.behandlerdialog.toMelding
+import no.nav.syfo.infrastructure.database.PersonOppgaveRepository
+import no.nav.syfo.infrastructure.kafka.dialogmotesvar.DialogmoteSvartype
+import no.nav.syfo.domain.PersonIdent
+import no.nav.syfo.api.PersonOppgaveVeileder
+import no.nav.syfo.api.v2.BehandlePersonoppgaveRequestDTO
+import no.nav.syfo.api.v2.registerVeilederPersonOppgaveApiV2BasePath
+import no.nav.syfo.infrastructure.database.queries.createPersonOppgave
+import no.nav.syfo.domain.PersonOppgave
+import no.nav.syfo.domain.PersonOppgaveType
+import no.nav.syfo.infrastructure.database.queries.getPersonOppgaver
+import no.nav.syfo.infrastructure.database.queries.updatePersonOppgaveBehandlet
+import no.nav.syfo.infrastructure.kafka.oppgavehendelse.PersonoppgavehendelseProducer
+import no.nav.syfo.infrastructure.kafka.oppgavehendelse.KPersonoppgavehendelse
+import no.nav.syfo.domain.PersonoppgavehendelseType
 import no.nav.syfo.testutil.*
 import no.nav.syfo.testutil.UserConstants.ARBEIDSTAKER_FNR
 import no.nav.syfo.testutil.UserConstants.VEILEDER_IDENT
@@ -404,7 +406,10 @@ class VeilederPersonOppgaveApiV2Test {
     @Test
     fun `Will not behandle when no ubehandlede personoppgaver for person`() = testApplication {
         val client = setupApiAndClient()
-        val request = BehandlePersonoppgaveRequestDTO(personIdent = ARBEIDSTAKER_FNR.value, personOppgaveType = PersonOppgaveType.BEHANDLERDIALOG_SVAR)
+        val request = BehandlePersonoppgaveRequestDTO(
+            personIdent = ARBEIDSTAKER_FNR.value,
+            personOppgaveType = PersonOppgaveType.BEHANDLERDIALOG_SVAR
+        )
         val response = client.post("$baseUrl/behandle") {
             bearerAuth(validToken)
             contentType(ContentType.Application.Json)
