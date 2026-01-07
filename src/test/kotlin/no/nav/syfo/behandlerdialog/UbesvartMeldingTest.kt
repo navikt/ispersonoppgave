@@ -1,15 +1,16 @@
 package no.nav.syfo.behandlerdialog
 
 import io.mockk.*
-import no.nav.syfo.behandlerdialog.domain.KMeldingDTO
-import no.nav.syfo.behandlerdialog.kafka.KafkaUbesvartMelding
-import no.nav.syfo.personoppgave.infrastructure.database.PersonOppgaveRepository
-import no.nav.syfo.personoppgave.PersonOppgaveService
-import no.nav.syfo.personoppgave.domain.PersonOppgaveType
-import no.nav.syfo.personoppgave.domain.toPersonOppgave
-import no.nav.syfo.personoppgave.getPersonOppgaverByReferanseUuid
-import no.nav.syfo.personoppgavehendelse.PersonoppgavehendelseProducer
-import no.nav.syfo.personoppgavehendelse.domain.PersonoppgavehendelseType
+import no.nav.syfo.infrastructure.kafka.behandlerdialog.KMeldingDTO
+import no.nav.syfo.infrastructure.kafka.behandlerdialog.KafkaUbesvartMelding
+import no.nav.syfo.infrastructure.database.PersonOppgaveRepository
+import no.nav.syfo.application.PersonOppgaveService
+import no.nav.syfo.application.UbesvartMeldingService
+import no.nav.syfo.domain.PersonOppgaveType
+import no.nav.syfo.infrastructure.database.queries.toPersonOppgave
+import no.nav.syfo.infrastructure.database.queries.getPersonOppgaverByReferanseUuid
+import no.nav.syfo.infrastructure.kafka.oppgavehendelse.PersonoppgavehendelseProducer
+import no.nav.syfo.domain.PersonoppgavehendelseType
 import no.nav.syfo.testutil.ExternalMockEnvironment
 import no.nav.syfo.testutil.dropData
 import no.nav.syfo.testutil.generators.generateKMeldingDTO

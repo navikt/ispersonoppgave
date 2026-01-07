@@ -4,8 +4,9 @@ import io.mockk.clearMocks
 import io.mockk.every
 import io.mockk.mockk
 import no.nav.syfo.dialogmote.avro.KDialogmoteStatusEndring
-import no.nav.syfo.dialogmotestatusendring.domain.DialogmoteStatusendringType
-import no.nav.syfo.dialogmotestatusendring.kafka.KafkaDialogmoteStatusendring
+import no.nav.syfo.domain.DialogmoteStatusendringType
+import no.nav.syfo.infrastructure.kafka.dialogmotestatusendring.DialogmoteStatusendringConsumer
+import no.nav.syfo.infrastructure.database.queries.getDialogmoteStatusendring
 import no.nav.syfo.testutil.ExternalMockEnvironment
 import no.nav.syfo.testutil.UserConstants
 import no.nav.syfo.testutil.dropData
@@ -23,7 +24,7 @@ class DialogmoteStatusendringTest {
     private val externalMockEnvironment = ExternalMockEnvironment.instance
     private val database = externalMockEnvironment.database
     private val kafkaConsumer: KafkaConsumer<String, KDialogmoteStatusEndring> = mockk(relaxed = true)
-    private val kafkaDialogmoteStatusendring = KafkaDialogmoteStatusendring(database = database)
+    private val dialogmoteStatusendringConsumer = DialogmoteStatusendringConsumer(database = database)
 
     @BeforeEach
     fun setup() {
@@ -53,7 +54,7 @@ class DialogmoteStatusendringTest {
 
         kafkaConsumer.mockPollConsumerRecords(recordValue = kDialogmoteStatusendring, recordKey = moteUuid.toString())
 
-        kafkaDialogmoteStatusendring.pollAndProcessRecords(kafkaConsumer = kafkaConsumer)
+        dialogmoteStatusendringConsumer.pollAndProcessRecords(kafkaConsumer = kafkaConsumer)
 
         val allPDialogmoteStatusendring = database.connection.use { connection ->
             connection.getDialogmoteStatusendring(moteUuid = moteUuid)

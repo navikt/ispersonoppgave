@@ -1,8 +1,8 @@
 package no.nav.syfo.testutil.generators
 
-import no.nav.syfo.personoppgave.domain.PersonIdent
-import no.nav.syfo.behandlerdialog.domain.KMeldingDTO
-import no.nav.syfo.behandlerdialog.domain.MeldingType
+import no.nav.syfo.domain.PersonIdent
+import no.nav.syfo.infrastructure.kafka.behandlerdialog.KMeldingDTO
+import no.nav.syfo.domain.MeldingType
 import no.nav.syfo.testutil.UserConstants
 import java.time.OffsetDateTime
 import java.util.*

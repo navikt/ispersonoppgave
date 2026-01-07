@@ -1,17 +1,19 @@
 package no.nav.syfo.testutil
 
 import io.zonky.test.db.postgres.embedded.EmbeddedPostgres
-import no.nav.syfo.personoppgave.infrastructure.database.DatabaseInterface
-import no.nav.syfo.personoppgave.infrastructure.database.toList
-import no.nav.syfo.dialogmotestatusendring.domain.PDialogmoteStatusendring
-import no.nav.syfo.dialogmotestatusendring.toPDialogmoteStatusendring
-import no.nav.syfo.dialogmotesvar.domain.PDialogmotesvar
-import no.nav.syfo.dialogmotesvar.toPDialogmotesvar
-import no.nav.syfo.personoppgave.domain.PersonIdent
-import no.nav.syfo.personoppgave.domain.*
-import no.nav.syfo.oppfolgingsplanlps.kafka.KOppfolgingsplanLPS
-import no.nav.syfo.personoppgave.queryGetPersonOppgaverByFnr
-import no.nav.syfo.personoppgave.toPPersonOppgave
+import no.nav.syfo.infrastructure.database.queries.PPersonOppgave
+import no.nav.syfo.infrastructure.database.DatabaseInterface
+import no.nav.syfo.infrastructure.database.queries.PDialogmoteStatusendring
+import no.nav.syfo.infrastructure.database.queries.toPDialogmoteStatusendring
+import no.nav.syfo.infrastructure.database.queries.PDialogmotesvar
+import no.nav.syfo.infrastructure.database.queries.toPDialogmotesvar
+import no.nav.syfo.domain.PersonIdent
+import no.nav.syfo.domain.PersonOppgave
+import no.nav.syfo.domain.PersonOppgaveType
+import no.nav.syfo.infrastructure.kafka.oppfolgingsplanlps.KOppfolgingsplanLPS
+import no.nav.syfo.infrastructure.database.queries.queryGetPersonOppgaverByFnr
+import no.nav.syfo.infrastructure.database.queries.toPPersonOppgave
+import no.nav.syfo.infrastructure.database.toList
 import no.nav.syfo.util.toOffsetDateTimeUTC
 import org.flywaydb.core.Flyway
 import java.sql.*
@@ -110,7 +112,7 @@ fun DatabaseInterface.getAllDialogmoteStatusendring(): List<PDialogmoteStatusend
 
 fun DatabaseInterface.createPersonOppgave(
     kOppfolgingsplanLPS: KOppfolgingsplanLPS,
-    type: PersonOppgaveType
+    type: PersonOppgaveType,
 ): Pair<Int, UUID> {
     return connection.use { connection ->
         val uuid = UUID.randomUUID().toString()
@@ -169,10 +171,11 @@ const val queryCreatePersonOppgave =
 
 fun DatabaseInterface.getDuplicateCount(sykmeldingId: UUID) =
     connection.use {
-        it.prepareStatement("SELECT s.duplicate_count FROM sykmelding_personoppgave s INNER JOIN person_oppgave p ON (s.personoppgave_id=p.id) WHERE p.referanse_uuid=?").use {
-            it.setString(1, sykmeldingId.toString())
-            it.executeQuery().toList { getInt(1) }.firstOrNull()
-        }
+        it.prepareStatement("SELECT s.duplicate_count FROM sykmelding_personoppgave s INNER JOIN person_oppgave p ON (s.personoppgave_id=p.id) WHERE p.referanse_uuid=?")
+            .use {
+                it.setString(1, sykmeldingId.toString())
+                it.executeQuery().toList { getInt(1) }.firstOrNull()
+            }
     }
 
 fun DatabaseInterface.updateCreatedAt(sykmeldingId: UUID, newCreatedAt: OffsetDateTime) =

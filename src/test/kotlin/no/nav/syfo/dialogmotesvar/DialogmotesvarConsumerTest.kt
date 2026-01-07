@@ -3,10 +3,11 @@ package no.nav.syfo.dialogmotesvar
 import io.mockk.clearMocks
 import io.mockk.every
 import io.mockk.mockk
-import no.nav.syfo.dialogmotesvar.domain.DialogmoteSvartype
-import no.nav.syfo.dialogmotesvar.domain.KDialogmotesvar
-import no.nav.syfo.dialogmotesvar.domain.SenderType
-import no.nav.syfo.dialogmotesvar.kafka.KafkaDialogmotesvarConsumer
+import no.nav.syfo.infrastructure.kafka.dialogmotesvar.DialogmoteSvartype
+import no.nav.syfo.infrastructure.kafka.dialogmotesvar.KDialogmotesvar
+import no.nav.syfo.infrastructure.kafka.dialogmotesvar.SenderType
+import no.nav.syfo.infrastructure.kafka.dialogmotesvar.DialogmotesvarConsumer
+import no.nav.syfo.infrastructure.database.queries.getDialogmotesvar
 import no.nav.syfo.testutil.ExternalMockEnvironment
 import no.nav.syfo.testutil.UserConstants
 import no.nav.syfo.testutil.dropData
@@ -25,7 +26,7 @@ class DialogmotesvarConsumerTest {
     private val externalMockEnvironment = ExternalMockEnvironment.instance
     private val database = externalMockEnvironment.database
     private val kafkaConsumer: KafkaConsumer<String, KDialogmotesvar> = mockk(relaxed = true)
-    private val kafkaDialogmotesvarConsumer = KafkaDialogmotesvarConsumer(
+    private val dialogmotesvarConsumer = DialogmotesvarConsumer(
         database = database,
         cutoffDate = LocalDate.now().minusDays(20),
     )
@@ -47,7 +48,7 @@ class DialogmotesvarConsumerTest {
         )
         kafkaConsumer.mockPollConsumerRecords(recordValue = kDialogmotesvar, recordKey = moteUuid.toString())
 
-        kafkaDialogmotesvarConsumer.pollAndProcessRecords(kafkaConsumer = kafkaConsumer)
+        dialogmotesvarConsumer.pollAndProcessRecords(kafkaConsumer = kafkaConsumer)
 
         val allPMotesvar = database.connection.use { connection ->
             connection.getDialogmotesvar(moteUuid = moteUuid)

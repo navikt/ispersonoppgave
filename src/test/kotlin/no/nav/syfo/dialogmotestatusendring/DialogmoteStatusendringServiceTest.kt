@@ -1,16 +1,11 @@
 package no.nav.syfo.dialogmotestatusendring
 
-import io.mockk.clearMocks
-import io.mockk.every
-import io.mockk.justRun
-import io.mockk.mockk
-import io.mockk.mockkStatic
-import io.mockk.unmockkStatic
-import io.mockk.verify
-import no.nav.syfo.dialogmotestatusendring.domain.DialogmoteStatusendringType
-import no.nav.syfo.personoppgave.createBehandletPersonoppgave
-import no.nav.syfo.personoppgave.getPersonOppgaverByReferanseUuid
-import no.nav.syfo.personoppgave.updatePersonoppgaveSetBehandlet
+import io.mockk.*
+import no.nav.syfo.domain.DialogmoteStatusendringType
+import no.nav.syfo.infrastructure.database.queries.createBehandletPersonoppgave
+import no.nav.syfo.infrastructure.database.queries.getPersonOppgaverByReferanseUuid
+import no.nav.syfo.infrastructure.database.queries.updatePersonoppgaveSetBehandlet
+import no.nav.syfo.infrastructure.kafka.dialogmotestatusendring.DialogmoteStatusendringConsumer
 import no.nav.syfo.testutil.generators.generateDialogmotestatusendring
 import no.nav.syfo.testutil.generators.generatePPersonoppgave
 import no.nav.syfo.testutil.generators.generatePersonoppgave
@@ -24,8 +19,8 @@ class DialogmoteStatusendringServiceTest {
     private val ONE_DAY_AGO = OffsetDateTime.now().minusDays(1)
     private val TEN_DAYS_AGO = OffsetDateTime.now().minusDays(10)
     private val HAPPENS_NOW = OffsetDateTime.now()
-    private val GET_PERSONOPPGAVE_QUERIES_PATH = "no.nav.syfo.personoppgave.GetPersonOppgaveQueriesKt"
-    private val PERSONOPPGAVE_QUERIES_PATH = "no.nav.syfo.personoppgave.PersonOppgaveQueriesKt"
+    private val GET_PERSONOPPGAVE_QUERIES_PATH = "no.nav.syfo.infrastructure.database.queries.GetPersonOppgaveQueriesKt"
+    private val PERSONOPPGAVE_QUERIES_PATH = "no.nav.syfo.infrastructure.database.queries.PersonOppgaveQueriesKt"
     private lateinit var dialogmoteUuid: UUID
     private lateinit var connection: Connection
 
@@ -66,7 +61,7 @@ class DialogmoteStatusendringServiceTest {
         every { connection.getPersonOppgaverByReferanseUuid(dialogmoteUuid) } returns listOf(personoppgave)
         justRun { connection.updatePersonoppgaveSetBehandlet(any()) }
 
-        processDialogmoteStatusendring(connection, statusendring)
+        DialogmoteStatusendringConsumer.processDialogmoteStatusendring(connection, statusendring)
 
         verify(exactly = 1) { connection.getPersonOppgaverByReferanseUuid(dialogmoteUuid) }
         verify(exactly = 1) { connection.updatePersonoppgaveSetBehandlet(updatePersonoppgave) }
@@ -91,7 +86,7 @@ class DialogmoteStatusendringServiceTest {
         every { connection.getPersonOppgaverByReferanseUuid(dialogmoteUuid) } returns listOf(personoppgave)
         justRun { connection.updatePersonoppgaveSetBehandlet(any()) }
 
-        processDialogmoteStatusendring(connection, statusendring)
+        DialogmoteStatusendringConsumer.processDialogmoteStatusendring(connection, statusendring)
 
         verify(exactly = 1) { connection.getPersonOppgaverByReferanseUuid(dialogmoteUuid) }
         verify(exactly = 1) { connection.updatePersonoppgaveSetBehandlet(updatePersonoppgave) }
@@ -116,7 +111,7 @@ class DialogmoteStatusendringServiceTest {
         every { connection.getPersonOppgaverByReferanseUuid(dialogmoteUuid) } returns listOf(personoppgave)
         justRun { connection.updatePersonoppgaveSetBehandlet(any()) }
 
-        processDialogmoteStatusendring(connection, statusendring)
+        DialogmoteStatusendringConsumer.processDialogmoteStatusendring(connection, statusendring)
 
         verify(exactly = 1) { connection.getPersonOppgaverByReferanseUuid(dialogmoteUuid) }
         verify(exactly = 1) { connection.updatePersonoppgaveSetBehandlet(updatePersonoppgave) }
@@ -129,7 +124,7 @@ class DialogmoteStatusendringServiceTest {
         every { connection.getPersonOppgaverByReferanseUuid(dialogmoteUuid) } returns emptyList()
         justRun { connection.createBehandletPersonoppgave(statusendring, any()) }
 
-        processDialogmoteStatusendring(connection, statusendring)
+        DialogmoteStatusendringConsumer.processDialogmoteStatusendring(connection, statusendring)
 
         verify(exactly = 1) { connection.getPersonOppgaverByReferanseUuid(dialogmoteUuid) }
         verify(exactly = 1) { connection.createBehandletPersonoppgave(statusendring, any()) }
@@ -142,7 +137,7 @@ class DialogmoteStatusendringServiceTest {
         val personoppgave = generatePPersonoppgave(dialogmoteUuid, HAPPENS_NOW.toLocalDateTime())
         every { connection.getPersonOppgaverByReferanseUuid(dialogmoteUuid) } returns listOf(personoppgave)
 
-        processDialogmoteStatusendring(connection, statusendring)
+        DialogmoteStatusendringConsumer.processDialogmoteStatusendring(connection, statusendring)
 
         verify(exactly = 1) { connection.getPersonOppgaverByReferanseUuid(dialogmoteUuid) }
         verify(exactly = 0) { connection.createBehandletPersonoppgave(any(), any()) }
@@ -155,7 +150,7 @@ class DialogmoteStatusendringServiceTest {
         val personoppgave = generatePPersonoppgave(dialogmoteUuid, HAPPENS_NOW.toLocalDateTime())
         every { connection.getPersonOppgaverByReferanseUuid(dialogmoteUuid) } returns listOf(personoppgave)
 
-        processDialogmoteStatusendring(connection, statusendring)
+        DialogmoteStatusendringConsumer.processDialogmoteStatusendring(connection, statusendring)
 
         verify(exactly = 1) { connection.getPersonOppgaverByReferanseUuid(dialogmoteUuid) }
         verify(exactly = 0) { connection.createBehandletPersonoppgave(any(), any()) }
@@ -169,7 +164,7 @@ class DialogmoteStatusendringServiceTest {
         every { connection.getPersonOppgaverByReferanseUuid(dialogmoteUuid) } returns listOf(personoppgave)
         justRun { connection.updatePersonoppgaveSetBehandlet(any()) }
 
-        processDialogmoteStatusendring(connection, statusendring)
+        DialogmoteStatusendringConsumer.processDialogmoteStatusendring(connection, statusendring)
 
         verify(exactly = 1) { connection.getPersonOppgaverByReferanseUuid(dialogmoteUuid) }
         verify(exactly = 0) { connection.createBehandletPersonoppgave(any(), any()) }

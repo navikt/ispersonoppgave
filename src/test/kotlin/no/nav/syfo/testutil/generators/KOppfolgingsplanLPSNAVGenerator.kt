@@ -1,6 +1,6 @@
 package no.nav.syfo.testutil.generators
 
-import no.nav.syfo.oppfolgingsplanlps.kafka.KOppfolgingsplanLPS
+import no.nav.syfo.infrastructure.kafka.oppfolgingsplanlps.KOppfolgingsplanLPS
 import no.nav.syfo.testutil.UserConstants.ARBEIDSTAKER_FNR
 import no.nav.syfo.testutil.UserConstants.VIRKSOMHETSNUMMER
 import java.time.LocalDate

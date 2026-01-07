@@ -1,14 +1,15 @@
 package no.nav.syfo.identhendelse
 
 import kotlinx.coroutines.runBlocking
-import no.nav.syfo.client.azuread.AzureAdClient
-import no.nav.syfo.client.pdl.PdlClient
-import no.nav.syfo.dialogmotestatusendring.createDialogmoteStatusendring
-import no.nav.syfo.dialogmotestatusendring.getDialogmoteStatusendring
-import no.nav.syfo.dialogmotesvar.createDialogmotesvar
-import no.nav.syfo.dialogmotesvar.getDialogmotesvar
-import no.nav.syfo.personoppgave.domain.PersonOppgaveType
-import no.nav.syfo.personoppgave.getPersonOppgaver
+import no.nav.syfo.infrastructure.clients.azuread.AzureAdClient
+import no.nav.syfo.infrastructure.clients.pdl.PdlClient
+import no.nav.syfo.infrastructure.database.queries.createDialogmoteStatusendring
+import no.nav.syfo.infrastructure.database.queries.getDialogmoteStatusendring
+import no.nav.syfo.infrastructure.database.queries.createDialogmotesvar
+import no.nav.syfo.infrastructure.database.queries.getDialogmotesvar
+import no.nav.syfo.application.IdenthendelseService
+import no.nav.syfo.domain.PersonOppgaveType
+import no.nav.syfo.infrastructure.database.queries.getPersonOppgaver
 import no.nav.syfo.testutil.*
 import no.nav.syfo.testutil.generators.*
 import org.junit.jupiter.api.Assertions.assertEquals

@@ -7,11 +7,15 @@ import io.mockk.mockk
 import io.mockk.mockkStatic
 import io.mockk.unmockkStatic
 import io.mockk.verify
-import no.nav.syfo.dialogmotestatusendring.domain.DialogmoteStatusendringType
-import no.nav.syfo.dialogmotestatusendring.getDialogmoteStatusendring
-import no.nav.syfo.dialogmotesvar.domain.DialogmoteSvartype
-import no.nav.syfo.dialogmotesvar.domain.SenderType
-import no.nav.syfo.personoppgave.*
+import no.nav.syfo.domain.DialogmoteStatusendringType
+import no.nav.syfo.infrastructure.database.queries.getDialogmoteStatusendring
+import no.nav.syfo.infrastructure.kafka.dialogmotesvar.DialogmoteSvartype
+import no.nav.syfo.infrastructure.kafka.dialogmotesvar.SenderType
+import no.nav.syfo.infrastructure.database.queries.createBehandletPersonoppgave
+import no.nav.syfo.infrastructure.database.queries.createPersonOppgave
+import no.nav.syfo.infrastructure.database.queries.getPersonOppgaverByReferanseUuid
+import no.nav.syfo.infrastructure.database.queries.updatePersonoppgaveSetBehandlet
+import no.nav.syfo.infrastructure.kafka.dialogmotesvar.DialogmotesvarConsumer
 import no.nav.syfo.testutil.generators.generateDialogmotesvar
 import no.nav.syfo.testutil.generators.generatePDialogmotestatusendring
 import no.nav.syfo.testutil.generators.generatePPersonoppgave
@@ -33,17 +37,17 @@ class DialogmotesvarServiceTest {
     @BeforeEach
     fun setup() {
         connection = mockk(relaxed = true)
-        mockkStatic("no.nav.syfo.personoppgave.GetPersonOppgaveQueriesKt")
-        mockkStatic("no.nav.syfo.personoppgave.PersonOppgaveQueriesKt")
-        mockkStatic("no.nav.syfo.dialogmotestatusendring.DialogmoteStatusendringQueriesKt")
+        mockkStatic("no.nav.syfo.infrastructure.database.queries.GetPersonOppgaveQueriesKt")
+        mockkStatic("no.nav.syfo.infrastructure.database.queries.PersonOppgaveQueriesKt")
+        mockkStatic("no.nav.syfo.infrastructure.database.queries.DialogmoteStatusendringQueriesKt")
     }
 
     @AfterEach
     fun teardown() {
         clearMocks(connection)
-        unmockkStatic("no.nav.syfo.personoppgave.GetPersonOppgaveQueriesKt")
-        unmockkStatic("no.nav.syfo.personoppgave.PersonOppgaveQueriesKt")
-        unmockkStatic("no.nav.syfo.dialogmotestatusendring.DialogmoteStatusendringQueriesKt")
+        unmockkStatic("no.nav.syfo.infrastructure.database.queries.GetPersonOppgaveQueriesKt")
+        unmockkStatic("no.nav.syfo.infrastructure.database.queries.PersonOppgaveQueriesKt")
+        unmockkStatic("no.nav.syfo.infrastructure.database.queries.DialogmoteStatusendringQueriesKt")
     }
 
     @Test
@@ -53,7 +57,7 @@ class DialogmotesvarServiceTest {
         val dialogmotesvar = generateDialogmotesvar(moteuuid = moteUuid, svartype = DialogmoteSvartype.NYTT_TID_STED)
         val personOppgaveUuid = UUID.randomUUID()
         every { connection.createPersonOppgave(dialogmotesvar) } returns personOppgaveUuid
-        processDialogmotesvar(connection, dialogmotesvar, CUTOFF_DATE)
+        DialogmotesvarConsumer.processDialogmotesvar(connection, dialogmotesvar, CUTOFF_DATE)
         verify(exactly = 1) { connection.getPersonOppgaverByReferanseUuid(dialogmotesvar.moteuuid) }
         verify(exactly = 1) { connection.createPersonOppgave(dialogmotesvar) }
         verify(exactly = 0) { connection.updatePersonoppgaveSetBehandlet(any()) }
@@ -66,7 +70,7 @@ class DialogmotesvarServiceTest {
         val dialogmotesvar = generateDialogmotesvar(svartype = DialogmoteSvartype.KOMMER_IKKE)
         val personOppgaveUuid = UUID.randomUUID()
         every { connection.createPersonOppgave(dialogmotesvar) } returns personOppgaveUuid
-        processDialogmotesvar(connection, dialogmotesvar, CUTOFF_DATE)
+        DialogmotesvarConsumer.processDialogmotesvar(connection, dialogmotesvar, CUTOFF_DATE)
         verify(exactly = 1) { connection.getPersonOppgaverByReferanseUuid(dialogmotesvar.moteuuid) }
         verify(exactly = 1) { connection.createPersonOppgave(dialogmotesvar) }
         verify(exactly = 0) { connection.updatePersonoppgaveSetBehandlet(any()) }
@@ -76,9 +80,10 @@ class DialogmotesvarServiceTest {
     fun `creates an oppgave if behandler confirms attendance with non-empty svarTekst`() {
         val moteUuid = UUID.randomUUID()
         every { connection.getPersonOppgaverByReferanseUuid(moteUuid) } returns emptyList()
-        val dialogmotesvar = generateDialogmotesvar(svartype = DialogmoteSvartype.KOMMER, svarTekst = "Passer bra?", senderType = SenderType.BEHANDLER)
+        val dialogmotesvar =
+            generateDialogmotesvar(svartype = DialogmoteSvartype.KOMMER, svarTekst = "Passer bra?", senderType = SenderType.BEHANDLER)
         every { connection.createPersonOppgave(dialogmotesvar) } returns UUID.randomUUID()
-        processDialogmotesvar(connection, dialogmotesvar, CUTOFF_DATE)
+        DialogmotesvarConsumer.processDialogmotesvar(connection, dialogmotesvar, CUTOFF_DATE)
         verify(exactly = 1) { connection.getPersonOppgaverByReferanseUuid(dialogmotesvar.moteuuid) }
         verify(exactly = 1) { connection.createPersonOppgave(dialogmotesvar) }
         verify(exactly = 0) { connection.updatePersonoppgaveSetBehandlet(any()) }
@@ -89,7 +94,7 @@ class DialogmotesvarServiceTest {
         val moteUuid = UUID.randomUUID()
         every { connection.getPersonOppgaverByReferanseUuid(moteUuid) } returns emptyList()
         val dialogmotesvar = generateDialogmotesvar(svartype = DialogmoteSvartype.KOMMER, senderType = SenderType.BEHANDLER)
-        processDialogmotesvar(connection, dialogmotesvar, CUTOFF_DATE)
+        DialogmotesvarConsumer.processDialogmotesvar(connection, dialogmotesvar, CUTOFF_DATE)
         verify(exactly = 0) { connection.getPersonOppgaverByReferanseUuid(any()) }
         verify(exactly = 0) { connection.createBehandletPersonoppgave(any(), any()) }
         verify(exactly = 0) { connection.updatePersonoppgaveSetBehandlet(any()) }
@@ -100,7 +105,7 @@ class DialogmotesvarServiceTest {
         val moteUuid = UUID.randomUUID()
         every { connection.getPersonOppgaverByReferanseUuid(moteUuid) } returns emptyList()
         val dialogmotesvar = generateDialogmotesvar(svartype = DialogmoteSvartype.KOMMER)
-        processDialogmotesvar(connection, dialogmotesvar, CUTOFF_DATE)
+        DialogmotesvarConsumer.processDialogmotesvar(connection, dialogmotesvar, CUTOFF_DATE)
         verify(exactly = 0) { connection.getPersonOppgaverByReferanseUuid(any()) }
         verify(exactly = 0) { connection.createBehandletPersonoppgave(any(), any()) }
         verify(exactly = 0) { connection.updatePersonoppgaveSetBehandlet(any()) }
@@ -110,8 +115,11 @@ class DialogmotesvarServiceTest {
     fun `does not create oppgave if svar was sent before cutoff`() {
         val moteUuid = UUID.randomUUID()
         every { connection.getPersonOppgaverByReferanseUuid(moteUuid) } returns emptyList()
-        val dialogmotesvar = generateDialogmotesvar(svartype = DialogmoteSvartype.KOMMER_IKKE, svarReceivedAt = OffsetDateTime.now().minusDays(CUTOFF_DAYS_AGO + 1))
-        processDialogmotesvar(connection, dialogmotesvar, CUTOFF_DATE)
+        val dialogmotesvar = generateDialogmotesvar(
+            svartype = DialogmoteSvartype.KOMMER_IKKE,
+            svarReceivedAt = OffsetDateTime.now().minusDays(CUTOFF_DAYS_AGO + 1)
+        )
+        DialogmotesvarConsumer.processDialogmotesvar(connection, dialogmotesvar, CUTOFF_DATE)
         verify(exactly = 0) { connection.getPersonOppgaverByReferanseUuid(any()) }
         verify(exactly = 0) { connection.createBehandletPersonoppgave(any(), any()) }
         verify(exactly = 0) { connection.updatePersonoppgaveSetBehandlet(any()) }
@@ -120,13 +128,21 @@ class DialogmotesvarServiceTest {
     @Test
     fun `opens oppgave if møtesvar relevant and after sistEndret`() {
         val moteuuid = UUID.randomUUID()
-        val newDialogmotesvar = generateDialogmotesvar(moteuuid = moteuuid, svartype = DialogmoteSvartype.NYTT_TID_STED, svarReceivedAt = OffsetDateTime.from(ONE_DAY_AGO))
-        val pPersonoppgave = generatePPersonoppgave().copy(referanseUuid = moteuuid, sistEndret = TEN_DAYS_AGO.toLocalDateTimeOslo(), opprettet = TEN_DAYS_AGO.toLocalDateTime())
+        val newDialogmotesvar = generateDialogmotesvar(
+            moteuuid = moteuuid,
+            svartype = DialogmoteSvartype.NYTT_TID_STED,
+            svarReceivedAt = OffsetDateTime.from(ONE_DAY_AGO)
+        )
+        val pPersonoppgave = generatePPersonoppgave().copy(
+            referanseUuid = moteuuid,
+            sistEndret = TEN_DAYS_AGO.toLocalDateTimeOslo(),
+            opprettet = TEN_DAYS_AGO.toLocalDateTime()
+        )
         val pDialogmoteStatusendring = generatePDialogmotestatusendring(type = DialogmoteStatusendringType.NYTT_TID_STED, uuid = moteuuid)
         every { connection.getPersonOppgaverByReferanseUuid(moteuuid) } returns listOf(pPersonoppgave)
         every { connection.getDialogmoteStatusendring(moteuuid) } returns mutableListOf(pDialogmoteStatusendring)
         justRun { connection.updatePersonoppgaveSetBehandlet(any()) }
-        processDialogmotesvar(connection, newDialogmotesvar, CUTOFF_DATE)
+        DialogmotesvarConsumer.processDialogmotesvar(connection, newDialogmotesvar, CUTOFF_DATE)
         val updatePersonoppgave = generatePersonoppgave().copy(
             uuid = pPersonoppgave.uuid,
             referanseUuid = moteuuid,
@@ -149,8 +165,9 @@ class DialogmotesvarServiceTest {
         val pDialogmoteStatusendring = generatePDialogmotestatusendring(type = DialogmoteStatusendringType.NYTT_TID_STED, uuid = moteuuid)
         every { connection.getPersonOppgaverByReferanseUuid(moteuuid) } returns listOf(ppersonoppgave)
         every { connection.getDialogmoteStatusendring(moteuuid) } returns mutableListOf(pDialogmoteStatusendring)
-        val oldDialogmotesvar = generateDialogmotesvar(moteuuid = moteuuid, svartype = DialogmoteSvartype.NYTT_TID_STED, svarReceivedAt = TEN_DAYS_AGO)
-        processDialogmotesvar(connection, oldDialogmotesvar, CUTOFF_DATE)
+        val oldDialogmotesvar =
+            generateDialogmotesvar(moteuuid = moteuuid, svartype = DialogmoteSvartype.NYTT_TID_STED, svarReceivedAt = TEN_DAYS_AGO)
+        DialogmotesvarConsumer.processDialogmotesvar(connection, oldDialogmotesvar, CUTOFF_DATE)
         verify(exactly = 1) { connection.getPersonOppgaverByReferanseUuid(oldDialogmotesvar.moteuuid) }
         verify(exactly = 1) { connection.getDialogmoteStatusendring(oldDialogmotesvar.moteuuid) }
         verify(exactly = 0) { connection.createBehandletPersonoppgave(any(), any()) }
@@ -160,11 +177,15 @@ class DialogmotesvarServiceTest {
     @Test
     fun `ignores møtesvar if current mote not active`() {
         val moteuuid = UUID.randomUUID()
-        val newDialogmotesvar = generateDialogmotesvar(moteuuid = moteuuid, svartype = DialogmoteSvartype.NYTT_TID_STED, svarReceivedAt = OffsetDateTime.from(ONE_DAY_AGO))
+        val newDialogmotesvar = generateDialogmotesvar(
+            moteuuid = moteuuid,
+            svartype = DialogmoteSvartype.NYTT_TID_STED,
+            svarReceivedAt = OffsetDateTime.from(ONE_DAY_AGO)
+        )
         val pDialogmoteStatusendring = generatePDialogmotestatusendring(type = DialogmoteStatusendringType.AVLYST, uuid = moteuuid)
         every { connection.getDialogmoteStatusendring(moteuuid) } returns mutableListOf(pDialogmoteStatusendring)
         justRun { connection.updatePersonoppgaveSetBehandlet(any()) }
-        processDialogmotesvar(connection, newDialogmotesvar, CUTOFF_DATE)
+        DialogmotesvarConsumer.processDialogmotesvar(connection, newDialogmotesvar, CUTOFF_DATE)
         verify(exactly = 0) { connection.getPersonOppgaverByReferanseUuid(newDialogmotesvar.moteuuid) }
         verify(exactly = 1) { connection.getDialogmoteStatusendring(newDialogmotesvar.moteuuid) }
         verify(exactly = 0) { connection.createBehandletPersonoppgave(any(), any()) }

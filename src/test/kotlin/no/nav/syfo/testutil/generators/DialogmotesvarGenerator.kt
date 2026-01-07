@@ -1,6 +1,9 @@
 package no.nav.syfo.testutil.generators
 
-import no.nav.syfo.dialogmotesvar.domain.*
+import no.nav.syfo.infrastructure.kafka.dialogmotesvar.DialogmoteSvartype
+import no.nav.syfo.infrastructure.kafka.dialogmotesvar.Dialogmotesvar
+import no.nav.syfo.infrastructure.kafka.dialogmotesvar.KDialogmotesvar
+import no.nav.syfo.infrastructure.kafka.dialogmotesvar.SenderType
 import no.nav.syfo.testutil.UserConstants
 import java.time.OffsetDateTime
 import java.util.*

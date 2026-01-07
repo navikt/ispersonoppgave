@@ -4,11 +4,15 @@ import io.mockk.clearMocks
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
-import no.nav.syfo.personoppgave.infrastructure.database.PersonOppgaveRepository
-import no.nav.syfo.personoppgave.domain.PersonIdent
-import no.nav.syfo.personoppgave.domain.PersonOppgaveType
-import no.nav.syfo.personoppgave.domain.toPersonOppgave
-import no.nav.syfo.personoppgave.getPersonOppgaver
+import no.nav.syfo.infrastructure.database.PersonOppgaveRepository
+import no.nav.syfo.domain.PersonIdent
+import no.nav.syfo.domain.PersonOppgaveType
+import no.nav.syfo.infrastructure.database.queries.toPersonOppgave
+import no.nav.syfo.infrastructure.database.queries.getPersonOppgaver
+import no.nav.syfo.infrastructure.kafka.sykmelding.SykmeldingConsumer
+import no.nav.syfo.infrastructure.kafka.sykmelding.MeldingTilNAV
+import no.nav.syfo.infrastructure.kafka.sykmelding.ReceivedSykmeldingDTO
+import no.nav.syfo.infrastructure.kafka.sykmelding.SYKMELDING_TOPIC
 import no.nav.syfo.testutil.ExternalMockEnvironment
 import no.nav.syfo.testutil.dropData
 import no.nav.syfo.testutil.generators.generateKafkaSykmelding
@@ -28,7 +32,8 @@ class SykmeldingConsumerTest {
     private val externalMockEnvironment = ExternalMockEnvironment.instance
     private val database = externalMockEnvironment.database
     private val kafkaConsumer: KafkaConsumer<String, ReceivedSykmeldingDTO> = mockk(relaxed = true)
-    private val kafkaSykmeldingConsumer = KafkaSykmeldingConsumer(database = database, personOppgaveRepository = PersonOppgaveRepository(database = database))
+    private val sykmeldingConsumer =
+        SykmeldingConsumer(database = database, personOppgaveRepository = PersonOppgaveRepository(database = database))
 
     @BeforeEach
     fun setup() {
@@ -48,7 +53,7 @@ class SykmeldingConsumerTest {
             )
         )
         kafkaConsumer.mockPollConsumerRecords(recordValue = sykmelding, topic = SYKMELDING_TOPIC)
-        kafkaSykmeldingConsumer.pollAndProcessRecords(kafkaConsumer = kafkaConsumer)
+        sykmeldingConsumer.pollAndProcessRecords(kafkaConsumer = kafkaConsumer)
         verify(exactly = 1) { kafkaConsumer.commitSync() }
         val personOppgave = database.getPersonOppgaver(PersonIdent(sykmelding.personNrPasient)).map { it.toPersonOppgave() }.first()
         assertEquals(sykmelding.personNrPasient, personOppgave.personIdent.value)
@@ -67,7 +72,7 @@ class SykmeldingConsumerTest {
             tiltakNAV = "Jeg synes NAV skal gjøre dette",
         )
         kafkaConsumer.mockPollConsumerRecords(recordValue = sykmelding, topic = SYKMELDING_TOPIC)
-        kafkaSykmeldingConsumer.pollAndProcessRecords(kafkaConsumer = kafkaConsumer)
+        sykmeldingConsumer.pollAndProcessRecords(kafkaConsumer = kafkaConsumer)
         verify(exactly = 1) { kafkaConsumer.commitSync() }
         val personOppgave = database.getPersonOppgaver(PersonIdent(sykmelding.personNrPasient)).map { it.toPersonOppgave() }.first()
         assertEquals(sykmelding.personNrPasient, personOppgave.personIdent.value)
@@ -86,7 +91,7 @@ class SykmeldingConsumerTest {
             andreTiltak = "Jeg synes NAV skal gjøre dette",
         )
         kafkaConsumer.mockPollConsumerRecords(recordValue = sykmelding, topic = SYKMELDING_TOPIC)
-        kafkaSykmeldingConsumer.pollAndProcessRecords(kafkaConsumer = kafkaConsumer)
+        sykmeldingConsumer.pollAndProcessRecords(kafkaConsumer = kafkaConsumer)
         verify(exactly = 1) { kafkaConsumer.commitSync() }
         val personOppgave = database.getPersonOppgaver(PersonIdent(sykmelding.personNrPasient)).map { it.toPersonOppgave() }.first()
         assertEquals(sykmelding.personNrPasient, personOppgave.personIdent.value)
@@ -105,7 +110,7 @@ class SykmeldingConsumerTest {
             andreTiltak = "Jeg synes NAV skal gjøre dette",
         )
         kafkaConsumer.mockPollConsumerRecords(recordValue = sykmelding, topic = SYKMELDING_TOPIC)
-        kafkaSykmeldingConsumer.pollAndProcessRecords(kafkaConsumer = kafkaConsumer)
+        sykmeldingConsumer.pollAndProcessRecords(kafkaConsumer = kafkaConsumer)
         assertEquals(1, database.getPersonOppgaver(PersonIdent(sykmelding.personNrPasient)).size)
         assertEquals(0, database.getDuplicateCount(referanseUUID))
         val sykmeldingNext = generateKafkaSykmelding(
@@ -114,7 +119,7 @@ class SykmeldingConsumerTest {
             andreTiltak = "Jeg synes NAV skal gjøre dette",
         )
         kafkaConsumer.mockPollConsumerRecords(recordValue = sykmeldingNext, topic = SYKMELDING_TOPIC)
-        kafkaSykmeldingConsumer.pollAndProcessRecords(kafkaConsumer = kafkaConsumer)
+        sykmeldingConsumer.pollAndProcessRecords(kafkaConsumer = kafkaConsumer)
         val personoppgaver = database.getPersonOppgaver(PersonIdent(sykmelding.personNrPasient))
         assertEquals(1, personoppgaver.size)
         assertEquals(1, database.getDuplicateCount(referanseUUID))
@@ -129,14 +134,14 @@ class SykmeldingConsumerTest {
             andreTiltak = "Jeg synes NAV skal gjøre dette",
         )
         kafkaConsumer.mockPollConsumerRecords(recordValue = sykmelding, topic = SYKMELDING_TOPIC)
-        kafkaSykmeldingConsumer.pollAndProcessRecords(kafkaConsumer = kafkaConsumer)
+        sykmeldingConsumer.pollAndProcessRecords(kafkaConsumer = kafkaConsumer)
         val sykmeldingNext = generateKafkaSykmelding(
             sykmeldingId = UUID.randomUUID(),
             meldingTilNAV = MeldingTilNAV(true, "Bistand!"),
             andreTiltak = "Jeg synes NAV skal gjøre dette",
         )
         kafkaConsumer.mockPollConsumerRecords(recordValue = sykmeldingNext, topic = SYKMELDING_TOPIC)
-        kafkaSykmeldingConsumer.pollAndProcessRecords(kafkaConsumer = kafkaConsumer)
+        sykmeldingConsumer.pollAndProcessRecords(kafkaConsumer = kafkaConsumer)
         val personoppgaver = database.getPersonOppgaver(PersonIdent(sykmelding.personNrPasient))
         assertEquals(2, personoppgaver.size)
         val latestPersonoppgave = personoppgaver.find { it.referanseUuid.toString() == sykmeldingNext.sykmelding.id }!!
@@ -153,7 +158,7 @@ class SykmeldingConsumerTest {
             andreTiltak = "Jeg synes NAV skal gjøre dette",
         )
         kafkaConsumer.mockPollConsumerRecords(recordValue = sykmelding, topic = SYKMELDING_TOPIC)
-        kafkaSykmeldingConsumer.pollAndProcessRecords(kafkaConsumer = kafkaConsumer)
+        sykmeldingConsumer.pollAndProcessRecords(kafkaConsumer = kafkaConsumer)
         database.updateCreatedAt(referanseUUID, OffsetDateTime.now().minusMonths(7))
         val sykmeldingNext = generateKafkaSykmelding(
             sykmeldingId = UUID.randomUUID(),
@@ -161,7 +166,7 @@ class SykmeldingConsumerTest {
             andreTiltak = "Jeg synes NAV skal gjøre dette",
         )
         kafkaConsumer.mockPollConsumerRecords(recordValue = sykmeldingNext, topic = SYKMELDING_TOPIC)
-        kafkaSykmeldingConsumer.pollAndProcessRecords(kafkaConsumer = kafkaConsumer)
+        sykmeldingConsumer.pollAndProcessRecords(kafkaConsumer = kafkaConsumer)
         val personoppgaver = database.getPersonOppgaver(PersonIdent(sykmelding.personNrPasient))
         assertEquals(2, personoppgaver.size)
         assertFalse(personoppgaver.any { it.duplikatReferanseUuid != null })
@@ -177,7 +182,7 @@ class SykmeldingConsumerTest {
             tiltakNAV = "Jeg synes NAV skal gjøre dette også",
         )
         kafkaConsumer.mockPollConsumerRecords(recordValue = sykmelding, topic = SYKMELDING_TOPIC)
-        kafkaSykmeldingConsumer.pollAndProcessRecords(kafkaConsumer = kafkaConsumer)
+        sykmeldingConsumer.pollAndProcessRecords(kafkaConsumer = kafkaConsumer)
         verify(exactly = 1) { kafkaConsumer.commitSync() }
         val personOppgaver = database.getPersonOppgaver(PersonIdent(sykmelding.personNrPasient)).map { it.toPersonOppgave() }
         assertEquals(1, personOppgaver.size)
@@ -194,7 +199,7 @@ class SykmeldingConsumerTest {
             tiltakNAV = "-",
         )
         kafkaConsumer.mockPollConsumerRecords(recordValue = sykmelding, topic = SYKMELDING_TOPIC)
-        kafkaSykmeldingConsumer.pollAndProcessRecords(kafkaConsumer = kafkaConsumer)
+        sykmeldingConsumer.pollAndProcessRecords(kafkaConsumer = kafkaConsumer)
         verify(exactly = 1) { kafkaConsumer.commitSync() }
         val personOppgaver = database.getPersonOppgaver(PersonIdent(sykmelding.personNrPasient)).map { it.toPersonOppgave() }
         assertEquals(1, personOppgaver.size)
@@ -210,7 +215,7 @@ class SykmeldingConsumerTest {
             andreTiltak = ".",
         )
         kafkaConsumer.mockPollConsumerRecords(recordValue = sykmelding, topic = SYKMELDING_TOPIC)
-        kafkaSykmeldingConsumer.pollAndProcessRecords(kafkaConsumer = kafkaConsumer)
+        sykmeldingConsumer.pollAndProcessRecords(kafkaConsumer = kafkaConsumer)
         verify(exactly = 1) { kafkaConsumer.commitSync() }
         val personOppgaver = database.getPersonOppgaver(PersonIdent(sykmelding.personNrPasient)).map { it.toPersonOppgave() }
         assertEquals(1, personOppgaver.size)
@@ -226,7 +231,7 @@ class SykmeldingConsumerTest {
             tiltakNAV = "Jeg synes NAV skal gjøre dette",
         )
         kafkaConsumer.mockPollConsumerRecords(recordValue = sykmelding, topic = SYKMELDING_TOPIC)
-        kafkaSykmeldingConsumer.pollAndProcessRecords(kafkaConsumer = kafkaConsumer)
+        sykmeldingConsumer.pollAndProcessRecords(kafkaConsumer = kafkaConsumer)
         verify(exactly = 1) { kafkaConsumer.commitSync() }
         val personOppgaver = database.getPersonOppgaver(PersonIdent(sykmelding.personNrPasient)).map { it.toPersonOppgave() }
         assertEquals(1, personOppgaver.size)
@@ -241,7 +246,7 @@ class SykmeldingConsumerTest {
             meldingTilNAV = MeldingTilNAV(bistandUmiddelbart = false, beskrivBistand = "."),
         )
         kafkaConsumer.mockPollConsumerRecords(recordValue = sykmelding, topic = SYKMELDING_TOPIC)
-        kafkaSykmeldingConsumer.pollAndProcessRecords(kafkaConsumer = kafkaConsumer)
+        sykmeldingConsumer.pollAndProcessRecords(kafkaConsumer = kafkaConsumer)
         verify(exactly = 1) { kafkaConsumer.commitSync() }
         assertTrue(database.getPersonOppgaver(PersonIdent(sykmelding.personNrPasient)).isEmpty())
     }
@@ -255,7 +260,7 @@ class SykmeldingConsumerTest {
             tiltakNAV = "-",
         )
         kafkaConsumer.mockPollConsumerRecords(recordValue = sykmelding, topic = SYKMELDING_TOPIC)
-        kafkaSykmeldingConsumer.pollAndProcessRecords(kafkaConsumer = kafkaConsumer)
+        sykmeldingConsumer.pollAndProcessRecords(kafkaConsumer = kafkaConsumer)
         verify(exactly = 1) { kafkaConsumer.commitSync() }
         assertTrue(database.getPersonOppgaver(PersonIdent(sykmelding.personNrPasient)).isEmpty())
     }
@@ -270,7 +275,7 @@ class SykmeldingConsumerTest {
             andreTiltak = "-",
         )
         kafkaConsumer.mockPollConsumerRecords(recordValue = sykmelding, topic = SYKMELDING_TOPIC)
-        kafkaSykmeldingConsumer.pollAndProcessRecords(kafkaConsumer = kafkaConsumer)
+        sykmeldingConsumer.pollAndProcessRecords(kafkaConsumer = kafkaConsumer)
         verify(exactly = 1) { kafkaConsumer.commitSync() }
         assertTrue(database.getPersonOppgaver(PersonIdent(sykmelding.personNrPasient)).isEmpty())
     }
@@ -283,7 +288,7 @@ class SykmeldingConsumerTest {
             meldingTilNAV = null,
         )
         kafkaConsumer.mockPollConsumerRecords(recordValue = sykmelding, topic = SYKMELDING_TOPIC)
-        kafkaSykmeldingConsumer.pollAndProcessRecords(kafkaConsumer = kafkaConsumer)
+        sykmeldingConsumer.pollAndProcessRecords(kafkaConsumer = kafkaConsumer)
         verify(exactly = 1) { kafkaConsumer.commitSync() }
         assertTrue(database.getPersonOppgaver(PersonIdent(sykmelding.personNrPasient)).isEmpty())
     }
@@ -296,7 +301,7 @@ class SykmeldingConsumerTest {
             meldingTilNAV = MeldingTilNAV(bistandUmiddelbart = false, beskrivBistand = null),
         )
         kafkaConsumer.mockPollConsumerRecords(recordValue = sykmelding, topic = SYKMELDING_TOPIC)
-        kafkaSykmeldingConsumer.pollAndProcessRecords(kafkaConsumer = kafkaConsumer)
+        sykmeldingConsumer.pollAndProcessRecords(kafkaConsumer = kafkaConsumer)
         verify(exactly = 1) { kafkaConsumer.commitSync() }
         assertTrue(database.getPersonOppgaver(PersonIdent(sykmelding.personNrPasient)).isEmpty())
     }
@@ -309,7 +314,7 @@ class SykmeldingConsumerTest {
             meldingTilNAV = MeldingTilNAV(bistandUmiddelbart = false, beskrivBistand = ""),
         )
         kafkaConsumer.mockPollConsumerRecords(recordValue = sykmelding, topic = SYKMELDING_TOPIC)
-        kafkaSykmeldingConsumer.pollAndProcessRecords(kafkaConsumer = kafkaConsumer)
+        sykmeldingConsumer.pollAndProcessRecords(kafkaConsumer = kafkaConsumer)
         verify(exactly = 1) { kafkaConsumer.commitSync() }
         assertTrue(database.getPersonOppgaver(PersonIdent(sykmelding.personNrPasient)).isEmpty())
     }

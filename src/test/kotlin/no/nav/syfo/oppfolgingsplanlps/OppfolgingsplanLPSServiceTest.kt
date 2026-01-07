@@ -2,10 +2,11 @@ package no.nav.syfo.oppfolgingsplanlps
 
 import io.mockk.*
 import kotlinx.coroutines.runBlocking
-import no.nav.syfo.personoppgave.domain.PersonOppgaveType
-import no.nav.syfo.personoppgavehendelse.PersonoppgavehendelseProducer
-import no.nav.syfo.personoppgavehendelse.domain.KPersonoppgavehendelse
-import no.nav.syfo.personoppgavehendelse.domain.PersonoppgavehendelseType
+import no.nav.syfo.application.OppfolgingsplanLPSService
+import no.nav.syfo.domain.PersonOppgaveType
+import no.nav.syfo.infrastructure.kafka.oppgavehendelse.PersonoppgavehendelseProducer
+import no.nav.syfo.infrastructure.kafka.oppgavehendelse.KPersonoppgavehendelse
+import no.nav.syfo.domain.PersonoppgavehendelseType
 import no.nav.syfo.testutil.ExternalMockEnvironment
 import no.nav.syfo.testutil.UserConstants.ARBEIDSTAKER_FNR
 import no.nav.syfo.testutil.dropData
