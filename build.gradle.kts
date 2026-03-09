@@ -4,7 +4,8 @@ group = "no.nav.syfo"
 version = "1.0-SNAPSHOT"
 
 val confluentVersion = "8.1.1"
-val jacksonDataTypeVersion = "2.20.1"
+val jacksonDataTypeVersion = "2.21.1"
+val jacksonDatabindVersion = "3.1.0"
 val flywayVersion = "11.20.3"
 val hikariVersion = "7.0.2"
 val isdialogmoteSchemaVersion = "1.0.5"
@@ -68,6 +69,7 @@ dependencies {
 
     // (De-)serialization
     implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:$jacksonDataTypeVersion")
+    implementation("tools.jackson.core:jackson-databind:$jacksonDatabindVersion")
 
     // Database
     implementation("org.postgresql:postgresql:$postgresVersion")
