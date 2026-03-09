@@ -1,8 +1,8 @@
 package no.nav.syfo
 
 import io.micrometer.core.instrument.Counter
-import io.micrometer.prometheus.PrometheusConfig
-import io.micrometer.prometheus.PrometheusMeterRegistry
+import io.micrometer.prometheusmetrics.PrometheusConfig
+import io.micrometer.prometheusmetrics.PrometheusMeterRegistry
 
 const val METRICS_NS = "ispersonoppgave"
 
