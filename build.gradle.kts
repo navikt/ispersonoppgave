@@ -4,25 +4,26 @@ group = "no.nav.syfo"
 version = "1.0-SNAPSHOT"
 
 val confluentVersion = "8.1.1"
-val jacksonDataTypeVersion = "2.20.1"
-val flywayVersion = "11.19.0"
+val jacksonDataTypeVersion = "2.21.1"
+val jacksonDatabindVersion = "3.1.0"
+val flywayVersion = "11.20.3"
 val hikariVersion = "7.0.2"
 val isdialogmoteSchemaVersion = "1.0.5"
 val jsonVersion = "20250517"
-val kafkaVersion = "4.1.0"
-val ktorVersion = "3.3.3"
-val logbackVersion = "1.5.22"
+val kafkaVersion = "4.1.1"
+val ktorVersion = "3.4.1"
+val logbackVersion = "1.5.32"
 val logstashEncoderVersion = "9.0"
-val micrometerRegistryVersion = "1.12.13"
-val mockkVersion = "1.14.7"
-val nimbusjosejwtVersion = "10.6"
+val micrometerRegistryVersion = "1.16.3"
+val mockkVersion = "1.14.9"
+val nimbusjosejwtVersion = "10.8"
 val joseVersion = "0.9.6"
-val postgresVersion = "42.7.8"
+val postgresVersion = "42.7.10"
 val postgresEmbeddedVersion = "2.2.0"
 val postgresRuntimeVersion = "17.6.0"
 
 plugins {
-    kotlin("jvm") version "2.2.21"
+    kotlin("jvm") version "2.3.10"
     id("com.gradleup.shadow") version "8.3.8"
     id("org.jlleitschuh.gradle.ktlint") version "11.6.1"
     id("com.adarshr.test-logger") version "4.0.0"
@@ -68,6 +69,7 @@ dependencies {
 
     // (De-)serialization
     implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:$jacksonDataTypeVersion")
+    implementation("tools.jackson.core:jackson-databind:$jacksonDatabindVersion")
 
     // Database
     implementation("org.postgresql:postgresql:$postgresVersion")
