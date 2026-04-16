@@ -3,24 +3,23 @@ import com.adarshr.gradle.testlogger.theme.ThemeType
 group = "no.nav.syfo"
 version = "1.0-SNAPSHOT"
 
-val confluentVersion = "8.1.1"
-val jacksonDataTypeVersion = "2.21.1"
-val jacksonDatabindVersion = "3.1.0"
+val confluentVersion = "8.2.0"
+val jacksonDataTypeVersion = "2.21.2"
+val jacksonDatabindVersion = "3.1.2"
 val flywayVersion = "11.20.3"
 val hikariVersion = "7.0.2"
 val isdialogmoteSchemaVersion = "1.0.5"
 val jsonVersion = "20250517"
-val kafkaVersion = "4.1.1"
-val ktorVersion = "3.4.1"
+val kafkaVersion = "4.2.0"
+val ktorVersion = "3.4.2"
 val logbackVersion = "1.5.32"
 val logstashEncoderVersion = "9.0"
 val micrometerRegistryVersion = "1.16.4"
 val mockkVersion = "1.14.9"
-val nimbusjosejwtVersion = "10.8"
-val joseVersion = "0.9.6"
+val nimbusjosejwtVersion = "10.9"
 val postgresVersion = "42.7.10"
-val postgresEmbeddedVersion = "2.2.0"
-val postgresRuntimeVersion = "17.6.0"
+val postgresEmbeddedVersion = "2.2.2"
+val postgresRuntimeVersion = "17.9.0"
 
 plugins {
     kotlin("jvm") version "2.3.10"
@@ -84,26 +83,17 @@ dependencies {
     }
     // Kafka
     implementation("org.apache.kafka:kafka_2.13:$kafkaVersion", excludeLog4j)
-    constraints {
-        implementation("org.bitbucket.b_c:jose4j") {
-            because("org.apache.kafka:kafka_2.13:$kafkaVersion -> https://github.com/advisories/GHSA-6qvw-249j-h44c")
-            version {
-                require(joseVersion)
-            }
-        }
-        implementation("commons-beanutils:commons-beanutils") {
-            because("org.apache.kafka:kafka_2.13:$kafkaVersion -> https://www.cve.org/CVERecord?id=CVE-2025-48734")
-            version {
-                require("1.11.0")
-            }
-        }
-    }
     implementation("io.confluent:kafka-avro-serializer:$confluentVersion")
     constraints {
         implementation("org.apache.commons:commons-compress") {
             because("org.apache.commons:commons-compress:1.22 -> https://www.cve.org/CVERecord?id=CVE-2012-2098")
             version {
                 require("1.28.0")
+            }
+        }
+        implementation("org.eclipse.jetty:jetty-server") {
+            version {
+                require("12.0.34")
             }
         }
     }
@@ -119,12 +109,6 @@ dependencies {
             because("io.confluent:kafka-schema-registry:$confluentVersion -> https://www.cve.org/CVERecord?id=CVE-2023-5072")
             version {
                 require(jsonVersion)
-            }
-        }
-        implementation("org.glassfish.jersey.core:jersey-client") {
-            because("io.confluent:kafka-schema-registry:$confluentVersion -> https://www.cve.org/CVERecord?id=CVE-2025-12383")
-            version {
-                require("3.1.11")
             }
         }
         implementation("com.nimbusds:nimbus-jose-jwt") {
