@@ -6,7 +6,7 @@ import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
 import no.nav.syfo.common.util.NAV_CALL_ID_HEADER
-import no.nav.syfo.infrastructure.clients.azuread.AzureAdClient
+import no.nav.syfo.common.token.azuread.AzureAdClient
 import no.nav.syfo.infrastructure.clients.httpClientDefault
 import no.nav.syfo.domain.PersonIdent
 import no.nav.syfo.util.*
@@ -42,7 +42,7 @@ class PdlClient(
         )
 
         val response: HttpResponse = httpClient.post(pdlUrl) {
-            header(HttpHeaders.Authorization, bearerHeader(token.accessToken))
+            header(HttpHeaders.Authorization, bearerHeader(token))
             header(HttpHeaders.ContentType, ContentType.Application.Json.toString())
             header(BEHANDLINGSNUMMER_HEADER_KEY, BEHANDLINGSNUMMER_HEADER_VALUE)
             header(NAV_CALL_ID_HEADER, callId)

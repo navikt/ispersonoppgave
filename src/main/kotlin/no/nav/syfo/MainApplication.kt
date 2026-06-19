@@ -10,8 +10,7 @@ import no.nav.syfo.api.apiModule
 import no.nav.syfo.api.authentication.getWellKnown
 import no.nav.syfo.application.PersonOppgaveService
 import no.nav.syfo.common.tilgangskontroll.client.TilgangskontrollClient
-import no.nav.syfo.common.util.ClientConfig
-import no.nav.syfo.infrastructure.clients.azuread.AzureAdClient
+import no.nav.syfo.common.token.azuread.AzureAdClient
 import no.nav.syfo.infrastructure.clients.pdl.PdlClient
 import no.nav.syfo.infrastructure.cronjob.cronjobModule
 import no.nav.syfo.infrastructure.database.PersonOppgaveRepository
@@ -47,26 +46,16 @@ fun main() {
     val personoppgavehendelseProducer = PersonoppgavehendelseProducer(kafkaProducer)
 
     val wellKnownInternADV2 = getWellKnown(
-        wellKnownUrl = environment.azureAppWellKnownUrl,
+        wellKnownUrl = environment.azureAdClient.appWellKnownUrl,
     )
 
     val azureAdClient = AzureAdClient(
-        azureAppClientId = environment.azureAppClientId,
-        azureAppClientSecret = environment.azureAppClientSecret,
-        azureTokenEndpoint = environment.azureTokenEndpoint,
+        config = environment.azureAdClient
     )
-    val tilgangkontrollClient = TilgangskontrollClient(
-        oboTokenProvider = { scopeClientId, token ->
-            azureAdClient.getOnBehalfOfToken(
-                scopeClientId,
-                token
-            )?.accessToken
-        },
-        clientConfig = ClientConfig(
-            baseUrl = environment.istilgangskontrollUrl,
-            clientId = environment.istilgangskontrollClientId,
-        )
 
+    val tilgangkontrollClient = TilgangskontrollClient(
+        oboTokenProvider = azureAdClient,
+        clientConfig = environment.istilgangskontrollClient
     )
 
     val pdlClient = PdlClient(

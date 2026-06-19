@@ -55,12 +55,12 @@ class VeilederPersonOppgaveApiV2Test {
     private val baseUrl = registerVeilederPersonOppgaveApiV2BasePath
 
     private val tokenForFullTilgangNavident = generateJWT(
-        audience = externalMockEnvironment.environment.azureAppClientId,
+        audience = externalMockEnvironment.environment.azureAdClient.appClientId,
         issuer = externalMockEnvironment.wellKnownInternADV2Mock.issuer,
         navIdent = VEILEDER_IDENT,
     )
     private val tokenForLesetilgangNavident = generateJWT(
-        audience = externalMockEnvironment.environment.azureAppClientId,
+        audience = externalMockEnvironment.environment.azureAdClient.appClientId,
         issuer = externalMockEnvironment.wellKnownInternADV2Mock.issuer,
         navIdent = VEILEDER_IDENT_READ_ACCESS,
     )

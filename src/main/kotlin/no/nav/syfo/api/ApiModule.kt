@@ -35,7 +35,7 @@ fun Application.apiModule(
     installJwtAuthentication(
         jwtIssuerList = listOf(
             JwtIssuer(
-                acceptedAudienceList = listOf(environment.azureAppClientId),
+                acceptedAudienceList = listOf(environment.azureAdClient.appClientId),
                 jwtIssuerType = JwtIssuerType.INTERN_AZUREAD_V2,
                 wellKnown = wellKnownInternADV2,
             ),

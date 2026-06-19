@@ -1,15 +1,12 @@
 package no.nav.syfo
 
+import no.nav.syfo.common.token.azuread.AzureAdClientConfig
+import no.nav.syfo.common.util.ClientConfig
 import java.time.LocalDate
 
 data class Environment(
     val applicationThreads: Int = getEnvVar("APPLICATION_THREADS", "1").toInt(),
     val applicationName: String = getEnvVar("APPLICATION_NAME", "ispersonoppgave"),
-
-    val azureAppClientId: String = getEnvVar("AZURE_APP_CLIENT_ID"),
-    val azureAppClientSecret: String = getEnvVar("AZURE_APP_CLIENT_SECRET"),
-    val azureAppWellKnownUrl: String = getEnvVar("AZURE_APP_WELL_KNOWN_URL"),
-    val azureTokenEndpoint: String = getEnvVar("AZURE_OPENID_CONFIG_TOKEN_ENDPOINT"),
 
     val ispersonoppgaveDbHost: String = getEnvVar("NAIS_DATABASE_ISPERSONOPPGAVE_ISPERSONOPPGAVE_DB_HOST"),
     val ispersonoppgaveDbPort: String = getEnvVar("NAIS_DATABASE_ISPERSONOPPGAVE_ISPERSONOPPGAVE_DB_PORT"),
@@ -17,14 +14,19 @@ data class Environment(
     val ispersonoppgaveDbUsername: String = getEnvVar("NAIS_DATABASE_ISPERSONOPPGAVE_ISPERSONOPPGAVE_DB_USERNAME"),
     val ispersonoppgaveDbPassword: String = getEnvVar("NAIS_DATABASE_ISPERSONOPPGAVE_ISPERSONOPPGAVE_DB_PASSWORD"),
 
+    val azureAdClient: AzureAdClientConfig = AzureAdClientConfig.fromEnv(),
+
+    val istilgangskontrollClient: ClientConfig = ClientConfig(
+        baseUrl = getEnvVar("ISTILGANGSKONTROLL_URL"),
+        clientId = getEnvVar("ISTILGANGSKONTROLL_CLIENT_ID"),
+    ),
+
     val pdlUrl: String = getEnvVar("PDL_URL"),
     val pdlClientId: String = getEnvVar("PDL_CLIENT_ID"),
 
     val serviceuserUsername: String = getEnvVar("SERVICEUSER_USERNAME"),
     val serviceuserPassword: String = getEnvVar("SERVICEUSER_PASSWORD"),
 
-    val istilgangskontrollClientId: String = getEnvVar("ISTILGANGSKONTROLL_CLIENT_ID"),
-    val istilgangskontrollUrl: String = getEnvVar("ISTILGANGSKONTROLL_URL"),
     val kafka: EnvironmentKafka = EnvironmentKafka(
         aivenBootstrapServers = getEnvVar("KAFKA_BROKERS"),
         aivenSchemaRegistryUrl = getEnvVar("KAFKA_SCHEMA_REGISTRY"),

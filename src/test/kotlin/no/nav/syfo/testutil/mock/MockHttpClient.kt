@@ -13,8 +13,8 @@ fun mockHttpClient(environment: Environment) = HttpClient(MockEngine) {
         addHandler { request ->
             val requestUrl = request.url.encodedPath
             when {
-                requestUrl == "/${environment.azureTokenEndpoint}" -> mockAzureAdRequestHandler(request)
-                requestUrl.startsWith("/${environment.istilgangskontrollUrl}") -> mockTilgangskontrollRequestHandler(
+                requestUrl == "/${environment.azureAdClient.openidConfigTokenEndpoint}" -> mockAzureAdRequestHandler(request)
+                requestUrl.startsWith("/${environment.istilgangskontrollClient.baseUrl}") -> mockTilgangskontrollRequestHandler(
                     request,
                     mockTilgangDetailsPerNavident
                 )
