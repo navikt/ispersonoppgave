@@ -56,7 +56,7 @@ class KafkaOppfolgingsplanLPS(private val oppfolgingsplanLPSService: Oppfolgings
                 log.info(
                     "Received KOppfolgingsplanLPS, ready to process, $logKeys, {}",
                     *logValues,
-                    callIdArgument(callId)
+                    StructuredArguments.keyValue("callId", callId)
                 )
 
                 oppfolgingsplanLPSService.receiveOppfolgingsplanLPS(

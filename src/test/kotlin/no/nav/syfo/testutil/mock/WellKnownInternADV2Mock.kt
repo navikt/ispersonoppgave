@@ -1,18 +1,7 @@
 package no.nav.syfo.testutil.mock
 
-import io.ktor.client.engine.mock.*
-import io.ktor.client.request.*
 import no.nav.syfo.api.authentication.WellKnown
-import no.nav.syfo.infrastructure.clients.azuread.AzureAdTokenResponse
 import java.nio.file.Paths
-
-fun MockRequestHandleScope.azureAdMockResponse(): HttpResponseData = respond(
-    AzureAdTokenResponse(
-        access_token = "token",
-        expires_in = 3600,
-        token_type = "type",
-    )
-)
 
 fun wellKnownInternADV2Mock(): WellKnown {
     val path = "src/test/resources/jwkset.json"

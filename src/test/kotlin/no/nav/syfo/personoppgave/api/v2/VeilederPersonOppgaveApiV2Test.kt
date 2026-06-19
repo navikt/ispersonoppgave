@@ -19,6 +19,7 @@ import no.nav.syfo.domain.PersonIdent
 import no.nav.syfo.api.PersonOppgaveVeileder
 import no.nav.syfo.api.v2.BehandlePersonoppgaveRequestDTO
 import no.nav.syfo.api.v2.registerVeilederPersonOppgaveApiV2BasePath
+import no.nav.syfo.common.util.NAV_PERSONIDENT_HEADER
 import no.nav.syfo.infrastructure.database.queries.createPersonOppgave
 import no.nav.syfo.domain.PersonOppgave
 import no.nav.syfo.domain.PersonOppgaveType
@@ -30,8 +31,8 @@ import no.nav.syfo.domain.PersonoppgavehendelseType
 import no.nav.syfo.testutil.*
 import no.nav.syfo.testutil.UserConstants.ARBEIDSTAKER_FNR
 import no.nav.syfo.testutil.UserConstants.VEILEDER_IDENT
+import no.nav.syfo.testutil.UserConstants.VEILEDER_IDENT_READ_ACCESS
 import no.nav.syfo.testutil.generators.*
-import no.nav.syfo.util.NAV_PERSONIDENT_HEADER
 import no.nav.syfo.util.configure
 import org.apache.kafka.clients.producer.KafkaProducer
 import org.apache.kafka.clients.producer.ProducerRecord
@@ -52,10 +53,16 @@ class VeilederPersonOppgaveApiV2Test {
     private val personoppgavehendelseProducer = PersonoppgavehendelseProducer(kafkaProducer)
     private val personOppgaveRepository = PersonOppgaveRepository(database = database)
     private val baseUrl = registerVeilederPersonOppgaveApiV2BasePath
-    private val validToken = generateJWT(
+
+    private val tokenForFullTilgangNavident = generateJWT(
         audience = externalMockEnvironment.environment.azureAppClientId,
         issuer = externalMockEnvironment.wellKnownInternADV2Mock.issuer,
         navIdent = VEILEDER_IDENT,
+    )
+    private val tokenForLesetilgangNavident = generateJWT(
+        audience = externalMockEnvironment.environment.azureAppClientId,
+        issuer = externalMockEnvironment.wellKnownInternADV2Mock.issuer,
+        navIdent = VEILEDER_IDENT_READ_ACCESS,
     )
 
     @BeforeEach
@@ -80,7 +87,8 @@ class VeilederPersonOppgaveApiV2Test {
     @Test
     fun `returns BadRequest if NAV_PERSONIDENT_HEADER missing`() = testApplication {
         val client = setupApiAndClient()
-        val response = client.get("$baseUrl/personident") { bearerAuth(validToken) }
+        val response = client.get("$baseUrl/personident") { bearerAuth(tokenForFullTilgangNavident) }
+
         assertEquals(HttpStatusCode.BadRequest, response.status)
     }
 
@@ -88,9 +96,10 @@ class VeilederPersonOppgaveApiV2Test {
     fun `returns status BadRequest if NAV_PERSONIDENT_HEADER has an invalid Fodselsnummer`() = testApplication {
         val client = setupApiAndClient()
         val response = client.get("$baseUrl/personident") {
-            bearerAuth(validToken)
+            bearerAuth(tokenForFullTilgangNavident)
             header(NAV_PERSONIDENT_HEADER, ARBEIDSTAKER_FNR.value.drop(1))
         }
+
         assertEquals(HttpStatusCode.BadRequest, response.status)
     }
 
@@ -98,9 +107,10 @@ class VeilederPersonOppgaveApiV2Test {
     fun `returns status Forbidden if Veileder does not have access to request PersonIdent`() = testApplication {
         val client = setupApiAndClient()
         val response = client.get("$baseUrl/personident") {
-            bearerAuth(validToken)
+            bearerAuth(tokenForFullTilgangNavident)
             header(NAV_PERSONIDENT_HEADER, ARBEIDSTAKER_FNR.value.drop(1) + "0")
         }
+
         assertEquals(HttpStatusCode.Forbidden, response.status)
     }
 
@@ -108,9 +118,10 @@ class VeilederPersonOppgaveApiV2Test {
     fun `returns status NoContent if there is no PersonOppgaver for PersonIdent`() = testApplication {
         val client = setupApiAndClient()
         val response = client.get("$baseUrl/personident") {
-            bearerAuth(validToken)
+            bearerAuth(tokenForFullTilgangNavident)
             header(NAV_PERSONIDENT_HEADER, ARBEIDSTAKER_FNR.value)
         }
+
         assertEquals(HttpStatusCode.NoContent, response.status)
     }
 
@@ -122,11 +133,13 @@ class VeilederPersonOppgaveApiV2Test {
             it.createPersonOppgave(kOppfolgingsplanLPS, personOppgaveType)
             it.commit()
         }
+
         val client = setupApiAndClient()
         val response = client.get("$baseUrl/personident") {
-            bearerAuth(validToken)
+            bearerAuth(tokenForFullTilgangNavident)
             header(NAV_PERSONIDENT_HEADER, ARBEIDSTAKER_FNR.value)
         }
+
         assertEquals(HttpStatusCode.OK, response.status)
         val list = response.body<List<PersonOppgaveVeileder>>()
         assertEquals(1, list.size)
@@ -142,6 +155,24 @@ class VeilederPersonOppgaveApiV2Test {
     }
 
     @Test
+    fun `allows access to PersonOppgaveList for user with lesetilgang`() = testApplication {
+        val kOppfolgingsplanLPS = generateKOppfolgingsplanLPS
+        database.connection.use {
+            it.createPersonOppgave(kOppfolgingsplanLPS, PersonOppgaveType.OPPFOLGINGSPLANLPS)
+            it.commit()
+        }
+
+        val client = setupApiAndClient()
+        val response = client.get("$baseUrl/personident") {
+            bearerAuth(tokenForLesetilgangNavident)
+            header(NAV_PERSONIDENT_HEADER, ARBEIDSTAKER_FNR.value)
+        }
+
+        assertEquals(HttpStatusCode.OK, response.status)
+        assertTrue(response.body<List<PersonOppgaveVeileder>>().isNotEmpty())
+    }
+
+    @Test
     fun `Process OppfolgingsplanLPS-PersonOppgave for PersonIdent`() = testApplication {
         val k1 = generateKOppfolgingsplanLPS
         val k2 = generateKOppfolgingsplanLPS2
@@ -152,13 +183,15 @@ class VeilederPersonOppgaveApiV2Test {
                 c.commit()
             }
         }
+
         val urlProcess = "$baseUrl/$uuid/behandle"
         val client = setupApiAndClient()
-        client.post(urlProcess) { bearerAuth(validToken) }.apply { assertEquals(HttpStatusCode.OK, status) }
+        client.post(urlProcess) { bearerAuth(tokenForFullTilgangNavident) }.apply { assertEquals(HttpStatusCode.OK, status) }
         val response = client.get("$baseUrl/personident") {
-            bearerAuth(validToken)
+            bearerAuth(tokenForFullTilgangNavident)
             header(NAV_PERSONIDENT_HEADER, ARBEIDSTAKER_FNR.value)
         }
+
         assertEquals(HttpStatusCode.OK, response.status)
         val list = response.body<List<PersonOppgaveVeileder>>()
         assertEquals(2, list.size)
@@ -189,15 +222,17 @@ class VeilederPersonOppgaveApiV2Test {
                 connection.commit()
             }
         }
+
         val client = setupApiAndClient()
         client.post("$baseUrl/$uuid/behandle") {
-            bearerAuth(validToken)
+            bearerAuth(tokenForFullTilgangNavident)
         }.apply { assertEquals(HttpStatusCode.OK, status) }
 
         val response = client.get("$baseUrl/personident") {
-            bearerAuth(validToken)
+            bearerAuth(tokenForFullTilgangNavident)
             header(NAV_PERSONIDENT_HEADER, ARBEIDSTAKER_FNR.value)
         }
+
         assertEquals(HttpStatusCode.OK, response.status)
         val list = response.body<List<PersonOppgaveVeileder>>()
         assertEquals(1, list.size)
@@ -222,9 +257,23 @@ class VeilederPersonOppgaveApiV2Test {
         val moteUuid = UUID.randomUUID()
         val dialogmotesvar = generateDialogmotesvar(moteUuid, DialogmoteSvartype.NYTT_TID_STED)
         val oppgaveUuid = database.connection.use { c -> c.createPersonOppgave(dialogmotesvar).also { c.commit() } }
+
         val client = setupApiAndClient()
-        val response = client.post("$baseUrl/$oppgaveUuid/behandle") { bearerAuth(validToken) }
+        val response = client.post("$baseUrl/$oppgaveUuid/behandle") { bearerAuth(tokenForFullTilgangNavident) }
+
         assertEquals(HttpStatusCode.OK, response.status)
+    }
+
+    @Test
+    fun `denies access to behandle dialogmotesvar for user with lesetilgang`() = testApplication {
+        val moteUuid = UUID.randomUUID()
+        val dialogmotesvar = generateDialogmotesvar(moteUuid, DialogmoteSvartype.NYTT_TID_STED)
+        val oppgaveUuid = database.connection.use { c -> c.createPersonOppgave(dialogmotesvar).also { c.commit() } }
+
+        val client = setupApiAndClient()
+        val response = client.post("$baseUrl/$oppgaveUuid/behandle") { bearerAuth(tokenForLesetilgangNavident) }
+
+        assertEquals(HttpStatusCode.Forbidden, response.status)
     }
 
     @Test
@@ -237,7 +286,8 @@ class VeilederPersonOppgaveApiV2Test {
             }
         }
         val client = setupApiAndClient()
-        val response = client.post("$baseUrl/$oppgaveUuid/behandle") { bearerAuth(validToken) }
+        val response = client.post("$baseUrl/$oppgaveUuid/behandle") { bearerAuth(tokenForFullTilgangNavident) }
+
         assertEquals(HttpStatusCode.OK, response.status)
         val slotRecord = slot<ProducerRecord<String, KPersonoppgavehendelse>>()
         verify(exactly = 1) { kafkaProducer.send(capture(slotRecord)) }
@@ -255,7 +305,8 @@ class VeilederPersonOppgaveApiV2Test {
             }
         }
         val client = setupApiAndClient()
-        val response = client.post("$baseUrl/$uuid/behandle") { bearerAuth(validToken) }
+        val response = client.post("$baseUrl/$uuid/behandle") { bearerAuth(tokenForFullTilgangNavident) }
+
         assertEquals(HttpStatusCode.OK, response.status)
         verify(exactly = 0) { kafkaProducer.send(any()) }
     }
@@ -268,8 +319,10 @@ class VeilederPersonOppgaveApiV2Test {
                 connection.commit()
             }
         }
+
         val client = setupApiAndClient()
-        val response = client.post("$baseUrl/$oppgaveUuid/behandle") { bearerAuth(validToken) }
+        val response = client.post("$baseUrl/$oppgaveUuid/behandle") { bearerAuth(tokenForFullTilgangNavident) }
+
         assertEquals(HttpStatusCode.OK, response.status)
         val slotRecord = slot<ProducerRecord<String, KPersonoppgavehendelse>>()
         verify(exactly = 1) { kafkaProducer.send(capture(slotRecord)) }
@@ -286,9 +339,12 @@ class VeilederPersonOppgaveApiV2Test {
                 c.commit()
             }
         }
+
         val client = setupApiAndClient()
-        val response = client.post("$baseUrl/$uuid/behandle") { bearerAuth(validToken) }
+        val response = client.post("$baseUrl/$uuid/behandle") { bearerAuth(tokenForFullTilgangNavident) }
+
         assertEquals(HttpStatusCode.OK, response.status)
+
         verify(exactly = 0) { kafkaProducer.send(any()) }
     }
 
@@ -301,7 +357,8 @@ class VeilederPersonOppgaveApiV2Test {
         )
         personOppgaveRepository.createPersonoppgave(oppgave)
         val client = setupApiAndClient()
-        val response = client.post("$baseUrl/${oppgave.uuid}/behandle") { bearerAuth(validToken) }
+        val response = client.post("$baseUrl/${oppgave.uuid}/behandle") { bearerAuth(tokenForFullTilgangNavident) }
+
         assertEquals(HttpStatusCode.OK, response.status)
 
         val slotRecord = slot<ProducerRecord<String, KPersonoppgavehendelse>>()
@@ -318,8 +375,10 @@ class VeilederPersonOppgaveApiV2Test {
             personOppgaveRepository.createPersonoppgave(oppgave2, c)
             c.commit()
         }
+
         val client = setupApiAndClient()
-        val response = client.post("$baseUrl/${oppgave1.uuid}/behandle") { bearerAuth(validToken) }
+        val response = client.post("$baseUrl/${oppgave1.uuid}/behandle") { bearerAuth(tokenForFullTilgangNavident) }
+
         assertEquals(HttpStatusCode.OK, response.status)
         verify(exactly = 0) { kafkaProducer.send(any()) }
     }
@@ -333,12 +392,14 @@ class VeilederPersonOppgaveApiV2Test {
             c.createPersonOppgave(p.copy(uuid = UUID.randomUUID(), referanseUuid = UUID.randomUUID()))
             c.commit()
         }
+
         val client = setupApiAndClient()
         val response = client.post("$baseUrl/behandle") {
-            bearerAuth(validToken)
+            bearerAuth(tokenForFullTilgangNavident)
             contentType(ContentType.Application.Json)
             setBody(request)
         }
+
         assertEquals(HttpStatusCode.OK, response.status)
         val personoppgaver = database.getPersonOppgaver(PersonIdent(request.personIdent))
         assertEquals(2, personoppgaver.size)
@@ -363,10 +424,11 @@ class VeilederPersonOppgaveApiV2Test {
         val client = setupApiAndClient()
         val request = BehandlePersonoppgaveRequestDTO(personIdent = pSvar.personIdent.value, personOppgaveType = pSvar.type)
         val response = client.post("$baseUrl/behandle") {
-            bearerAuth(validToken)
+            bearerAuth(tokenForFullTilgangNavident)
             contentType(ContentType.Application.Json)
             setBody(request)
         }
+
         assertEquals(HttpStatusCode.OK, response.status)
 
         val personoppgaver = database.getPersonOppgaver(PersonIdent(request.personIdent))
@@ -391,10 +453,11 @@ class VeilederPersonOppgaveApiV2Test {
         val client = setupApiAndClient()
         val request = BehandlePersonoppgaveRequestDTO(personIdent = p.personIdent.value, personOppgaveType = p.type)
         val response = client.post("$baseUrl/behandle") {
-            bearerAuth(validToken)
+            bearerAuth(tokenForFullTilgangNavident)
             contentType(ContentType.Application.Json)
             setBody(request)
         }
+
         assertEquals(HttpStatusCode.OK, response.status)
 
         val list = database.getPersonOppgaver(PersonIdent(request.personIdent))
@@ -411,10 +474,11 @@ class VeilederPersonOppgaveApiV2Test {
             personOppgaveType = PersonOppgaveType.BEHANDLERDIALOG_SVAR
         )
         val response = client.post("$baseUrl/behandle") {
-            bearerAuth(validToken)
+            bearerAuth(tokenForFullTilgangNavident)
             contentType(ContentType.Application.Json)
             setBody(request)
         }
+
         assertEquals(HttpStatusCode.Conflict, response.status)
     }
 }
