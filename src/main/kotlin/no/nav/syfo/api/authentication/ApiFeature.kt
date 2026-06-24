@@ -10,6 +10,7 @@ import io.ktor.server.plugins.contentnegotiation.*
 import io.ktor.server.plugins.statuspages.*
 import io.ktor.server.response.*
 import io.micrometer.core.instrument.distribution.DistributionStatisticConfig
+import net.logstash.logback.argument.StructuredArguments
 import no.nav.syfo.METRICS_REGISTRY
 import no.nav.syfo.common.tilgangskontroll.TilgangDeniedException
 import no.nav.syfo.common.util.NAV_CALL_ID_HEADER
@@ -64,7 +65,12 @@ fun Application.installStatusPages() {
 
             val callId = call.callId
             val consumerClientId = call.consumerClientId
-            call.application.log.error("Caught exception: ${cause.message}, callId=$callId, consumerClientId=$consumerClientId", cause)
+            call.application.log.error(
+                "Caught exception: ${cause.message}, {}, {}",
+                StructuredArguments.keyValue("callId", callId),
+                StructuredArguments.keyValue("consumerClientId", consumerClientId),
+                cause,
+            )
 
             val message = cause.message ?: "Unknown error"
             call.respond(responseStatus, message)
