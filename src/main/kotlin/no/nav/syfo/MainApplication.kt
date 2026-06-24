@@ -5,12 +5,13 @@ import io.ktor.server.application.*
 import io.ktor.server.config.*
 import io.ktor.server.engine.*
 import io.ktor.server.netty.*
+import io.micrometer.core.instrument.Metrics
 import no.nav.syfo.api.apiModule
 import no.nav.syfo.api.authentication.getWellKnown
 import no.nav.syfo.application.PersonOppgaveService
-import no.nav.syfo.infrastructure.clients.azuread.AzureAdClient
+import no.nav.syfo.common.tilgangskontroll.client.TilgangskontrollClient
+import no.nav.syfo.common.token.azuread.AzureAdClient
 import no.nav.syfo.infrastructure.clients.pdl.PdlClient
-import no.nav.syfo.infrastructure.clients.veiledertilgang.VeilederTilgangskontrollClient
 import no.nav.syfo.infrastructure.cronjob.cronjobModule
 import no.nav.syfo.infrastructure.database.PersonOppgaveRepository
 import no.nav.syfo.infrastructure.database.database
@@ -36,23 +37,25 @@ fun main() {
     val applicationState = ApplicationState()
     val environment = Environment()
 
+    // This is necessary for the counters in isyfo-backend-common registered on global registry to be "connected"
+    // to this registry used by the app.
+    Metrics.addRegistry(METRICS_REGISTRY)
+
     val producerProperties = kafkaAivenProducerConfig(environmentKafka = environment.kafka)
     val kafkaProducer = KafkaProducer<String, KPersonoppgavehendelse>(producerProperties)
     val personoppgavehendelseProducer = PersonoppgavehendelseProducer(kafkaProducer)
 
     val wellKnownInternADV2 = getWellKnown(
-        wellKnownUrl = environment.azureAppWellKnownUrl,
+        wellKnownUrl = environment.azureAdClient.appWellKnownUrl,
     )
 
     val azureAdClient = AzureAdClient(
-        azureAppClientId = environment.azureAppClientId,
-        azureAppClientSecret = environment.azureAppClientSecret,
-        azureTokenEndpoint = environment.azureTokenEndpoint,
+        config = environment.azureAdClient
     )
-    val veilederTilgangskontrollClient = VeilederTilgangskontrollClient(
-        azureAdClient = azureAdClient,
-        istilgangskontrollClientId = environment.istilgangskontrollClientId,
-        endpointUrl = environment.istilgangskontrollUrl,
+
+    val tilgangkontrollClient = TilgangskontrollClient(
+        oboTokenProvider = azureAdClient,
+        clientConfig = environment.istilgangskontrollClient
     )
 
     val pdlClient = PdlClient(
@@ -91,7 +94,7 @@ fun main() {
 
             apiModule(
                 applicationState = applicationState,
-                veilederTilgangskontrollClient = veilederTilgangskontrollClient,
+                tilgangskontrollClient = tilgangkontrollClient,
                 database = database,
                 environment = environment,
                 personOppgaveService = personOppgaveService,

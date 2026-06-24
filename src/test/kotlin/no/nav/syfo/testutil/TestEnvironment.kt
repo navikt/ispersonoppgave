@@ -1,15 +1,26 @@
 package no.nav.syfo.testutil
 
 import no.nav.syfo.*
+import no.nav.syfo.common.token.azuread.AzureAdClientConfig
+import no.nav.syfo.common.util.ClientConfig
 import java.time.LocalDate
 
 fun testEnvironment() = Environment(
     applicationThreads = 1,
     applicationName = "ispersonoppgave",
-    azureAppClientId = "app-client-id",
-    azureAppClientSecret = "app-secret",
-    azureAppWellKnownUrl = "wellknownurl",
-    azureTokenEndpoint = "azureTokenEndpoint",
+
+    azureAdClient = AzureAdClientConfig(
+        appClientId = "app-client-id",
+        appClientSecret = "app-secret",
+        appWellKnownUrl = "wellknownurl",
+        openidConfigTokenEndpoint = "azureTokenEndpoint",
+    ),
+
+    istilgangskontrollClient = ClientConfig(
+        baseUrl = "istilgangskontrollUrl",
+        clientId = "istilgangskontrollClientId",
+    ),
+
     ispersonoppgaveDbHost = "localhost",
     ispersonoppgaveDbPort = "5432",
     ispersonoppgaveDbName = "ispersonoppgave_dev",
@@ -19,8 +30,7 @@ fun testEnvironment() = Environment(
     pdlUrl = "pdlUrl",
     serviceuserUsername = "",
     serviceuserPassword = "",
-    istilgangskontrollClientId = "istilgangskontrollClientId",
-    istilgangskontrollUrl = "istilgangskontrollUrl",
+
     kafka = EnvironmentKafka(
         aivenBootstrapServers = "kafkaBootstrapServers",
         aivenSchemaRegistryUrl = "http://kafka-schema-registry.tpa.svc.nais.local:8081",

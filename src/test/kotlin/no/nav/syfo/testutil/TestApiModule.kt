@@ -2,10 +2,10 @@ package no.nav.syfo.testutil
 
 import io.ktor.server.application.*
 import no.nav.syfo.api.apiModule
-import no.nav.syfo.infrastructure.clients.azuread.AzureAdClient
-import no.nav.syfo.infrastructure.clients.veiledertilgang.VeilederTilgangskontrollClient
 import no.nav.syfo.infrastructure.database.PersonOppgaveRepository
 import no.nav.syfo.application.PersonOppgaveService
+import no.nav.syfo.common.tilgangskontroll.client.TilgangskontrollClient
+import no.nav.syfo.common.token.azuread.AzureAdClient
 import no.nav.syfo.infrastructure.kafka.oppgavehendelse.PersonoppgavehendelseProducer
 
 fun Application.testApiModule(
@@ -13,19 +13,20 @@ fun Application.testApiModule(
     personoppgavehendelseProducer: PersonoppgavehendelseProducer,
 ) {
     val mockHttpClient = externalMockEnvironment.mockHttpClient
+
     val database = externalMockEnvironment.database
+
     val azureAdClient = AzureAdClient(
-        azureAppClientId = externalMockEnvironment.environment.azureAppClientId,
-        azureAppClientSecret = externalMockEnvironment.environment.azureAppClientSecret,
-        azureTokenEndpoint = externalMockEnvironment.environment.azureTokenEndpoint,
+        config = externalMockEnvironment.environment.azureAdClient,
         httpClient = mockHttpClient,
     )
-    val veilederTilgangskontrollClient = VeilederTilgangskontrollClient(
-        azureAdClient = azureAdClient,
-        istilgangskontrollClientId = externalMockEnvironment.environment.istilgangskontrollClientId,
-        endpointUrl = externalMockEnvironment.environment.istilgangskontrollUrl,
+
+    val tilgangskontrollClient = TilgangskontrollClient(
+        oboTokenProvider = azureAdClient,
+        clientConfig = externalMockEnvironment.environment.istilgangskontrollClient,
         httpClient = mockHttpClient
     )
+
     val personOppgaveService = PersonOppgaveService(
         database = database,
         personoppgavehendelseProducer = personoppgavehendelseProducer,
@@ -34,7 +35,7 @@ fun Application.testApiModule(
 
     apiModule(
         applicationState = externalMockEnvironment.applicationState,
-        veilederTilgangskontrollClient = veilederTilgangskontrollClient,
+        tilgangskontrollClient = tilgangskontrollClient,
         database = database,
         environment = externalMockEnvironment.environment,
         wellKnownInternADV2 = externalMockEnvironment.wellKnownInternADV2Mock,

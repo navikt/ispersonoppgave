@@ -11,7 +11,6 @@ import no.nav.syfo.api.authentication.installContentNegotiation
 import no.nav.syfo.api.authentication.installMetrics
 import no.nav.syfo.api.authentication.installStatusPages
 import no.nav.syfo.api.v2.registerPodApi
-import no.nav.syfo.infrastructure.clients.veiledertilgang.VeilederTilgangskontrollClient
 import no.nav.syfo.infrastructure.database.DatabaseInterface
 import no.nav.syfo.METRICS_REGISTRY
 import no.nav.syfo.application.PersonOppgaveService
@@ -20,10 +19,11 @@ import no.nav.syfo.api.authentication.JwtIssuerType
 import no.nav.syfo.api.authentication.WellKnown
 import no.nav.syfo.api.authentication.installJwtAuthentication
 import no.nav.syfo.api.v2.registerVeilederPersonOppgaveApiV2
+import no.nav.syfo.common.tilgangskontroll.client.TilgangskontrollClient
 
 fun Application.apiModule(
     applicationState: ApplicationState,
-    veilederTilgangskontrollClient: VeilederTilgangskontrollClient,
+    tilgangskontrollClient: TilgangskontrollClient,
     database: DatabaseInterface,
     environment: Environment,
     personOppgaveService: PersonOppgaveService,
@@ -35,7 +35,7 @@ fun Application.apiModule(
     installJwtAuthentication(
         jwtIssuerList = listOf(
             JwtIssuer(
-                acceptedAudienceList = listOf(environment.azureAppClientId),
+                acceptedAudienceList = listOf(environment.azureAdClient.appClientId),
                 jwtIssuerType = JwtIssuerType.INTERN_AZUREAD_V2,
                 wellKnown = wellKnownInternADV2,
             ),
@@ -52,7 +52,7 @@ fun Application.apiModule(
         authenticate(JwtIssuerType.INTERN_AZUREAD_V2.name) {
             registerVeilederPersonOppgaveApiV2(
                 personOppgaveService,
-                veilederTilgangskontrollClient,
+                tilgangskontrollClient,
             )
         }
     }

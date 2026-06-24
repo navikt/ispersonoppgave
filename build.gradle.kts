@@ -3,6 +3,8 @@ import com.adarshr.gradle.testlogger.theme.ThemeType
 group = "no.nav.syfo"
 version = "1.0-SNAPSHOT"
 
+val isyfoBackendCommonVersion = "0.0.48"
+
 val confluentVersion = "8.2.1"
 val jacksonDataTypeVersion = "2.21.3"
 val jacksonDatabindVersion = "3.1.3"
@@ -28,25 +30,23 @@ plugins {
     id("com.adarshr.test-logger") version "4.0.0"
 }
 
-val githubUser: String by project
-val githubPassword: String by project
 repositories {
     mavenCentral()
     maven(url = "https://packages.confluent.io/maven/")
     maven(url = "https://repository.mulesoft.org/nexus/content/repositories/public/")
     maven(url = "https://jitpack.io")
     maven {
-        url = uri("https://maven.pkg.github.com/navikt/isdialogmote-schema")
-        credentials {
-            username = githubUser
-            password = githubPassword
-        }
+        url = uri("https://github-package-registry-mirror.gc.nav.no/cached/maven-release")
     }
+    mavenLocal()
 }
 
 dependencies {
     implementation(kotlin("stdlib"))
     implementation(kotlin("reflect"))
+
+    implementation("no.nav.syfo:isyfo-backend-common:$isyfoBackendCommonVersion")
+    implementation("no.nav.syfo.dialogmote.avro:isdialogmote-schema:$isdialogmoteSchemaVersion")
 
     implementation("io.ktor:ktor-server-auth-jwt:$ktorVersion")
     implementation("io.ktor:ktor-server-content-negotiation:$ktorVersion")
@@ -117,9 +117,9 @@ dependencies {
             }
         }
     }
-	
-    implementation("no.nav.syfo.dialogmote.avro:isdialogmote-schema:$isdialogmoteSchemaVersion")
 
+    // Tests
+    testImplementation(testFixtures("no.nav.syfo:isyfo-backend-common:$isyfoBackendCommonVersion"))
     testImplementation("com.nimbusds:nimbus-jose-jwt:$nimbusjosejwtVersion")
     testImplementation("io.ktor:ktor-server-test-host:$ktorVersion")
     testImplementation("io.ktor:ktor-client-mock:$ktorVersion")

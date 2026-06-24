@@ -1,5 +1,6 @@
 package no.nav.syfo.application
 
+import net.logstash.logback.argument.StructuredArguments
 import no.nav.syfo.COUNT_PERSONOPPGAVEHENDELSE_OPPFOLGINGSPLANLPS_BISTAND_MOTTATT_SENT
 import no.nav.syfo.COUNT_PERSON_OPPGAVE_OPPFOLGINGSPLANLPS_ALREADY_CREATED
 import no.nav.syfo.COUNT_PERSON_OPPGAVE_OPPFOLGINGSPLANLPS_CREATED
@@ -14,7 +15,6 @@ import no.nav.syfo.domain.PersonoppgavehendelseType
 import no.nav.syfo.infrastructure.database.queries.createPersonOppgave
 import no.nav.syfo.infrastructure.database.queries.getPersonOppgaver
 import no.nav.syfo.infrastructure.database.queries.updatePersonOppgaveOversikthendelse
-import no.nav.syfo.util.callIdArgument
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.util.*
@@ -50,12 +50,15 @@ class OppfolgingsplanLPSService(
                 log.error(
                     "Already create a PersonOppgave for OppfolgingsplanLPS with UUID {}, {}",
                     kOppfolgingsplanLPS.uuid,
-                    callIdArgument(callId)
+                    StructuredArguments.keyValue("callId", callId)
                 )
                 COUNT_PERSON_OPPGAVE_OPPFOLGINGSPLANLPS_ALREADY_CREATED.increment()
             }
         } else {
-            log.info("OppfolgingsplanLPS does not have BehovForBistandFraNav=true and is skipped, {}", callIdArgument(callId))
+            log.info(
+                "OppfolgingsplanLPS does not have BehovForBistandFraNav=true and is skipped, {}",
+                StructuredArguments.keyValue("callId", callId)
+            )
             COUNT_PERSON_OPPGAVE_OPPFOLGINGSPLANLPS_NO_BEHOVFORBISTAND.increment()
         }
     }

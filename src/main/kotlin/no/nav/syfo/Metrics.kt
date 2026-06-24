@@ -33,19 +33,6 @@ val COUNT_PERSONOPPGAVEHENDELSE_OPPFOLGINGSPLANLPS_BISTAND_MOTTATT_SENT: Counter
         .description("Counts the number of personoppgavehendelse with PersonoppgavehendelseType OPPFOLGINGSPLANLPS_BISTAND_MOTTATT created from a KOppfolgingsplanLPS")
         .register(METRICS_REGISTRY)
 
-const val CALL_TILGANGSKONTROLL_PERSON_SUCCESS = "${METRICS_NS}_call_tilgangskontroll_person_success_count"
-const val CALL_TILGANGSKONTROLL_PERSON_FAIL = "${METRICS_NS}_call_tilgangskontroll_person_fail_count"
-const val CALL_TILGANGSKONTROLL_PERSON_FORBIDDEN = "${METRICS_NS}_call_tilgangskontroll_person_forbidden_count"
-val COUNT_CALL_TILGANGSKONTROLL_PERSON_SUCCESS: Counter = Counter.builder(CALL_TILGANGSKONTROLL_PERSON_SUCCESS)
-    .description("Counts the number of successful calls to istilgangskontroll - person")
-    .register(METRICS_REGISTRY)
-val COUNT_CALL_TILGANGSKONTROLL_PERSON_FAIL: Counter = Counter.builder(CALL_TILGANGSKONTROLL_PERSON_FAIL)
-    .description("Counts the number of failed calls to istilgangskontroll - person")
-    .register(METRICS_REGISTRY)
-val COUNT_CALL_TILGANGSKONTROLL_PERSON_FORBIDDEN: Counter = Counter.builder(CALL_TILGANGSKONTROLL_PERSON_FORBIDDEN)
-    .description("Counts the number of forbidden calls to istilgangskontroll - person")
-    .register(METRICS_REGISTRY)
-
 const val PERSONOPPGAVEHENDELSE_DIALOGMELDING_SVAR_MOTTATT =
     "${METRICS_NS}_personoppgavehendelse_dialogmelding_svar_mottatt_count"
 val COUNT_PERSONOPPGAVEHENDELSE_DIALOGMELDING_SVAR_MOTTATT: Counter =
