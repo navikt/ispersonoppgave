@@ -8,10 +8,10 @@ val isyfoBackendCommonVersion = "1.3.1"
 val confluentVersion = "8.3.0"
 val jacksonDataTypeVersion = "2.22.1"
 val jacksonDatabindVersion = "3.2.1"
-val flywayVersion = "11.20.3"
+val flywayVersion = "13.1.0"
 val hikariVersion = "7.1.0"
 val isdialogmoteSchemaVersion = "1.0.5"
-val jsonVersion = "20250517"
+val jsonVersion = "20260719"
 val kafkaVersion = "4.3.1"
 val ktorVersion = "3.5.2"
 val logbackVersion = "1.6.1"
@@ -84,39 +84,6 @@ dependencies {
     // Kafka
     implementation("org.apache.kafka:kafka_2.13:$kafkaVersion", excludeLog4j)
     implementation("io.confluent:kafka-avro-serializer:$confluentVersion")
-    constraints {
-        implementation("org.apache.commons:commons-compress") {
-            because("org.apache.commons:commons-compress:1.22 -> https://www.cve.org/CVERecord?id=CVE-2012-2098")
-            version {
-                require("1.28.0")
-            }
-        }
-        implementation("org.eclipse.jetty:jetty-server") {
-            version {
-                require("12.0.34")
-            }
-        }
-    }
-    implementation("io.confluent:kafka-schema-registry:$confluentVersion", excludeLog4j)
-    constraints {
-        implementation("io.github.classgraph:classgraph") {
-            because("io.confluent:kafka-schema-registry:$confluentVersion -> https://www.cve.org/CVERecord?id=CVE-2021-47621")
-            version {
-                require("4.8.179")
-            }
-        }
-        implementation("org.json:json") {
-            because("io.confluent:kafka-schema-registry:$confluentVersion -> https://www.cve.org/CVERecord?id=CVE-2023-5072")
-            version {
-                require(jsonVersion)
-            }
-        }
-        implementation("com.nimbusds:nimbus-jose-jwt") {
-            version {
-                require(nimbusjosejwtVersion)
-            }
-        }
-    }
 
     // Tests
     testImplementation(testFixtures("no.nav.syfo:isyfo-backend-common:$isyfoBackendCommonVersion"))
