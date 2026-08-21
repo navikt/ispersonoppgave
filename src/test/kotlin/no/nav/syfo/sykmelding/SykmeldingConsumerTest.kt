@@ -336,6 +336,41 @@ class SykmeldingConsumerTest {
     }
 
     @Test
+    fun `Sykmelding followed by tombstone in same poll handles created oppgave`() {
+        val sykmeldingId = UUID.randomUUID()
+        val sykmelding = generateKafkaSykmelding(
+            sykmeldingId = sykmeldingId,
+            meldingTilNAV = MeldingTilNAV(
+                bistandUmiddelbart = false,
+                beskrivBistand = "Bistand påkrevet",
+            ),
+        )
+        kafkaConsumer.mockPollConsumerRecords(
+            records = listOf(
+                sykmeldingId.toString() to sykmelding,
+                sykmeldingId.toString() to null,
+            ),
+            topic = SYKMELDING_TOPIC,
+        )
+
+        sykmeldingConsumer.pollAndProcessRecords(kafkaConsumer = kafkaConsumer)
+
+        val personOppgave = database.getPersonOppgaver(PersonIdent(sykmelding.personNrPasient))
+            .map { it.toPersonOppgave() }
+            .single()
+        assertNotNull(personOppgave.behandletTidspunkt)
+        assertEquals(Constants.SYSTEM_VEILEDER_IDENT, personOppgave.behandletVeilederIdent)
+        verify(exactly = 1) { kafkaConsumer.commitSync() }
+        verify(exactly = 1) {
+            personoppgavehendelseProducer.sendPersonoppgavehendelse(
+                PersonoppgavehendelseType.BEHANDLER_BER_OM_BISTAND_BEHANDLET,
+                PersonIdent(sykmelding.personNrPasient),
+                personOppgave.uuid,
+            )
+        }
+    }
+
+    @Test
     fun `Tombstone handles existing ubehandlet oppgave`() {
         val sykmeldingId = UUID.randomUUID()
         val sykmelding = generateKafkaSykmelding(

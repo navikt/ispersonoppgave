@@ -76,23 +76,17 @@ class SykmeldingConsumer(
         database: DatabaseInterface,
         consumerRecords: ConsumerRecords<String, ReceivedSykmeldingDTO>,
     ) {
-        val (tombstoneRecords, validRecords) = consumerRecords.partition { it.value() == null }
-        if (tombstoneRecords.isNotEmpty()) {
-            log.warn(
-                "Value of ${tombstoneRecords.size} ConsumerRecord are null, most probably due to a tombstone. " +
-                    "The related personoppgaver will be handled automatically"
-            )
-        }
-
         val personOppgaverBehandlet = mutableListOf<PersonOppgave>()
         database.connection.use { connection ->
-            tombstoneRecords.forEach { tombstoneRecord ->
-                processTombstone(tombstoneRecord.key(), connection)?.let {
-                    personOppgaverBehandlet.add(it)
+            consumerRecords.forEach { record ->
+                val recordValue = record.value()
+                if (recordValue == null) {
+                    processTombstone(record.key(), connection)?.let {
+                        personOppgaverBehandlet.add(it)
+                    }
+                } else {
+                    processSykmelding(recordValue, connection)
                 }
-            }
-            validRecords.forEach { sykmeldingRecord ->
-                processSykmelding(sykmeldingRecord.value(), connection)
             }
             connection.commit()
         }
