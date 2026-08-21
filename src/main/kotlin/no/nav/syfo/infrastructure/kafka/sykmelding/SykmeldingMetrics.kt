@@ -9,6 +9,7 @@ const val MOTTATT_SYKMELDING_CREATED_PERSONOPPGAVE = "${METRICS_NS}_mottatt_sykm
 const val MOTTATT_SYKMELDING_DUPLICATE = "${METRICS_NS}_mottatt_sykmelding_duplikat_count"
 const val MOTTATT_SYKMELDING_SKIPPED_IRRELEVANT_TEXT = "${METRICS_NS}_mottatt_sykmelding_skipped_personoppgave_irrelevant_count"
 const val MOTTATT_SYKMELDING_SHORT_TEXT = "${METRICS_NS}_mottatt_sykmelding_personoppgave_short_text_count"
+const val MOTTATT_SYKMELDING_TOMBSTONE = "${METRICS_NS}_mottatt_sykmelding_tombstone_count"
 
 val COUNT_MOTTATT_SYKMELDING: Counter = Counter
     .builder(MOTTATT_SYKMELDING)
@@ -33,4 +34,9 @@ val COUNT_MOTTATT_SYKMELDING_SKIPPED_IRRELEVANT_TEXT: Counter = Counter
 val COUNT_MOTTATT_SYKMELDING_SHORT_TEXT: Counter = Counter
     .builder(MOTTATT_SYKMELDING_SHORT_TEXT)
     .description("Counts the number of received sykmelding that created personoppgave with short text")
+    .register(METRICS_REGISTRY)
+
+val COUNT_MOTTATT_SYKMELDING_TOMBSTONE: Counter = Counter
+    .builder(MOTTATT_SYKMELDING_TOMBSTONE)
+    .description("Counts the number of received sykmelding tombstones")
     .register(METRICS_REGISTRY)

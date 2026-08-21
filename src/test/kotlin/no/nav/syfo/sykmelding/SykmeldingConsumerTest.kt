@@ -4,11 +4,14 @@ import io.mockk.clearMocks
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
+import no.nav.syfo.application.PersonOppgaveService
 import no.nav.syfo.infrastructure.database.PersonOppgaveRepository
 import no.nav.syfo.domain.PersonIdent
 import no.nav.syfo.domain.PersonOppgaveType
+import no.nav.syfo.domain.PersonoppgavehendelseType
 import no.nav.syfo.infrastructure.database.queries.toPersonOppgave
 import no.nav.syfo.infrastructure.database.queries.getPersonOppgaver
+import no.nav.syfo.infrastructure.kafka.oppgavehendelse.PersonoppgavehendelseProducer
 import no.nav.syfo.infrastructure.kafka.sykmelding.SykmeldingConsumer
 import no.nav.syfo.infrastructure.kafka.sykmelding.MeldingTilNAV
 import no.nav.syfo.infrastructure.kafka.sykmelding.ReceivedSykmeldingDTO
@@ -19,10 +22,12 @@ import no.nav.syfo.testutil.generators.generateKafkaSykmelding
 import no.nav.syfo.testutil.getDuplicateCount
 import no.nav.syfo.testutil.mock.mockPollConsumerRecords
 import no.nav.syfo.testutil.updateCreatedAt
+import no.nav.syfo.util.Constants
 import org.apache.kafka.clients.consumer.KafkaConsumer
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
+import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Assertions.assertTrue
 import java.time.OffsetDateTime
@@ -32,13 +37,24 @@ class SykmeldingConsumerTest {
     private val externalMockEnvironment = ExternalMockEnvironment.instance
     private val database = externalMockEnvironment.database
     private val kafkaConsumer: KafkaConsumer<String, ReceivedSykmeldingDTO> = mockk(relaxed = true)
+    private val personoppgavehendelseProducer: PersonoppgavehendelseProducer = mockk(relaxed = true)
+    private val personOppgaveRepository = PersonOppgaveRepository(database = database)
+    private val personOppgaveService = PersonOppgaveService(
+        database = database,
+        personoppgavehendelseProducer = personoppgavehendelseProducer,
+        personoppgaveRepository = personOppgaveRepository,
+    )
     private val sykmeldingConsumer =
-        SykmeldingConsumer(database = database, personOppgaveRepository = PersonOppgaveRepository(database = database))
+        SykmeldingConsumer(
+            database = database,
+            personOppgaveRepository = personOppgaveRepository,
+            personOppgaveService = personOppgaveService,
+        )
 
     @BeforeEach
     fun setup() {
         database.dropData()
-        clearMocks(kafkaConsumer)
+        clearMocks(kafkaConsumer, personoppgavehendelseProducer)
         every { kafkaConsumer.commitSync() } returns Unit
     }
 
@@ -317,5 +333,107 @@ class SykmeldingConsumerTest {
         sykmeldingConsumer.pollAndProcessRecords(kafkaConsumer = kafkaConsumer)
         verify(exactly = 1) { kafkaConsumer.commitSync() }
         assertTrue(database.getPersonOppgaver(PersonIdent(sykmelding.personNrPasient)).isEmpty())
+    }
+
+    @Test
+    fun `Tombstone handles existing ubehandlet oppgave`() {
+        val sykmeldingId = UUID.randomUUID()
+        val sykmelding = generateKafkaSykmelding(
+            sykmeldingId = sykmeldingId,
+            meldingTilNAV = MeldingTilNAV(
+                bistandUmiddelbart = false,
+                beskrivBistand = "Bistand påkrevet",
+            ),
+        )
+        kafkaConsumer.mockPollConsumerRecords(recordValue = sykmelding, topic = SYKMELDING_TOPIC)
+        sykmeldingConsumer.pollAndProcessRecords(kafkaConsumer = kafkaConsumer)
+        clearMocks(kafkaConsumer, personoppgavehendelseProducer)
+        every { kafkaConsumer.commitSync() } returns Unit
+
+        kafkaConsumer.mockPollConsumerRecords(
+            recordValue = null,
+            recordKey = sykmeldingId.toString(),
+            topic = SYKMELDING_TOPIC,
+        )
+        sykmeldingConsumer.pollAndProcessRecords(kafkaConsumer = kafkaConsumer)
+
+        val personOppgave = database.getPersonOppgaver(PersonIdent(sykmelding.personNrPasient))
+            .map { it.toPersonOppgave() }
+            .single()
+        assertNotNull(personOppgave.behandletTidspunkt)
+        assertEquals(Constants.SYSTEM_VEILEDER_IDENT, personOppgave.behandletVeilederIdent)
+        verify(exactly = 1) { kafkaConsumer.commitSync() }
+        verify(exactly = 1) {
+            personoppgavehendelseProducer.sendPersonoppgavehendelse(
+                PersonoppgavehendelseType.BEHANDLER_BER_OM_BISTAND_BEHANDLET,
+                PersonIdent(sykmelding.personNrPasient),
+                personOppgave.uuid,
+            )
+        }
+    }
+
+    @Test
+    fun `Tombstone does not handle already behandlet oppgave again`() {
+        val sykmeldingId = UUID.randomUUID()
+        val sykmelding = generateKafkaSykmelding(
+            sykmeldingId = sykmeldingId,
+            meldingTilNAV = null,
+            tiltakNAV = "Bistand påkrevet",
+        )
+        kafkaConsumer.mockPollConsumerRecords(recordValue = sykmelding, topic = SYKMELDING_TOPIC)
+        sykmeldingConsumer.pollAndProcessRecords(kafkaConsumer = kafkaConsumer)
+        val personOppgave = database.getPersonOppgaver(PersonIdent(sykmelding.personNrPasient))
+            .map { it.toPersonOppgave() }
+            .single()
+        database.connection.use { connection ->
+            personOppgaveService.markOppgaveAsBehandletBySystem(personOppgave, connection)
+            connection.commit()
+        }
+        clearMocks(kafkaConsumer, personoppgavehendelseProducer)
+        every { kafkaConsumer.commitSync() } returns Unit
+
+        kafkaConsumer.mockPollConsumerRecords(
+            recordValue = null,
+            recordKey = sykmeldingId.toString(),
+            topic = SYKMELDING_TOPIC,
+        )
+        sykmeldingConsumer.pollAndProcessRecords(kafkaConsumer = kafkaConsumer)
+
+        verify(exactly = 1) { kafkaConsumer.commitSync() }
+        verify(exactly = 0) {
+            personoppgavehendelseProducer.sendPersonoppgavehendelse(any(), any(), any())
+        }
+    }
+
+    @Test
+    fun `Tombstone without matching oppgave is a no-op`() {
+        kafkaConsumer.mockPollConsumerRecords(
+            recordValue = null,
+            recordKey = UUID.randomUUID().toString(),
+            topic = SYKMELDING_TOPIC,
+        )
+
+        sykmeldingConsumer.pollAndProcessRecords(kafkaConsumer = kafkaConsumer)
+
+        verify(exactly = 1) { kafkaConsumer.commitSync() }
+        verify(exactly = 0) {
+            personoppgavehendelseProducer.sendPersonoppgavehendelse(any(), any(), any())
+        }
+    }
+
+    @Test
+    fun `Tombstone with malformed key is skipped`() {
+        kafkaConsumer.mockPollConsumerRecords(
+            recordValue = null,
+            recordKey = "not-a-uuid",
+            topic = SYKMELDING_TOPIC,
+        )
+
+        sykmeldingConsumer.pollAndProcessRecords(kafkaConsumer = kafkaConsumer)
+
+        verify(exactly = 1) { kafkaConsumer.commitSync() }
+        verify(exactly = 0) {
+            personoppgavehendelseProducer.sendPersonoppgavehendelse(any(), any(), any())
+        }
     }
 }

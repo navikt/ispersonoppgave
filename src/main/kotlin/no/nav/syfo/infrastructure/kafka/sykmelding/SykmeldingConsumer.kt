@@ -2,6 +2,7 @@ package no.nav.syfo.infrastructure.kafka.sykmelding
 
 import no.nav.syfo.ApplicationState
 import no.nav.syfo.Environment
+import no.nav.syfo.application.PersonOppgaveService
 import no.nav.syfo.infrastructure.database.DatabaseInterface
 import no.nav.syfo.infrastructure.database.PersonOppgaveRepository
 import no.nav.syfo.infrastructure.database.SykmeldingFieldsRepository
@@ -11,7 +12,10 @@ import no.nav.syfo.infrastructure.kafka.launchKafkaTask
 import no.nav.syfo.domain.PersonIdent
 import no.nav.syfo.domain.PersonOppgave
 import no.nav.syfo.domain.PersonOppgaveType
+import no.nav.syfo.domain.isUBehandlet
 import no.nav.syfo.infrastructure.database.queries.getPersonOppgaverByReferanseUuid
+import no.nav.syfo.infrastructure.database.queries.toPersonOppgave
+import no.nav.syfo.util.Constants
 import no.nav.syfo.util.configuredJacksonMapper
 import org.apache.kafka.clients.consumer.*
 import org.apache.kafka.common.serialization.Deserializer
@@ -29,6 +33,7 @@ fun launchKafkaTaskSykmelding(
     environment: Environment,
     database: DatabaseInterface,
     personOppgaveRepository: PersonOppgaveRepository,
+    personOppgaveService: PersonOppgaveService,
 ) {
     val consumerProperties = kafkaAivenConsumerConfig<ReceivedSykmeldingDTODeserializer>(environment.kafka).apply {
         this[ConsumerConfig.AUTO_OFFSET_RESET_CONFIG] = "latest"
@@ -38,6 +43,7 @@ fun launchKafkaTaskSykmelding(
         kafkaConsumerService = SykmeldingConsumer(
             database = database,
             personOppgaveRepository = personOppgaveRepository,
+            personOppgaveService = personOppgaveService,
         ),
         consumerProperties = consumerProperties,
         topics = listOf(SYKMELDING_TOPIC, MANUELL_SYKMELDING_TOPIC),
@@ -47,6 +53,7 @@ fun launchKafkaTaskSykmelding(
 class SykmeldingConsumer(
     private val database: DatabaseInterface,
     private val personOppgaveRepository: PersonOppgaveRepository,
+    private val personOppgaveService: PersonOppgaveService,
 ) : KafkaConsumerService<ReceivedSykmeldingDTO> {
 
     override val pollDurationInMillis: Long = 1000
@@ -69,14 +76,61 @@ class SykmeldingConsumer(
         database: DatabaseInterface,
         consumerRecords: ConsumerRecords<String, ReceivedSykmeldingDTO>,
     ) {
+        val (tombstoneRecords, validRecords) = consumerRecords.partition { it.value() == null }
+        if (tombstoneRecords.isNotEmpty()) {
+            log.warn(
+                "Value of ${tombstoneRecords.size} ConsumerRecord are null, most probably due to a tombstone. " +
+                    "The related personoppgaver will be handled automatically"
+            )
+        }
+
+        val personOppgaverBehandlet = mutableListOf<PersonOppgave>()
         database.connection.use { connection ->
-            consumerRecords.forEach { sykmeldingRecord ->
-                sykmeldingRecord.value()?.let { receivedSykmeldingDTO ->
-                    processSykmelding(receivedSykmeldingDTO, connection)
+            tombstoneRecords.forEach { tombstoneRecord ->
+                processTombstone(tombstoneRecord.key(), connection)?.let {
+                    personOppgaverBehandlet.add(it)
                 }
+            }
+            validRecords.forEach { sykmeldingRecord ->
+                processSykmelding(sykmeldingRecord.value(), connection)
             }
             connection.commit()
         }
+        personOppgaverBehandlet.forEach {
+            personOppgaveService.publishIfAllOppgaverBehandlet(
+                behandletPersonOppgave = it,
+                veilederIdent = Constants.SYSTEM_VEILEDER_IDENT,
+            )
+        }
+    }
+
+    private fun processTombstone(
+        recordKey: String?,
+        connection: Connection,
+    ): PersonOppgave? {
+        COUNT_MOTTATT_SYKMELDING_TOMBSTONE.increment()
+        if (recordKey == null) {
+            log.warn("Received sykmelding tombstone without a key, skipping automatic handling")
+            return null
+        }
+        val referanseUuid = try {
+            UUID.fromString(recordKey)
+        } catch (e: IllegalArgumentException) {
+            log.warn("Received sykmelding tombstone with invalid UUID key, skipping automatic handling")
+            return null
+        }
+        val personOppgave = connection.getPersonOppgaverByReferanseUuid(referanseUuid)
+            .map { it.toPersonOppgave() }
+            .firstOrNull {
+                it.type == PersonOppgaveType.BEHANDLER_BER_OM_BISTAND && it.isUBehandlet()
+            }
+            ?: return null
+
+        log.info("Received tombstone for personoppgave with uuid ${personOppgave.uuid}, behandles automatically by system")
+        return personOppgaveService.markOppgaveAsBehandletBySystem(
+            personOppgave = personOppgave,
+            connection = connection,
+        )
     }
 
     private fun processSykmelding(
