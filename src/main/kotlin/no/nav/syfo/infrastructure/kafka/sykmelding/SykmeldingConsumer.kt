@@ -24,8 +24,6 @@ import java.util.*
 const val SYKMELDING_TOPIC = "teamsykmelding.ok-sykmelding"
 const val MANUELL_SYKMELDING_TOPIC = "teamsykmelding.manuell-behandling-sykmelding"
 
-private val log: Logger = LoggerFactory.getLogger(SykmeldingConsumer::class.java)
-
 fun launchKafkaTaskSykmelding(
     applicationState: ApplicationState,
     environment: Environment,
@@ -160,18 +158,13 @@ class SykmeldingConsumer(
     }
 
     companion object {
+        private val log: Logger = LoggerFactory.getLogger(SykmeldingConsumer::class.java)
         val irrelevantSykmeldingFelterContent = listOf(".", "-", "nei")
     }
 }
 
 class ReceivedSykmeldingDTODeserializer : Deserializer<ReceivedSykmeldingDTO> {
     private val mapper = configuredJacksonMapper()
-    override fun deserialize(topic: String, data: ByteArray): ReceivedSykmeldingDTO? {
-        return try {
-            mapper.readValue(data, ReceivedSykmeldingDTO::class.java)
-        } catch (e: NullPointerException) {
-            log.error("Failed to deserialize ReceivedSykmeldingDTO from topic $topic", e)
-            null
-        }
-    }
+    override fun deserialize(topic: String, data: ByteArray): ReceivedSykmeldingDTO =
+        mapper.readValue(data, ReceivedSykmeldingDTO::class.java)
 }
