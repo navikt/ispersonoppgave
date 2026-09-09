@@ -15,26 +15,31 @@ fun <ConsumerRecordValue> KafkaConsumer<String, ConsumerRecordValue>.mockPollCon
     recordKey2: String = UUID.randomUUID().toString(),
     topic: String = "topic",
 ) {
+    val records = if (recordValue2 == null) {
+        listOf(recordKey to recordValue)
+    } else {
+        listOf(recordKey to recordValue, recordKey2 to recordValue2)
+    }
+    mockPollConsumerRecords(records = records, topic = topic)
+}
+
+fun <ConsumerRecordValue> KafkaConsumer<String, ConsumerRecordValue>.mockPollConsumerRecords(
+    records: List<Pair<String, ConsumerRecordValue?>>,
+    topic: String = "topic",
+) {
     val topicPartition = TopicPartition(
         topic,
         0
     )
-    val consumerRecord = ConsumerRecord(
-        topic,
-        0,
-        1,
-        recordKey,
-        recordValue,
-    )
-    val consumerRecord2 = if (recordValue2 == null) null else
+    val consumerRecordList = records.mapIndexed { index, (key, value) ->
         ConsumerRecord(
             topic,
             0,
-            2,
-            recordKey2,
-            recordValue2,
+            index.toLong() + 1,
+            key,
+            value,
         )
-    val consumerRecordList = if (consumerRecord2 == null) listOf(consumerRecord) else listOf(consumerRecord, consumerRecord2)
+    }
     val consumerRecords = ConsumerRecords(mapOf(topicPartition to consumerRecordList))
     every { this@mockPollConsumerRecords.poll(any<Duration>()) } returns consumerRecords
 }

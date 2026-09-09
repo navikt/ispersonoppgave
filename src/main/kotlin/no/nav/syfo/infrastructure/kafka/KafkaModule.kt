@@ -109,5 +109,6 @@ fun launchKafkaTasks(
         environment = environment,
         database = database,
         personOppgaveRepository = personOppgaveRepository,
+        personOppgaveService = personOppgaveService,
     )
 }
