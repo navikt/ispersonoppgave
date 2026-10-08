@@ -139,18 +139,23 @@ class SykmeldingConsumer(
             sykmelding.andreTiltak,
         ).filter { it.isNotEmpty() }
 
-        if (relevantFields.isNotEmpty()) {
-            if (relevantFields.all { hasIrrelevantContent(it) }) {
-                COUNT_MOTTATT_SYKMELDING_SKIPPED_IRRELEVANT_TEXT.increment()
-            } else {
-                if (relevantFields.all { it.length < 10 }) {
-                    COUNT_MOTTATT_SYKMELDING_SHORT_TEXT.increment()
-                }
-                createPersonoppgave(
-                    connection = connection,
-                    receivedSykmeldingDTO = receivedSykmeldingDTO,
-                )
+        val annetArbeidPaSikt = sykmelding.prognose?.erIArbeid?.annetArbeidPaSikt == true
+        val hasRelevantText = relevantFields.isNotEmpty() && !relevantFields.all { hasIrrelevantContent(it) }
+
+        if (annetArbeidPaSikt) {
+            COUNT_MOTTATT_SYKMELDING_ANNET_ARBEID_PA_SIKT.increment()
+        }
+        if (hasRelevantText || annetArbeidPaSikt) {
+            if (hasRelevantText && relevantFields.all { it.length < 10 }) {
+                COUNT_MOTTATT_SYKMELDING_SHORT_TEXT.increment()
             }
+            createPersonoppgave(
+                connection = connection,
+                receivedSykmeldingDTO = receivedSykmeldingDTO,
+                checkDuplicateFields = !annetArbeidPaSikt,
+            )
+        } else if (relevantFields.isNotEmpty()) {
+            COUNT_MOTTATT_SYKMELDING_SKIPPED_IRRELEVANT_TEXT.increment()
         }
     }
 
@@ -160,19 +165,24 @@ class SykmeldingConsumer(
     private fun createPersonoppgave(
         connection: Connection,
         receivedSykmeldingDTO: ReceivedSykmeldingDTO,
+        checkDuplicateFields: Boolean,
     ) {
         val referanseUuid = UUID.fromString(receivedSykmeldingDTO.sykmelding.id)
         val hasExistingUbehandlet = connection.getPersonOppgaverByReferanseUuid(referanseUuid)
             .any { it.behandletTidspunkt == null }
         if (!hasExistingUbehandlet) {
             val arbeidstakerPersonident = PersonIdent(receivedSykmeldingDTO.personNrPasient)
-            val existingDuplicate = sykmeldingFieldsRepository.findExistingPersonoppgaveFromSykmeldingFields(
-                personident = arbeidstakerPersonident,
-                tiltakNav = receivedSykmeldingDTO.sykmelding.tiltakNAV,
-                tiltakAndre = receivedSykmeldingDTO.sykmelding.andreTiltak,
-                bistand = receivedSykmeldingDTO.sykmelding.meldingTilNAV?.beskrivBistand,
-                connection = connection,
-            ).firstOrNull()
+            val existingDuplicate = if (checkDuplicateFields) {
+                sykmeldingFieldsRepository.findExistingPersonoppgaveFromSykmeldingFields(
+                    personident = arbeidstakerPersonident,
+                    tiltakNav = receivedSykmeldingDTO.sykmelding.tiltakNAV,
+                    tiltakAndre = receivedSykmeldingDTO.sykmelding.andreTiltak,
+                    bistand = receivedSykmeldingDTO.sykmelding.meldingTilNAV?.beskrivBistand,
+                    connection = connection,
+                ).firstOrNull()
+            } else {
+                null
+            }
             val hasExistingDuplicate = existingDuplicate != null
 
             if (hasExistingDuplicate) {
