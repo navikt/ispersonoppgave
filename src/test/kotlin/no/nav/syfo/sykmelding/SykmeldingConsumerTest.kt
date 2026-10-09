@@ -336,6 +336,136 @@ class SykmeldingConsumerTest {
     }
 
     @Test
+    fun `Creates oppgave when only annetArbeidPaSikt is true`() {
+        val sykmeldingId = UUID.randomUUID()
+        val sykmelding = generateKafkaSykmelding(
+            sykmeldingId = sykmeldingId,
+            meldingTilNAV = null,
+            annetArbeidPaSikt = true,
+        )
+        kafkaConsumer.mockPollConsumerRecords(recordValue = sykmelding, topic = SYKMELDING_TOPIC)
+        sykmeldingConsumer.pollAndProcessRecords(kafkaConsumer = kafkaConsumer)
+        val personOppgaver = database.getPersonOppgaver(PersonIdent(sykmelding.personNrPasient)).map { it.toPersonOppgave() }
+        assertEquals(1, personOppgaver.size)
+        assertEquals(PersonOppgaveType.BEHANDLER_BER_OM_BISTAND, personOppgaver.first().type)
+        assertTrue(personOppgaver.first().publish)
+        assertEquals(sykmeldingId, personOppgaver.first().referanseUuid)
+    }
+
+    @Test
+    fun `Does not create oppgave when annetArbeidPaSikt is false and no text`() {
+        val sykmelding = generateKafkaSykmelding(
+            sykmeldingId = UUID.randomUUID(),
+            meldingTilNAV = null,
+            annetArbeidPaSikt = false,
+        )
+        kafkaConsumer.mockPollConsumerRecords(recordValue = sykmelding, topic = SYKMELDING_TOPIC)
+        sykmeldingConsumer.pollAndProcessRecords(kafkaConsumer = kafkaConsumer)
+        assertTrue(database.getPersonOppgaver(PersonIdent(sykmelding.personNrPasient)).isEmpty())
+    }
+
+    @Test
+    fun `Creates oppgave when annetArbeidPaSikt is true and text is irrelevant`() {
+        val sykmelding = generateKafkaSykmelding(
+            sykmeldingId = UUID.randomUUID(),
+            meldingTilNAV = null,
+            andreTiltak = "nei",
+            annetArbeidPaSikt = true,
+        )
+        kafkaConsumer.mockPollConsumerRecords(recordValue = sykmelding, topic = SYKMELDING_TOPIC)
+        sykmeldingConsumer.pollAndProcessRecords(kafkaConsumer = kafkaConsumer)
+        assertEquals(1, database.getPersonOppgaver(PersonIdent(sykmelding.personNrPasient)).size)
+    }
+
+    @Test
+    fun `Creates only one oppgave when both text and annetArbeidPaSikt trigger`() {
+        val sykmelding = generateKafkaSykmelding(
+            sykmeldingId = UUID.randomUUID(),
+            meldingTilNAV = null,
+            andreTiltak = "Jeg synes NAV skal gjøre dette",
+            annetArbeidPaSikt = true,
+        )
+        kafkaConsumer.mockPollConsumerRecords(recordValue = sykmelding, topic = SYKMELDING_TOPIC)
+        sykmeldingConsumer.pollAndProcessRecords(kafkaConsumer = kafkaConsumer)
+        assertEquals(1, database.getPersonOppgaver(PersonIdent(sykmelding.personNrPasient)).size)
+    }
+
+    @Test
+    fun `Creates oppgave per sykmelding with annetArbeidPaSikt without duplicate check`() {
+        val first = generateKafkaSykmelding(
+            sykmeldingId = UUID.randomUUID(),
+            meldingTilNAV = null,
+            annetArbeidPaSikt = true,
+        )
+        val second = generateKafkaSykmelding(
+            sykmeldingId = UUID.randomUUID(),
+            meldingTilNAV = null,
+            annetArbeidPaSikt = true,
+        )
+        kafkaConsumer.mockPollConsumerRecords(recordValue = first, topic = SYKMELDING_TOPIC)
+        sykmeldingConsumer.pollAndProcessRecords(kafkaConsumer = kafkaConsumer)
+        kafkaConsumer.mockPollConsumerRecords(recordValue = second, topic = SYKMELDING_TOPIC)
+        sykmeldingConsumer.pollAndProcessRecords(kafkaConsumer = kafkaConsumer)
+        val personOppgaver = database.getPersonOppgaver(PersonIdent(first.personNrPasient))
+        assertEquals(2, personOppgaver.size)
+        assertFalse(personOppgaver.any { it.duplikatReferanseUuid != null })
+    }
+
+    @Test
+    fun `Creates oppgave for annetArbeidPaSikt even if text duplicate exists`() {
+        val text = generateKafkaSykmelding(
+            sykmeldingId = UUID.randomUUID(),
+            meldingTilNAV = null,
+            andreTiltak = "Jeg synes NAV skal gjøre dette",
+        )
+        kafkaConsumer.mockPollConsumerRecords(recordValue = text, topic = SYKMELDING_TOPIC)
+        sykmeldingConsumer.pollAndProcessRecords(kafkaConsumer = kafkaConsumer)
+        val withFlag = generateKafkaSykmelding(
+            sykmeldingId = UUID.randomUUID(),
+            meldingTilNAV = null,
+            andreTiltak = "Jeg synes NAV skal gjøre dette",
+            annetArbeidPaSikt = true,
+        )
+        kafkaConsumer.mockPollConsumerRecords(recordValue = withFlag, topic = SYKMELDING_TOPIC)
+        sykmeldingConsumer.pollAndProcessRecords(kafkaConsumer = kafkaConsumer)
+        assertEquals(2, database.getPersonOppgaver(PersonIdent(text.personNrPasient)).size)
+    }
+
+    @Test
+    fun `Does not create second oppgave for same sykmelding with annetArbeidPaSikt`() {
+        val sykmelding = generateKafkaSykmelding(
+            sykmeldingId = UUID.randomUUID(),
+            meldingTilNAV = null,
+            annetArbeidPaSikt = true,
+        )
+        kafkaConsumer.mockPollConsumerRecords(recordValue = sykmelding, topic = SYKMELDING_TOPIC)
+        sykmeldingConsumer.pollAndProcessRecords(kafkaConsumer = kafkaConsumer)
+        sykmeldingConsumer.pollAndProcessRecords(kafkaConsumer = kafkaConsumer)
+        assertEquals(1, database.getPersonOppgaver(PersonIdent(sykmelding.personNrPasient)).size)
+    }
+
+    @Test
+    fun `Tombstone handles oppgave created by annetArbeidPaSikt`() {
+        val sykmeldingId = UUID.randomUUID()
+        val sykmelding = generateKafkaSykmelding(
+            sykmeldingId = sykmeldingId,
+            meldingTilNAV = null,
+            annetArbeidPaSikt = true,
+        )
+        kafkaConsumer.mockPollConsumerRecords(recordValue = sykmelding, topic = SYKMELDING_TOPIC)
+        sykmeldingConsumer.pollAndProcessRecords(kafkaConsumer = kafkaConsumer)
+        kafkaConsumer.mockPollConsumerRecords(
+            recordValue = null,
+            recordKey = sykmeldingId.toString(),
+            topic = SYKMELDING_TOPIC,
+        )
+        sykmeldingConsumer.pollAndProcessRecords(kafkaConsumer = kafkaConsumer)
+        val personOppgave = database.getPersonOppgaver(PersonIdent(sykmelding.personNrPasient)).map { it.toPersonOppgave() }.first()
+        assertNotNull(personOppgave.behandletTidspunkt)
+        assertEquals(Constants.SYSTEM_VEILEDER_IDENT, personOppgave.behandletVeilederIdent)
+    }
+
+    @Test
     fun `Sykmelding followed by tombstone in same poll handles created oppgave`() {
         val sykmeldingId = UUID.randomUUID()
         val sykmelding = generateKafkaSykmelding(

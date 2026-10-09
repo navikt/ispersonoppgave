@@ -3,7 +3,9 @@ package no.nav.syfo.testutil.generators
 import no.nav.syfo.infrastructure.kafka.sykmelding.Adresse
 import no.nav.syfo.infrastructure.kafka.sykmelding.AvsenderSystem
 import no.nav.syfo.infrastructure.kafka.sykmelding.Behandler
+import no.nav.syfo.infrastructure.kafka.sykmelding.ErIArbeid
 import no.nav.syfo.infrastructure.kafka.sykmelding.MedisinskVurdering
+import no.nav.syfo.infrastructure.kafka.sykmelding.Prognose
 import no.nav.syfo.infrastructure.kafka.sykmelding.MeldingTilNAV
 import no.nav.syfo.infrastructure.kafka.sykmelding.ReceivedSykmeldingDTO
 import no.nav.syfo.infrastructure.kafka.sykmelding.Sykmelding
@@ -31,6 +33,7 @@ fun generateKafkaSykmelding(
     meldingTilNAV: MeldingTilNAV?,
     tiltakNAV: String? = null,
     andreTiltak: String? = null,
+    annetArbeidPaSikt: Boolean? = null,
 ) = ReceivedSykmeldingDTO(
     sykmelding = Sykmelding(
         id = sykmeldingId.toString(),
@@ -68,6 +71,7 @@ fun generateKafkaSykmelding(
         andreTiltak = andreTiltak,
         meldingTilArbeidsgiver = "",
         tiltakNAV = tiltakNAV,
+        prognose = annetArbeidPaSikt?.let { Prognose(erIArbeid = ErIArbeid(annetArbeidPaSikt = it)) },
     ),
     personNrPasient = personNrPasient,
     personNrLege = personNrLege,

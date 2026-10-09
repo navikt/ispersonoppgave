@@ -40,3 +40,10 @@ val COUNT_MOTTATT_SYKMELDING_TOMBSTONE: Counter = Counter
     .builder(MOTTATT_SYKMELDING_TOMBSTONE)
     .description("Counts the number of received sykmelding tombstones")
     .register(METRICS_REGISTRY)
+
+const val MOTTATT_SYKMELDING_ANNET_ARBEID_PA_SIKT = "${METRICS_NS}_mottatt_sykmelding_annet_arbeid_pa_sikt_count"
+
+val COUNT_MOTTATT_SYKMELDING_ANNET_ARBEID_PA_SIKT: Counter = Counter
+    .builder(MOTTATT_SYKMELDING_ANNET_ARBEID_PA_SIKT)
+    .description("Counts the number of received sykmelding with annetArbeidPaSikt true")
+    .register(METRICS_REGISTRY)

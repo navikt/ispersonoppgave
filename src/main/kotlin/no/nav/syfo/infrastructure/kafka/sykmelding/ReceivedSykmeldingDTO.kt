@@ -34,6 +34,15 @@ data class Sykmelding(
     val syketilfelleStartDato: LocalDate?,
     val signaturDato: LocalDateTime,
     val navnFastlege: String?,
+    val prognose: Prognose? = null,
+)
+
+data class Prognose(
+    val erIArbeid: ErIArbeid? = null,
+)
+
+data class ErIArbeid(
+    val annetArbeidPaSikt: Boolean = false,
 )
 
 data class MeldingTilNAV(
