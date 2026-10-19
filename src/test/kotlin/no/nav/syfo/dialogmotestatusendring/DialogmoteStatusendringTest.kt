@@ -6,6 +6,7 @@ import io.mockk.mockk
 import no.nav.syfo.dialogmote.avro.KDialogmoteStatusEndring
 import no.nav.syfo.domain.DialogmoteStatusendringType
 import no.nav.syfo.infrastructure.kafka.dialogmotestatusendring.DialogmoteStatusendringConsumer
+import no.nav.syfo.infrastructure.database.queries.didFinishDialogmote
 import no.nav.syfo.infrastructure.database.queries.getDialogmoteStatusendring
 import no.nav.syfo.testutil.ExternalMockEnvironment
 import no.nav.syfo.testutil.UserConstants
@@ -14,6 +15,7 @@ import no.nav.syfo.testutil.mock.mockPollConsumerRecords
 import org.apache.kafka.clients.consumer.KafkaConsumer
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertFalse
 import java.time.Instant
 import java.time.OffsetDateTime
 import java.time.ZoneOffset
@@ -66,5 +68,35 @@ class DialogmoteStatusendringTest {
         assertEquals(DialogmoteStatusendringType.AVLYST.name, pDialogmoteStatusendring.type)
         assertEquals(UserConstants.ARBEIDSTAKER_FNR.value, pDialogmoteStatusendring.arbeidstakerIdent)
         assertEquals(UserConstants.VEILEDER_IDENT, pDialogmoteStatusendring.veilederIdent)
+    }
+
+    @Test
+    fun `stores dialogmote statusendring ENDRET from kafka in database`() {
+        val moteUuid = UUID.randomUUID()
+        val instantNow = Instant.now()
+        val kDialogmoteStatusendring = KDialogmoteStatusEndring.newBuilder()
+            .setDialogmoteUuid(moteUuid.toString())
+            .setPersonIdent(UserConstants.ARBEIDSTAKER_FNR.value)
+            .setStatusEndringType("ENDRET")
+            .setDialogmoteTidspunkt(instantNow)
+            .setStatusEndringTidspunkt(instantNow)
+            .setVirksomhetsnummer(UserConstants.VIRKSOMHETSNUMMER.value)
+            .setEnhetNr(UserConstants.NAV_ENHET)
+            .setTilfelleStartdato(instantNow)
+            .setNavIdent(UserConstants.VEILEDER_IDENT)
+            .setArbeidstaker(true)
+            .setArbeidsgiver(true)
+            .setSykmelder(true).build()
+
+        kafkaConsumer.mockPollConsumerRecords(recordValue = kDialogmoteStatusendring, recordKey = moteUuid.toString())
+
+        dialogmoteStatusendringConsumer.pollAndProcessRecords(kafkaConsumer = kafkaConsumer)
+
+        val allPDialogmoteStatusendring = database.connection.use { connection ->
+            connection.getDialogmoteStatusendring(moteUuid = moteUuid)
+        }
+        assertEquals(1, allPDialogmoteStatusendring.size)
+        assertEquals(DialogmoteStatusendringType.ENDRET.name, allPDialogmoteStatusendring[0].type)
+        assertFalse(allPDialogmoteStatusendring[0].didFinishDialogmote())
     }
 }
