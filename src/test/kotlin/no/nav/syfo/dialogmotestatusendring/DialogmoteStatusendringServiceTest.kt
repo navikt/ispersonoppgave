@@ -42,11 +42,14 @@ class DialogmoteStatusendringServiceTest {
     @Test
     fun `Finish personoppgave when a dialogmote gets a referat`() {
         val statusendring = generateDialogmotestatusendring(
-            DialogmoteStatusendringType.FERDIGSTILT,
-            dialogmoteUuid,
-            HAPPENS_NOW,
+            type = DialogmoteStatusendringType.FERDIGSTILT,
+            uuid = dialogmoteUuid,
+            endringTidspunkt = HAPPENS_NOW,
         )
-        val personoppgave = generatePPersonoppgave(dialogmoteUuid, ONE_DAY_AGO.toLocalDateTime()).copy(
+        val personoppgave = generatePPersonoppgave(
+            referanseUuid = dialogmoteUuid,
+            sistEndret = ONE_DAY_AGO.toLocalDateTime(),
+        ).copy(
             opprettet = TEN_DAYS_AGO.toLocalDateTimeOslo(),
         )
         val updatePersonoppgave = generatePersonoppgave().copy(
@@ -70,8 +73,15 @@ class DialogmoteStatusendringServiceTest {
 
     @Test
     fun `Finish personoppgave when a dialogmote changes place or time`() {
-        val statusendring = generateDialogmotestatusendring(DialogmoteStatusendringType.NYTT_TID_STED, dialogmoteUuid, HAPPENS_NOW)
-        val personoppgave = generatePPersonoppgave(dialogmoteUuid, ONE_DAY_AGO.toLocalDateTime()).copy(
+        val statusendring = generateDialogmotestatusendring(
+            type = DialogmoteStatusendringType.NYTT_TID_STED,
+            uuid = dialogmoteUuid,
+            endringTidspunkt = HAPPENS_NOW,
+        )
+        val personoppgave = generatePPersonoppgave(
+            referanseUuid = dialogmoteUuid,
+            sistEndret = ONE_DAY_AGO.toLocalDateTime(),
+        ).copy(
             opprettet = TEN_DAYS_AGO.toLocalDateTimeOslo(),
         )
         val updatePersonoppgave = generatePersonoppgave().copy(
@@ -95,8 +105,15 @@ class DialogmoteStatusendringServiceTest {
 
     @Test
     fun `Finish personoppgave when a dialogmote is endret`() {
-        val statusendring = generateDialogmotestatusendring(DialogmoteStatusendringType.ENDRET, dialogmoteUuid, HAPPENS_NOW)
-        val personoppgave = generatePPersonoppgave(dialogmoteUuid, ONE_DAY_AGO.toLocalDateTime()).copy(
+        val statusendring = generateDialogmotestatusendring(
+            type = DialogmoteStatusendringType.ENDRET,
+            uuid = dialogmoteUuid,
+            endringTidspunkt = HAPPENS_NOW,
+        )
+        val personoppgave = generatePPersonoppgave(
+            referanseUuid = dialogmoteUuid,
+            sistEndret = ONE_DAY_AGO.toLocalDateTime(),
+        ).copy(
             opprettet = TEN_DAYS_AGO.toLocalDateTimeOslo(),
         )
         val updatePersonoppgave = generatePersonoppgave().copy(
@@ -120,8 +137,15 @@ class DialogmoteStatusendringServiceTest {
 
     @Test
     fun `Finish personoppgave when a dialogmote is cancelled`() {
-        val statusendring = generateDialogmotestatusendring(DialogmoteStatusendringType.AVLYST, dialogmoteUuid, HAPPENS_NOW)
-        val personoppgave = generatePPersonoppgave(dialogmoteUuid, ONE_DAY_AGO.toLocalDateTime()).copy(
+        val statusendring = generateDialogmotestatusendring(
+            type = DialogmoteStatusendringType.AVLYST,
+            uuid = dialogmoteUuid,
+            endringTidspunkt = HAPPENS_NOW,
+        )
+        val personoppgave = generatePPersonoppgave(
+            referanseUuid = dialogmoteUuid,
+            sistEndret = ONE_DAY_AGO.toLocalDateTime(),
+        ).copy(
             opprettet = TEN_DAYS_AGO.toLocalDateTimeOslo(),
         )
         val updatePersonoppgave = generatePersonoppgave().copy(
@@ -145,7 +169,11 @@ class DialogmoteStatusendringServiceTest {
 
     @Test
     fun `Create finished personoppgave when dialogmote is created and no oppgave exists`() {
-        val statusendring = generateDialogmotestatusendring(DialogmoteStatusendringType.INNKALT, dialogmoteUuid, HAPPENS_NOW)
+        val statusendring = generateDialogmotestatusendring(
+            type = DialogmoteStatusendringType.INNKALT,
+            uuid = dialogmoteUuid,
+            endringTidspunkt = HAPPENS_NOW,
+        )
         every { connection.getPersonOppgaverByReferanseUuid(dialogmoteUuid) } returns emptyList()
         justRun { connection.createBehandletPersonoppgave(statusendring, any()) }
 
@@ -158,8 +186,15 @@ class DialogmoteStatusendringServiceTest {
 
     @Test
     fun `Do nothing if dialogmote created happened before personoppgave sist endret`() {
-        val statusendring = generateDialogmotestatusendring(DialogmoteStatusendringType.INNKALT, dialogmoteUuid, ONE_DAY_AGO)
-        val personoppgave = generatePPersonoppgave(dialogmoteUuid, HAPPENS_NOW.toLocalDateTime())
+        val statusendring = generateDialogmotestatusendring(
+            type = DialogmoteStatusendringType.INNKALT,
+            uuid = dialogmoteUuid,
+            endringTidspunkt = ONE_DAY_AGO,
+        )
+        val personoppgave = generatePPersonoppgave(
+            referanseUuid = dialogmoteUuid,
+            sistEndret = HAPPENS_NOW.toLocalDateTime(),
+        )
         every { connection.getPersonOppgaverByReferanseUuid(dialogmoteUuid) } returns listOf(personoppgave)
 
         DialogmoteStatusendringConsumer.processDialogmoteStatusendring(connection, statusendring)
@@ -171,8 +206,15 @@ class DialogmoteStatusendringServiceTest {
 
     @Test
     fun `Do nothing if dialogmote moved status happened før personoppgave sist endret`() {
-        val statusendring = generateDialogmotestatusendring(DialogmoteStatusendringType.NYTT_TID_STED, dialogmoteUuid, ONE_DAY_AGO)
-        val personoppgave = generatePPersonoppgave(dialogmoteUuid, HAPPENS_NOW.toLocalDateTime())
+        val statusendring = generateDialogmotestatusendring(
+            type = DialogmoteStatusendringType.NYTT_TID_STED,
+            uuid = dialogmoteUuid,
+            endringTidspunkt = ONE_DAY_AGO,
+        )
+        val personoppgave = generatePPersonoppgave(
+            referanseUuid = dialogmoteUuid,
+            sistEndret = HAPPENS_NOW.toLocalDateTime(),
+        )
         every { connection.getPersonOppgaverByReferanseUuid(dialogmoteUuid) } returns listOf(personoppgave)
 
         DialogmoteStatusendringConsumer.processDialogmoteStatusendring(connection, statusendring)
@@ -184,8 +226,15 @@ class DialogmoteStatusendringServiceTest {
 
     @Test
     fun `Do nothing if dialogmote endret happened before personoppgave sist endret`() {
-        val statusendring = generateDialogmotestatusendring(DialogmoteStatusendringType.ENDRET, dialogmoteUuid, ONE_DAY_AGO)
-        val personoppgave = generatePPersonoppgave(dialogmoteUuid, HAPPENS_NOW.toLocalDateTime())
+        val statusendring = generateDialogmotestatusendring(
+            type = DialogmoteStatusendringType.ENDRET,
+            uuid = dialogmoteUuid,
+            endringTidspunkt = ONE_DAY_AGO,
+        )
+        val personoppgave = generatePPersonoppgave(
+            referanseUuid = dialogmoteUuid,
+            sistEndret = HAPPENS_NOW.toLocalDateTime(),
+        )
         every { connection.getPersonOppgaverByReferanseUuid(dialogmoteUuid) } returns listOf(personoppgave)
 
         DialogmoteStatusendringConsumer.processDialogmoteStatusendring(connection, statusendring)
@@ -197,8 +246,15 @@ class DialogmoteStatusendringServiceTest {
 
     @Test
     fun `Close oppgave if dialogmote finished before personoppgave sist endret`() {
-        val statusendring = generateDialogmotestatusendring(DialogmoteStatusendringType.AVLYST, dialogmoteUuid, ONE_DAY_AGO)
-        val personoppgave = generatePPersonoppgave(dialogmoteUuid, HAPPENS_NOW.toLocalDateTime())
+        val statusendring = generateDialogmotestatusendring(
+            type = DialogmoteStatusendringType.AVLYST,
+            uuid = dialogmoteUuid,
+            endringTidspunkt = ONE_DAY_AGO,
+        )
+        val personoppgave = generatePPersonoppgave(
+            referanseUuid = dialogmoteUuid,
+            sistEndret = HAPPENS_NOW.toLocalDateTime(),
+        )
         every { connection.getPersonOppgaverByReferanseUuid(dialogmoteUuid) } returns listOf(personoppgave)
         justRun { connection.updatePersonoppgaveSetBehandlet(any()) }
 
