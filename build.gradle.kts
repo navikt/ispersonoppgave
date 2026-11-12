@@ -5,13 +5,13 @@ version = "1.0-SNAPSHOT"
 
 val isyfoBackendCommonVersion = "1.3.1"
 
-val confluentVersion = "8.3.0"
+val confluentVersion = "8.4.0"
 val jacksonDataTypeVersion = "2.22.4"
 val jacksonDatabindVersion = "3.2.4"
-val flywayVersion = "13.12.0"
+val flywayVersion = "13.12.1"
 val hikariVersion = "7.1.0"
 val isdialogmoteSchemaVersion = "1.0.5"
-val jsonVersion = "20260719"
+val jsonVersion = "20260814"
 val kafkaVersion = "4.4.0"
 val ktorVersion = "3.6.1"
 val logbackVersion = "1.6.6"
@@ -83,7 +83,22 @@ dependencies {
     }
     // Kafka
     implementation("org.apache.kafka:kafka_2.13:$kafkaVersion", excludeLog4j)
+    constraints {
+        implementation("at.yawk.lz4:lz4-java") {
+            version {
+                require("1.11.4")
+            }
+        }
+    }
+
     implementation("io.confluent:kafka-avro-serializer:$confluentVersion")
+    constraints {
+        implementation("com.google.guava:guava") {
+            version {
+                require("33.8.0-jre")
+            }
+        }
+    }
 
     // Tests
     testImplementation(testFixtures("no.nav.syfo:isyfo-backend-common:$isyfoBackendCommonVersion"))
