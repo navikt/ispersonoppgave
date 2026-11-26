@@ -22,7 +22,6 @@ import no.nav.syfo.infrastructure.kafka.oppgavehendelse.KPersonoppgavehendelse
 import no.nav.syfo.infrastructure.kafka.oppgavehendelse.PersonoppgavehendelseProducer
 import org.apache.kafka.clients.producer.KafkaProducer
 import org.slf4j.LoggerFactory
-import java.util.concurrent.TimeUnit
 
 data class ApplicationState(
     var alive: Boolean = true,
