@@ -22,7 +22,6 @@ import no.nav.syfo.infrastructure.kafka.oppgavehendelse.KPersonoppgavehendelse
 import no.nav.syfo.infrastructure.kafka.oppgavehendelse.PersonoppgavehendelseProducer
 import org.apache.kafka.clients.producer.KafkaProducer
 import org.slf4j.LoggerFactory
-import java.util.concurrent.TimeUnit
 
 data class ApplicationState(
     var alive: Boolean = true,
@@ -118,15 +117,11 @@ fun main() {
                     pdlClient = pdlClient,
                 )
             }
+            monitor.subscribe(ApplicationStopPreparing) {
+                applicationState.ready = false
+            }
         }
     )
-
-    Runtime.getRuntime().addShutdownHook(
-        Thread {
-            server.stop(10, 10, timeUnit = TimeUnit.SECONDS)
-        }
-    )
-
     server.start(wait = true)
 }
 

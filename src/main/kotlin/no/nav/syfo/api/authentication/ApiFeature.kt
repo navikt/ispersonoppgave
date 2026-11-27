@@ -18,6 +18,7 @@ import no.nav.syfo.common.util.consumerClientId
 import no.nav.syfo.util.*
 import java.time.Duration
 import java.util.*
+import java.util.concurrent.CancellationException
 
 fun Application.installCallId() {
     install(CallId) {
@@ -46,6 +47,11 @@ fun Application.installMetrics() {
 
 fun Application.installStatusPages() {
     install(StatusPages) {
+        // Client disconnected before the response was sent; rethrow so cancellation propagates
+        exception<CancellationException> { call, cause ->
+            call.application.log.debug("Request cancelled, callId=${call.callId}: ${cause.message}")
+            throw cause
+        }
         exception<Throwable> { call, cause ->
             val responseStatus: HttpStatusCode = when (cause) {
                 is ResponseException -> {

@@ -3,7 +3,7 @@ import com.adarshr.gradle.testlogger.theme.ThemeType
 group = "no.nav.syfo"
 version = "1.0-SNAPSHOT"
 
-val isyfoBackendCommonVersion = "1.3.1"
+val isyfoBackendCommonVersion = "1.3.3"
 
 val confluentVersion = "8.4.0"
 val jacksonDataTypeVersion = "2.22.4"
@@ -13,7 +13,7 @@ val hikariVersion = "7.1.0"
 val isdialogmoteSchemaVersion = "1.0.5"
 val jsonVersion = "20260814"
 val kafkaVersion = "4.4.0"
-val ktorVersion = "3.6.1"
+val ktorVersion = "3.6.2"
 val logbackVersion = "1.6.6"
 val logstashEncoderVersion = "9.0"
 val micrometerRegistryVersion = "1.17.2"
